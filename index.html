@@ -200,17 +200,50 @@
   }
 
   function sizeOverlay(){
+    const prevBox = overlay.viewBox?.baseVal;
+    const prevWidth = prevBox && prevBox.width ? prevBox.width : parseFloat(overlay.getAttribute('width')) || 0;
+    const prevHeight = prevBox && prevBox.height ? prevBox.height : parseFloat(overlay.getAttribute('height')) || 0;
+
+    const handles = { center, p1, p2 };
+    const saved = {};
+    const canNormX = prevWidth > 0;
+    const canNormY = prevHeight > 0;
+    Object.entries(handles).forEach(([key, el])=>{
+      const pos = getPos(el);
+      if(Number.isFinite(pos.x) && Number.isFinite(pos.y)){
+        saved[key] = {
+          x: pos.x,
+          y: pos.y,
+          rx: canNormX ? pos.x / prevWidth : null,
+          ry: canNormY ? pos.y / prevHeight : null,
+        };
+      }
+    });
+
     const r = video.getBoundingClientRect();
     overlay.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
     overlay.setAttribute('width', r.width);
     overlay.setAttribute('height', r.height);
 
-    // init positions: center middle bottom, handles left/right along bottom
-    const cx = r.width/2, cy = r.height*0.75;
-    const L = Math.min(r.width, r.height)*0.35;
-    setPos(center, cx, cy);
-    setPos(p1, cx - L, cy - L*0.02);
-    setPos(p2, cx + L, cy - L*0.02);
+    const widthForRestore = r.width > 0 ? r.width : prevWidth;
+    const heightForRestore = r.height > 0 ? r.height : prevHeight;
+    const hadValidBox = prevWidth > 0 && prevHeight > 0;
+    const havePrior = hadValidBox && Object.keys(handles).every(key => saved[key] && Number.isFinite(saved[key].x) && Number.isFinite(saved[key].y));
+    if(havePrior){
+      Object.entries(handles).forEach(([key, el])=>{
+        const data = saved[key];
+        const x = Number.isFinite(data.rx) && widthForRestore > 0 ? data.rx * widthForRestore : data.x;
+        const y = Number.isFinite(data.ry) && heightForRestore > 0 ? data.ry * heightForRestore : data.y;
+        setPos(el, x, y);
+      });
+    }else{
+      // init positions: center middle bottom, handles left/right along bottom
+      const cx = r.width/2, cy = r.height*0.75;
+      const L = Math.min(r.width, r.height)*0.35;
+      setPos(center, cx, cy);
+      setPos(p1, cx - L, cy - L*0.02);
+      setPos(p2, cx + L, cy - L*0.02);
+    }
     drawRays();
   }
 
