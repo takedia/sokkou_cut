@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>側溝の留め角・控え寸法 計算カメラ</title>
+<style>
+  /* 現場モード: 詳細(オフセットxや詳細角度)を隠す */
+  .advanced{display:none}
+  .show-advanced .advanced{display:block}
+
+  :root { --bg:#0b1020; --fg:#eef2ff; --muted:#9aa3b2; --accent:#7dd3fc; --green:#34d399; --red:#fb7185; }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;}
+  .wrap{max-width:840px;margin:0 auto;padding:12px;}
+  h1{font-size:20px;margin:10px 0 6px 0}
+  .card{background:#111830;border:1px solid #1e2a44;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:12px;margin:10px 0}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .row > * {flex:1 1 auto}
+  .controls label{font-size:12px;color:var(--muted)}
+  input[type="number"], select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a3959;background:#0d1426;color:var(--fg)}
+  button{padding:10px 14px;border-radius:12px;border:1px solid #2a3959;background:#0d1426;color:var(--fg);cursor:pointer}
+  button.primary{background:linear-gradient(135deg,#0ea5e9,#22d3ee);border:none;color:#00111a}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .videoWrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid #1e2a44}
+  video{width:100%;height:auto;background:#000}
+  svg.overlay{position:absolute;inset:0;touch-action:none}
+  .dot{fill:#fff;stroke:#000;stroke-width:1}
+  .handle{fill:#22d3ee;stroke:#0b1020;stroke-width:2;cursor:grab}
+  .handle:active{cursor:grabbing}
+  .guide{stroke:#22d3ee;stroke-width:3}
+  .guide2{stroke:#34d399;stroke-width:3}
+  .centerline{stroke-dasharray:6 6;stroke:#64748b;stroke-width:1}
+  .readout{font-size:14px;line-height:1.7}
+  .readout strong{font-size:18px}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#0d1426;border:1px solid #2a3959;color:var(--muted);font-size:12px}
+  .small{font-size:12px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media (max-width:640px){ .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>側溝の留め角・控え寸法 計算カメラ</h1>
+    <div class="card controls">
+      <div class="row">
+        <div>
+          <label>幅 W（mm）</label>
+          <input id="widthInput" type="number" inputmode="decimal" min="1" step="1" value="570"/>
+        </div>
+        <div>
+          <label>測定モード</label>
+          <select id="mode">
+            <option value="measure">カメラで角度を測る（推奨）</option>
+            <option value="manual">角度を手入力</option>
+          </select>
+        </div>
+      </div>
+      <div id="manualAngleWrap" class="row" style="display:none">
+        <div>
+          <label>折れ後の内角 φ（度）※例：135</label>
+          <input id="manualAngle" type="number" inputmode="decimal" step="0.1" value="135"/>
+        </div>
+        <div style="align-self:flex-end"><button id="applyAngle" class="primary">適用</button></div>
+      </div>
+      <div class="row">
+        <label style="display:flex;align-items:center;gap:8px"><input id="simpleMode" type="checkbox" checked> 現場モード（控えだけ表示）</label>
+      </div>
+      <div class="small">※ φ＝2本のガイド線の<strong>なす角（内角）</strong>。<br>Δ＝180−φ（直線からの折れ角）。
+      </div>
+    </div>
+
+    <div class="card videoWrap">
+      <video id="video" playsinline autoplay muted></video>
+      <svg id="overlay" class="overlay" xmlns="http://www.w3.org/2000/svg">
+        <!-- 中心点＆補助線 -->
+        <line id="midline" class="centerline" x1="0" y1="0" x2="0" y2="0"/>
+        <!-- 2本の測定ガイド -->
+        <line id="ray1" class="guide" x1="0" y1="0" x2="0" y2="0"/>
+        <line id="ray2" class="guide2" x1="0" y1="0" x2="0" y2="0"/>
+        <!-- ドラッグ用ハンドル -->
+        <circle id="center" class="dot" r="8"/>
+        <circle id="p1" class="handle" r="12"/>
+        <circle id="p2" class="handle" r="12"/>
+      </svg>
+    </div>
+
+    <div class="card readout" id="readout">
+      <div class="grid">
+        <div>
+          <div><span class="pill">測定 φ（内角）</span><br><strong id="phi">—</strong> °</div>
+          <div>直線からの折れ角 Δ = 180 − φ = <strong id="delta">—</strong> °</div>
+          <div>各製品の留め角（垂直から） Δ/2 = <strong id="miterHalf">—</strong> °</div>
+        </div>
+        <div>
+          <div class="advanced"><span class="pill">切断ラインの角度（詳細）</span><br>
+            水平から：<strong id="angleFromH">—</strong> °（＝90 − Δ/2）<br>
+            垂直から：<strong id="angleFromV">—</strong> °（＝Δ/2）
+          </div>
+          <div class="small">※ 現場の丸ノコガイド等、基準に合わせて使いやすい方を使用</div>
+        </div>
+      </div>
+      <hr style="border-color:#1e2a44">
+      <div class="grid">
+        <div>
+          <div><span class="pill">控え寸法 s（上端から垂直に下げる距離）</span><br>
+            s = W·tan(Δ/2) = <strong id="sOut">—</strong>
+          </div>
+        </div>
+        <div>
+          <div class="advanced"><span class="pill">端部オフセット x（片側）</span><br>
+            x = (W/2)·tan(Δ/2) = <strong id="xOut">—</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="startCam" class="primary">カメラ開始</button>
+      <button id="stopCam">停止</button>
+      <button id="preset135">φ=135°（例）をセット</button>
+    </div>
+
+    <div class="card small">
+      <details>
+        <summary>使い方（タップして開く）</summary>
+        <ol>
+          <li>「カメラ開始」を押す（許可を求められたら許可）。</li>
+          <li>画面上の<strong>白い中心点</strong>を曲がり頂点に合わせる。</li>
+          <li><strong>水色と緑のハンドル</strong>をドラッグして、2本のガイド線をそれぞれの直線方向に合わせる。</li>
+          <li>上段の表示で内角 φ が出ます。φ=135°なら、Δ=45°、留め角22.5°、控え s とオフセット x が計算されます。</li>
+          <li>幅 W を変更すると、 s と x が即時更新されます。</li>
+        </ol>
+        <p>※ 角度を手入力したい場合は「測定モード」で「角度を手入力」を選び、φ を直接入力して「適用」。</p>
+        <p>式：Δ = 180 − φ、 s = W·tan(Δ/2)、 x = (W/2)·tan(Δ/2)。</p>
+      </details>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const $ = s=>document.querySelector(s);
+  const video = $('#video');
+  const overlay = $('#overlay');
+  const center = $('#center');
+  const p1 = $('#p1');
+  const p2 = $('#p2');
+  const ray1 = $('#ray1');
+  const ray2 = $('#ray2');
+  const midline = $('#midline');
+  const widthInput = $('#widthInput');
+  const phiOut = $('#phi');
+  const deltaOut = $('#delta');
+  const miterHalfOut = $('#miterHalf');
+  const angleFromHOut = $('#angleFromH');
+  const angleFromVOut = $('#angleFromV');
+  const sOut = $('#sOut');
+  const xOut = $('#xOut');
+  const modeSel = $('#mode');
+  const manualAngleWrap = $('#manualAngleWrap');
+  const manualAngle = $('#manualAngle');
+  const applyAngle = $('#applyAngle');
+  const startBtn = $('#startCam');
+  const stopBtn = $('#stopCam');
+  const preset135 = $('#preset135');
+
+  let stream = null;
+  let W = 570; // mm
+  let phi = 135; // measured included angle
+
+  function fmtMM(v){
+    if(!isFinite(v)) return '—';
+    const mm = v;
+    if (Math.abs(mm) >= 1000) return (mm/1000).toFixed(3)+' m';
+    return mm.toFixed(1)+' mm';
+  }
+
+  function recompute(){
+    W = parseFloat(widthInput.value) || 0;
+    // clamp phi to (1..179)
+    phi = Math.max(1, Math.min(179, phi));
+    const delta = 180 - phi;                    // 折れ角
+    const half = delta/2;                       // 各片側の留め角（垂直基準）
+    const rad = half * Math.PI/180;
+    const s = W * Math.tan(rad);                // 控え寸法
+    const x = (W/2) * Math.tan(rad);            // 片側オフセット
+    const angleFromV = half;                    // 垂直から
+    const angleFromH = 90 - half;               // 水平から
+
+    phiOut.textContent = phi.toFixed(1);
+    deltaOut.textContent = delta.toFixed(1);
+    miterHalfOut.textContent = half.toFixed(2);
+    angleFromHOut.textContent = angleFromH.toFixed(2);
+    angleFromVOut.textContent = angleFromV.toFixed(2);
+    sOut.innerHTML = fmtMM(s);
+    xOut.innerHTML = fmtMM(x);
+  }
+
+  function sizeOverlay(){
+    const r = video.getBoundingClientRect();
+    overlay.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
+    overlay.setAttribute('width', r.width);
+    overlay.setAttribute('height', r.height);
+
+    // init positions: center middle bottom, handles left/right along bottom
+    const cx = r.width/2, cy = r.height*0.75;
+    const L = Math.min(r.width, r.height)*0.35;
+    setPos(center, cx, cy);
+    setPos(p1, cx - L, cy - L*0.02);
+    setPos(p2, cx + L, cy - L*0.02);
+    drawRays();
+  }
+
+  function getPos(el){
+    return { x: parseFloat(el.getAttribute('cx')), y: parseFloat(el.getAttribute('cy')) };
+  }
+  function setPos(el,x,y){ el.setAttribute('cx', x); el.setAttribute('cy', y); }
+
+  function drawRays(){
+    const c = getPos(center);
+    const a = getPos(p1);
+    const b = getPos(p2);
+    ray1.setAttribute('x1', c.x); ray1.setAttribute('y1', c.y);
+    ray1.setAttribute('x2', a.x); ray1.setAttribute('y2', a.y);
+    ray2.setAttribute('x1', c.x); ray2.setAttribute('y1', c.y);
+    ray2.setAttribute('x2', b.x); ray2.setAttribute('y2', b.y);
+    midline.setAttribute('x1', c.x); midline.setAttribute('y1', 0);
+    midline.setAttribute('x2', c.x); midline.setAttribute('y2', overlay.viewBox.baseVal.height);
+    // angle
+    const v1 = { x:a.x - c.x, y:a.y - c.y };
+    const v2 = { x:b.x - c.x, y:b.y - c.y };
+    const n1 = Math.hypot(v1.x, v1.y), n2 = Math.hypot(v2.x, v2.y);
+    if(n1>0 && n2>0){
+      const dot = (v1.x*v2.x + v1.y*v2.y)/(n1*n2);
+      const clamped = Math.max(-1, Math.min(1, dot));
+      const ang = Math.acos(clamped) * 180/Math.PI; // included angle φ
+      phi = ang;
+      recompute();
+    }
+  }
+
+  function dragHandle(el){
+    let dragging = false;
+    let offX=0, offY=0;
+    const onDown = (e)=>{
+      dragging = true;
+      el.style.filter = 'drop-shadow(0 0 8px rgba(0,0,0,.6))';
+    };
+    const onMove = (e)=>{
+      if(!dragging) return;
+      const pt = overlay.createSVGPoint();
+      if(e.touches && e.touches[0]){ pt.x = e.touches[0].clientX; pt.y = e.touches[0].clientY; }
+      else { pt.x = e.clientX; pt.y = e.clientY; }
+      const ctm = overlay.getScreenCTM().inverse();
+      const p = pt.matrixTransform(ctm);
+      setPos(el, p.x, p.y);
+      drawRays();
+      e.preventDefault();
+    };
+    const onUp = ()=>{ dragging=false; el.style.filter=''; };
+    el.addEventListener('mousedown', onDown);
+    el.addEventListener('touchstart', onDown, {passive:true});
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
+  }
+
+  async function startCamera(){
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }, audio:false });
+      video.srcObject = stream;
+      await video.play();
+      sizeOverlay();
+      window.addEventListener('resize', sizeOverlay);
+      startBtn.disabled = true; stopBtn.disabled = false;
+    }catch(err){
+      alert('カメラを開始できませんでした: '+err);
+    }
+  }
+  function stopCamera(){
+    if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+    video.srcObject = null; startBtn.disabled = false; stopBtn.disabled = true;
+  }
+
+  widthInput.addEventListener('input', recompute);
+  modeSel.addEventListener('change', ()=>{
+    const manual = modeSel.value==='manual';
+    manualAngleWrap.style.display = manual ? '' : 'none';
+  });
+  applyAngle.addEventListener('click', ()=>{
+    phi = parseFloat(manualAngle.value)||135;
+    recompute();
+  });
+  startBtn.addEventListener('click', startCamera);
+  stopBtn.addEventListener('click', stopCamera);
+  preset135.addEventListener('click', ()=>{ phi = 135; recompute(); });
+
+  dragHandle(center); dragHandle(p1); dragHandle(p2);
+  recompute();
+})();
+  // 現場モード切替
+  const simpleMode = document.getElementById('simpleMode');
+  function applyMode(){
+    document.body.classList.toggle('show-advanced', !simpleMode.checked);
+  }
+  simpleMode?.addEventListener('change', applyMode);
+  applyMode();
+</script>
+</body>
+</html>
