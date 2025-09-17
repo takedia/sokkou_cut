@@ -19,6 +19,7 @@
   .controls label{font-size:12px;color:var(--muted)}
   input[type="number"], select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a3959;background:#0d1426;color:var(--fg)}
   button{padding:10px 14px;border-radius:12px;border:1px solid #2a3959;background:#0d1426;color:var(--fg);cursor:pointer}
+  .statusBox{padding:10px 14px;border-radius:12px;border:1px solid #2a3959;background:#0d1426;color:var(--muted);text-align:center;cursor:default}
   button.primary{background:linear-gradient(135deg,#0ea5e9,#22d3ee);border:none;color:#00111a}
   button:disabled{opacity:.5;cursor:not-allowed}
   .videoWrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid #1e2a44}
@@ -117,7 +118,7 @@
     <div class="row">
       <button id="startCam" class="primary">カメラ開始</button>
       <button id="stopCam">停止</button>
-      <button id="preset135">φ=135°（例）をセット</button>
+      <div id="angleDisplay" class="statusBox">現在の角度 φ=—°</div>
     </div>
 
     <div class="card small">
@@ -161,7 +162,7 @@
   const applyAngle = $('#applyAngle');
   const startBtn = $('#startCam');
   const stopBtn = $('#stopCam');
-  const preset135 = $('#preset135');
+  const angleDisplay = $('#angleDisplay');
 
   let stream = null;
   let W = 570; // mm
@@ -193,6 +194,9 @@
     angleFromVOut.textContent = angleFromV.toFixed(2);
     sOut.innerHTML = fmtMM(s);
     xOut.innerHTML = fmtMM(x);
+    if(angleDisplay){
+      angleDisplay.textContent = `現在の角度 φ=${phi.toFixed(1)}°`;
+    }
   }
 
   function sizeOverlay(){
@@ -293,8 +297,6 @@
   });
   startBtn.addEventListener('click', startCamera);
   stopBtn.addEventListener('click', stopCamera);
-  preset135.addEventListener('click', ()=>{ phi = 135; recompute(); });
-
   dragHandle(center); dragHandle(p1); dragHandle(p2);
   recompute();
 })();
