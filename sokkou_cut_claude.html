@@ -1070,24 +1070,70 @@
 
         // キャンバスイベント設定
         function setupCanvasEvents() {
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
+            console.log('🎯 キャンバスイベント設定開始');
+            
+            // 既存のイベントリスナーを削除
+            canvas.removeEventListener('mousedown', startDrawing);
+            canvas.removeEventListener('mousemove', draw);
+            canvas.removeEventListener('mouseup', stopDrawing);
+            canvas.removeEventListener('touchstart', handleTouch);
+            canvas.removeEventListener('touchmove', handleTouch);
+            canvas.removeEventListener('touchend', handleTouch);
+            
+            // マウスイベント
+            canvas.addEventListener('mousedown', startDrawing, { passive: false });
+            canvas.addEventListener('mousemove', draw, { passive: false });
+            canvas.addEventListener('mouseup', stopDrawing, { passive: false });
+            canvas.addEventListener('mouseleave', stopDrawing, { passive: false });
             
             // タッチイベント
-            canvas.addEventListener('touchstart', handleTouch);
-            canvas.addEventListener('touchmove', handleTouch);
-            canvas.addEventListener('touchend', handleTouch);
+            canvas.addEventListener('touchstart', handleTouch, { passive: false });
+            canvas.addEventListener('touchmove', handleTouch, { passive: false });
+            canvas.addEventListener('touchend', handleTouch, { passive: false });
+            canvas.addEventListener('touchcancel', handleTouch, { passive: false });
+            
+            console.log('✅ キャンバスイベント設定完了');
         }
 
         function handleTouch(e) {
             e.preventDefault();
+            console.log('👆 タッチイベント:', e.type);
+            
             const touch = e.touches[0] || e.changedTouches[0];
+            if (!touch) return;
+            
+            const rect = canvas.getBoundingClientRect();
             const mouseEvent = new MouseEvent(e.type.replace('touch', 'mouse'), {
                 clientX: touch.clientX,
-                clientY: touch.clientY
+                clientY: touch.clientY,
+                bubbles: true
             });
-            canvas.dispatchEvent(mouseEvent);
+            
+            // タッチイベントをマウスイベントに変換
+            switch(e.type) {
+                case 'touchstart':
+                    canvas.dispatchEvent(new MouseEvent('mousedown', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        bubbles: true
+                    }));
+                    break;
+                case 'touchmove':
+                    canvas.dispatchEvent(new MouseEvent('mousemove', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        bubbles: true
+                    }));
+                    break;
+                case 'touchend':
+                case 'touchcancel':
+                    canvas.dispatchEvent(new MouseEvent('mouseup', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        bubbles: true
+                    }));
+                    break;
+            }
         }
 
         function getMousePos(e) {
@@ -1095,32 +1141,45 @@
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             
-            return {
+            const pos = {
                 x: (e.clientX - rect.left) * scaleX,
                 y: (e.clientY - rect.top) * scaleY
             };
+            
+            console.log('📍 マウス位置:', pos, 'Canvas:', canvas.width + 'x' + canvas.height, 'Rect:', rect.width + 'x' + rect.height);
+            return pos;
         }
 
         function startDrawing(e) {
-            console.log('🖱️ 描画開始');
+            e.preventDefault();
+            console.log('🖱️ 描画開始 - イベント:', e.type);
             isDrawing = true;
             const pos = getMousePos(e);
             currentLine = { start: pos, end: pos };
-            console.log('開始位置:', pos);
+            console.log('✏️ 開始位置:', pos);
+            
+            // 即座にテスト用の点を描画
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
         }
 
         function draw(e) {
             if (!isDrawing) return;
+            e.preventDefault();
             
             const pos = getMousePos(e);
             currentLine.end = pos;
             
-            // 即座に再描画
+            console.log('✏️ 描画中:', pos);
+            
+            // 背景画像を保持して線を描画
             redrawCanvas();
             
-            // 現在描画中の線を表示
+            // 現在描画中の線を表示（太い金色）
             ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 6;
             ctx.lineCap = 'round';
             ctx.beginPath();
             ctx.moveTo(currentLine.start.x, currentLine.start.y);
@@ -1130,20 +1189,29 @@
 
         function stopDrawing(e) {
             if (!isDrawing) return;
-            console.log('🖱️ 描画終了');
+            e.preventDefault();
+            console.log('🖱️ 描画終了 - イベント:', e.type);
             isDrawing = false;
             
             if (currentLine) {
                 lines.push({...currentLine});
                 currentLine = null;
                 
-                console.log('線を追加。現在の線数:', lines.length);
+                console.log('📏 線を追加。現在の線数:', lines.length);
+                console.log('📏 追加した線:', lines[lines.length - 1]);
                 
                 if (lines.length >= 2) {
                     calculateAngle();
                 }
                 
                 redrawCanvas();
+                
+                // ステータス更新
+                if (lines.length === 1) {
+                    showStatus('📏 1本目の線を描画しました。もう1本描いてください。', 'success');
+                } else if (lines.length === 2) {
+                    showStatus('📏 2本の線を描画しました。角度を計算中...', 'success');
+                }
             }
         }
 
