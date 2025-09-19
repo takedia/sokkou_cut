@@ -264,6 +264,7 @@
             background: rgba(0, 0, 0, 0.3);
             cursor: crosshair;
             border: 2px solid rgba(255, 255, 255, 0.2);
+            display: block;
         }
         
         .angle-display {
@@ -340,7 +341,7 @@
 <body>
     <div class="container">
         <h1>🔧 側溝切断角度計算アプリ</h1>
-        <div class="version">Version 2.1.0 - Real-time Guide Edition</div>
+        <div class="version">Version 2.2.0 - Enhanced Camera Edition</div>
         
         <div class="instructions">
             <strong>使い方：</strong><br>
@@ -419,7 +420,7 @@
             <div class="canvas-container">
                 <canvas id="canvas"></canvas>
                 <div style="text-align: center; margin-top: 10px; font-size: 12px; opacity: 0.8;">
-                    写真上で2本の線をドラッグして角度を測定
+                    <span id="canvasInstruction">撮影後、写真上で2本の線をドラッグして角度を測定</span>
                 </div>
             </div>
             
@@ -481,8 +482,8 @@
 
     <script>
         // グローバル変数
-        const APP_VERSION = "2.1.0";
-        const VERSION_NAME = "Real-time Guide Edition";
+        const APP_VERSION = "2.2.0";
+        const VERSION_NAME = "Enhanced Camera Edition";
         const BUILD_DATE = "2024-12-19";
         
         let video, canvas, ctx, protractorCanvas, protractorCtx, angleGuideCanvas, angleGuideCtx;
@@ -738,21 +739,29 @@
         function capturePhoto() {
             console.log('📸 写真撮影');
             
-            canvas.width = video.videoWidth || canvas.offsetWidth;
-            canvas.height = video.videoHeight || canvas.offsetHeight;
+            // キャンバスのサイズをビデオに合わせる
+            const videoRect = video.getBoundingClientRect();
+            canvas.width = video.videoWidth || videoRect.width;
+            canvas.height = video.videoHeight || videoRect.height;
             
+            // ビデオフレームをキャンバスに描画
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
+            // ビデオとオーバーレイを非表示
             video.style.display = 'none';
             protractorCanvas.style.display = 'none';
             angleGuideCanvas.style.display = 'none';
             document.getElementById('angleControl').style.display = 'none';
             
+            // 測定用キャンバスを表示
+            canvas.style.display = 'block';
+            
+            // 線描画の準備
             lines = [];
             drawCanvas();
             document.getElementById('resetBtn').disabled = false;
             
-            showStatus('📸 写真を撮影しました。線を2本描いて角度を測定してください。', 'success');
+            showStatus('📸 写真を撮影しました。下のキャンバスで線を2本描いて角度を測定してください。', 'success');
         }
 
         function stopCamera() {
@@ -1165,8 +1174,19 @@
             measuredAngle = 0;
             document.getElementById('measuredAngle').textContent = '---°';
             
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawCanvas();
+            // キャンバス表示の場合は撮影した画像を保持
+            if (canvas.style.display === 'block') {
+                // 線だけを削除して画像は保持
+                drawCanvas();
+                
+                // 説明文をリセット
+                document.getElementById('canvasInstruction').textContent = '👆 この写真上で線を2本描いて角度を測定してください';
+                document.getElementById('canvasInstruction').style.color = '#4CAF50';
+            } else {
+                // 通常のリセット
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawCanvas();
+            }
             
             showStatus('🔄 線をリセットしました', 'info');
         }
@@ -1190,11 +1210,15 @@
             const len1 = Math.sqrt(vector1.x * vector1.x + vector1.y * vector1.y);
             const len2 = Math.sqrt(vector2.x * vector2.x + vector2.y * vector2.y);
             
-            const angleRad = Math.acos(dot / (len1 * len2));
+            const angleRad = Math.acos(Math.max(-1, Math.min(1, dot / (len1 * len2))));
             const angleDeg = (angleRad * 180) / Math.PI;
             
             measuredAngle = Math.round(angleDeg * 10) / 10;
             document.getElementById('measuredAngle').textContent = measuredAngle + '°';
+            
+            // 説明文を更新
+            document.getElementById('canvasInstruction').textContent = `✅ 角度測定完了: ${measuredAngle}° - 下のボタンで計算実行`;
+            document.getElementById('canvasInstruction').style.color = '#FFD700';
             
             showStatus(`📐 角度測定完了: ${measuredAngle}°`, 'success');
         }
@@ -1236,17 +1260,38 @@
                 features: [
                     "リアルタイム角度ガイド",
                     "切断長さ即時計算",
+                    "改良されたカメラ撮影機能",
+                    "動的説明文表示",
+                    "視覚的フィードバック強化",
                     "分度器オーバーレイ",
-                    "カメラ撮影機能",
                     "画像アップロード対応",
                     "タッチ操作対応"
                 ],
+                changelog: {
+                    "2.2.0": [
+                        "カメラ撮影後のキャンバス表示を修正",
+                        "動的な説明文更新機能を追加",
+                        "視覚的フィードバックを強化",
+                        "リセット機能を改善"
+                    ],
+                    "2.1.0": [
+                        "リアルタイム切断長さ表示を追加",
+                        "角度調整スライダーを追加",
+                        "角度ガイドオーバーレイ機能を追加"
+                    ],
+                    "2.0.0": [
+                        "カメラ機能を追加",
+                        "分度器オーバーレイを追加",
+                        "画像アップロード機能を追加"
+                    ]
+                },
                 author: "Pipe Angle Calculator Team",
                 license: "MIT License"
             };
             
             console.table(versionInfo.features);
             console.log("📋 Version Info:", versionInfo);
+            console.log("🔄 Changelog:", versionInfo.changelog);
             
             return versionInfo;
         }
