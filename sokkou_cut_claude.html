@@ -529,43 +529,62 @@
 
         // 写真撮影機能
         function capturePhoto() {
-            console.log('📸 写真撮影');
+            console.log('📸 写真撮影開始');
             
-            // キャンバスを作成して写真をキャプチャ
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            
-            // ビデオフレームをキャンバスに描画
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // キャンバスから画像データを取得
-            const imageDataURL = canvas.toDataURL('image/jpeg', 0.8);
-            
-            // 撮影した画像を表示
-            capturedImage.src = imageDataURL;
-            capturedImage.style.display = 'block';
-            
-            // ビデオを非表示
-            video.style.display = 'none';
-            
-            // 角度ガイドを表示
-            angleGuideCanvas.style.display = 'block';
-            document.getElementById('angleControl').style.display = 'block';
-            
-            // キャンバスサイズを画像に合わせて調整
-            resizeAngleGuideCanvas();
-            drawAngleGuide();
-            
-            // ボタン状態を更新
-            document.getElementById('captureBtn').disabled = true;
-            document.getElementById('useGuideAngleBtn').disabled = false;
-            
-            isCaptured = true;
-            
-            showStatus('📸 撮影完了！スライダーで角度を調整して、緑の線を合わせてください', 'success');
+            try {
+                // キャンバスを作成して写真をキャプチャ
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                
+                console.log('📐 撮影サイズ:', canvas.width + 'x' + canvas.height);
+                
+                // ビデオフレームをキャンバスに描画
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // キャンバスから画像データを取得
+                const imageDataURL = canvas.toDataURL('image/jpeg', 0.8);
+                
+                console.log('📸 画像データURL生成完了');
+                
+                // 撮影した画像を表示
+                capturedImage.src = imageDataURL;
+                capturedImage.style.display = 'block';
+                capturedImage.onload = function() {
+                    console.log('📷 画像読み込み完了');
+                    
+                    // 角度ガイドを表示
+                    angleGuideCanvas.style.display = 'block';
+                    document.getElementById('angleControl').style.display = 'block';
+                    
+                    // キャンバスサイズを画像に合わせて調整
+                    setTimeout(() => {
+                        resizeAngleGuideCanvas();
+                        drawAngleGuide();
+                        console.log('📐 角度ガイド描画完了');
+                    }, 100);
+                };
+                
+                // ビデオを非表示
+                video.style.display = 'none';
+                
+                // ボタン状態を更新
+                document.getElementById('captureBtn').disabled = true;
+                document.getElementById('useGuideAngleBtn').disabled = false;
+                
+                isCaptured = true;
+                
+                // 画像は一時的なメモリ内データURLとして保存（ブラウザ終了時に自動削除）
+                console.log('💾 画像は一時的なメモリ内データとして保存（永続保存されません）');
+                
+                showStatus('📸 撮影完了！下のスライダーで角度を調整してください', 'success');
+                
+            } catch (error) {
+                console.error('📸 撮影エラー:', error);
+                showStatus('❌ 撮影に失敗しました: ' + error.message, 'error');
+            }
         }
 
         function stopCamera() {
@@ -582,6 +601,16 @@
             angleGuideCanvas.style.display = 'none';
             document.getElementById('angleControl').style.display = 'none';
             
+            // 撮影画像のメモリを解放
+            if (capturedImage.src) {
+                console.log('🗑️ 撮影画像のメモリを解放');
+                capturedImage.src = '';
+                // ガベージコレクションを促す
+                if (window.gc) {
+                    window.gc();
+                }
+            }
+            
             // ボタン状態をリセット
             document.getElementById('captureBtn').disabled = true;
             document.getElementById('stopBtn').disabled = true;
@@ -589,25 +618,32 @@
             
             isCaptured = false;
             
-            showStatus('⏹️ カメラを停止しました', 'info');
+            showStatus('⏹️ カメラを停止しました（画像メモリも解放）', 'info');
         }
 
         // 角度ガイドを描画
         function drawAngleGuide() {
+            console.log('🎨 角度ガイド描画開始');
+            
             const centerX = angleGuideCanvas.width / 2;
             const centerY = angleGuideCanvas.height / 2;
             const radius = Math.min(centerX, centerY) * 0.6;
             
+            console.log('📐 描画パラメータ - 中心:', centerX + ',' + centerY, '半径:', radius);
+            
+            // キャンバスをクリア
             angleGuideCtx.clearRect(0, 0, angleGuideCanvas.width, angleGuideCanvas.height);
             
             // 目標角度のラインを描画
             const startAngle = (180 - targetAngle) / 2;
             const endAngle = startAngle + targetAngle;
             
-            // 角度の線（太い線）
+            // 角度の線（太い緑線）
             angleGuideCtx.strokeStyle = 'rgba(76, 175, 80, 0.9)';
             angleGuideCtx.lineWidth = 4;
             angleGuideCtx.lineCap = 'round';
+            angleGuideCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            angleGuideCtx.shadowBlur = 2;
             
             // 左の線
             const leftRadian = (startAngle * Math.PI) / 180;
@@ -636,26 +672,36 @@
             angleGuideCtx.arc(centerX, centerY, radius * 0.7, leftRadian, rightRadian);
             angleGuideCtx.stroke();
             
+            // 影をリセット
+            angleGuideCtx.shadowBlur = 0;
+            
             // 中心点
             angleGuideCtx.fillStyle = 'rgba(76, 175, 80, 0.9)';
             angleGuideCtx.beginPath();
             angleGuideCtx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
             angleGuideCtx.fill();
             
-            // 角度ラベル
-            angleGuideCtx.fillStyle = 'rgba(76, 175, 80, 0.9)';
+            // 角度ラベル（背景付き）
+            angleGuideCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            angleGuideCtx.fillRect(centerX - 25, centerY - radius * 0.9, 50, 20);
+            angleGuideCtx.fillStyle = 'rgba(255, 255, 255, 1)';
             angleGuideCtx.font = 'bold 16px Arial';
             angleGuideCtx.textAlign = 'center';
             angleGuideCtx.fillText(targetAngle + '°', centerX, centerY - radius * 0.8);
             
-            // 使用説明
-            angleGuideCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            // 使用説明（背景付き）
+            const instructionY = angleGuideCanvas.height - 30;
+            angleGuideCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            angleGuideCtx.fillRect(0, instructionY - 10, angleGuideCanvas.width, 30);
+            angleGuideCtx.fillStyle = 'rgba(255, 255, 255, 1)';
             angleGuideCtx.font = '12px Arial';
             if (isCaptured) {
-                angleGuideCtx.fillText('スライダーで角度調整', centerX, angleGuideCanvas.height - 20);
+                angleGuideCtx.fillText('スライダーで角度調整してください', centerX, instructionY + 5);
             } else {
-                angleGuideCtx.fillText('📸撮影ボタンで静止画キャプチャ', centerX, angleGuideCanvas.height - 20);
+                angleGuideCtx.fillText('📸撮影ボタンで静止画キャプチャ', centerX, instructionY + 5);
             }
+            
+            console.log('✅ 角度ガイド描画完了');
         }
 
         // 目標角度の更新
@@ -694,15 +740,25 @@
         // 角度ガイドキャンバスのサイズ調整
         function resizeAngleGuideCanvas() {
             let rect;
-            if (isCaptured) {
+            console.log('📐 キャンバスサイズ調整開始');
+            
+            if (isCaptured && capturedImage.style.display === 'block') {
                 // 撮影後は画像サイズに合わせる
                 rect = capturedImage.getBoundingClientRect();
+                console.log('📷 撮影画像サイズ:', rect.width + 'x' + rect.height);
             } else {
                 // ライブビュー時はビデオサイズに合わせる
                 rect = video.getBoundingClientRect();
+                console.log('📹 ビデオサイズ:', rect.width + 'x' + rect.height);
             }
-            angleGuideCanvas.width = rect.width;
-            angleGuideCanvas.height = rect.height;
+            
+            // キャンバスサイズを設定
+            angleGuideCanvas.width = rect.width || 400;
+            angleGuideCanvas.height = rect.height || 200;
+            
+            console.log('📐 角度ガイドキャンバスサイズ:', angleGuideCanvas.width + 'x' + angleGuideCanvas.height);
+            
+            // 描画を実行
             drawAngleGuide();
         }
 
