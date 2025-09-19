@@ -27,9 +27,17 @@
         
         h1 {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             font-size: 24px;
             font-weight: 300;
+        }
+        
+        .version {
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+            font-style: italic;
         }
         
         .instructions {
@@ -332,12 +340,16 @@
 <body>
     <div class="container">
         <h1>🔧 側溝切断角度計算アプリ</h1>
+        <div class="version">Version 2.1.0 - Real-time Guide Edition</div>
         
         <div class="instructions">
             <strong>使い方：</strong><br>
             📐 <strong>直接入力</strong>：角度と幅を入力するだけ<br>
             📷 <strong>カメラ測定</strong>：撮影して角度を測定<br>
-            📁 <strong>画像測定</strong>：既存の写真で角度を測定
+            📁 <strong>画像測定</strong>：既存の写真で角度を測定<br><br>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 10px;">
+                💡 スライダーで角度を調整すると、リアルタイムで切断長さが表示されます
+            </div>
         </div>
         
         <!-- モード切り替えタブ -->
@@ -469,6 +481,10 @@
 
     <script>
         // グローバル変数
+        const APP_VERSION = "2.1.0";
+        const VERSION_NAME = "Real-time Guide Edition";
+        const BUILD_DATE = "2024-12-19";
+        
         let video, canvas, ctx, protractorCanvas, protractorCtx, angleGuideCanvas, angleGuideCtx;
         let stream = null;
         let isDrawing = false;
@@ -481,7 +497,8 @@
 
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 アプリが読み込まれました！');
+            console.log(`🚀 側溝切断角度計算アプリ v${APP_VERSION} (${VERSION_NAME}) が読み込まれました！`);
+            console.log(`📅 Build Date: ${BUILD_DATE}`);
             
             // 要素の取得
             video = document.getElementById('video');
@@ -1209,6 +1226,33 @@
         function hideResult() {
             document.getElementById('result').style.display = 'none';
         }
+
+        // バージョン情報を表示（開発者用）
+        function showVersionInfo() {
+            const versionInfo = {
+                version: APP_VERSION,
+                name: VERSION_NAME,
+                buildDate: BUILD_DATE,
+                features: [
+                    "リアルタイム角度ガイド",
+                    "切断長さ即時計算",
+                    "分度器オーバーレイ",
+                    "カメラ撮影機能",
+                    "画像アップロード対応",
+                    "タッチ操作対応"
+                ],
+                author: "Pipe Angle Calculator Team",
+                license: "MIT License"
+            };
+            
+            console.table(versionInfo.features);
+            console.log("📋 Version Info:", versionInfo);
+            
+            return versionInfo;
+        }
+
+        // グローバル関数として公開（デバッグ用）
+        window.showVersionInfo = showVersionInfo;
     </script>
 </body>
 </html>
