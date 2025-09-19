@@ -420,7 +420,10 @@
             <div class="canvas-container">
                 <canvas id="canvas"></canvas>
                 <div style="text-align: center; margin-top: 10px; font-size: 12px; opacity: 0.8;">
-                    <span id="canvasInstruction">撮影後、写真上で2本の線をドラッグして角度を測定</span>
+                    <span id="canvasInstruction">撮影後、写真上で2本の線をドラッグして角度を測定</span><br>
+                    <span style="font-size: 11px; color: rgba(255,255,255,0.6);">
+                        1本目: 赤色、2本目: 青色で表示されます
+                    </span>
                 </div>
             </div>
             
@@ -1099,9 +1102,11 @@
         }
 
         function startDrawing(e) {
+            console.log('🖱️ 描画開始');
             isDrawing = true;
             const pos = getMousePos(e);
             currentLine = { start: pos, end: pos };
+            console.log('開始位置:', pos);
         }
 
         function draw(e) {
@@ -1109,44 +1114,68 @@
             
             const pos = getMousePos(e);
             currentLine.end = pos;
-            drawCanvas();
+            
+            // 即座に再描画
+            redrawCanvas();
+            
+            // 現在描画中の線を表示
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(currentLine.start.x, currentLine.start.y);
+            ctx.lineTo(currentLine.end.x, currentLine.end.y);
+            ctx.stroke();
         }
 
         function stopDrawing(e) {
             if (!isDrawing) return;
+            console.log('🖱️ 描画終了');
             isDrawing = false;
             
             if (currentLine) {
                 lines.push({...currentLine});
                 currentLine = null;
                 
+                console.log('線を追加。現在の線数:', lines.length);
+                
                 if (lines.length >= 2) {
                     calculateAngle();
                 }
                 
-                drawCanvas();
+                redrawCanvas();
             }
         }
 
         function drawCanvas() {
-            ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
+            redrawCanvas();
+        }
+        
+        // 背景画像と線を再描画
+        function redrawCanvas() {
+            // 背景画像は保持される（capturePhoto で描画済み）
             
-            lines.forEach(line => {
+            // 保存された線を描画
+            lines.forEach((line, index) => {
+                ctx.strokeStyle = index === 0 ? '#FF5722' : '#2196F3'; // 1本目は赤、2本目は青
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
                 ctx.beginPath();
                 ctx.moveTo(line.start.x, line.start.y);
                 ctx.lineTo(line.end.x, line.end.y);
                 ctx.stroke();
+                
+                // 線の端点を描画
+                ctx.fillStyle = ctx.strokeStyle;
+                ctx.beginPath();
+                ctx.arc(line.start.x, line.start.y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(line.end.x, line.end.y, 6, 0, 2 * Math.PI);
+                ctx.fill();
             });
             
-            if (currentLine) {
-                ctx.beginPath();
-                ctx.moveTo(currentLine.start.x, currentLine.start.y);
-                ctx.lineTo(currentLine.end.x, currentLine.end.y);
-                ctx.stroke();
-            }
-            
+            // リセットボタンを描画（線がある場合）
             if (lines.length > 0) {
                 drawResetButton();
             }
@@ -1174,10 +1203,24 @@
             measuredAngle = 0;
             document.getElementById('measuredAngle').textContent = '---°';
             
-            // キャンバス表示の場合は撮影した画像を保持
+            // 撮影画像を再描画（背景画像を復元）
             if (canvas.style.display === 'block') {
-                // 線だけを削除して画像は保持
-                drawCanvas();
+                // 背景画像は既にキャンバスに描画されているので、線だけをクリア
+                console.log('🔄 線をリセット（背景画像は保持）');
+                
+                // 画像データを一時保存
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                
+                // キャンバスをクリア
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 背景画像を復元（ビデオから再描画）
+                if (video.videoWidth > 0) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                } else {
+                    // ビデオが利用できない場合は保存された画像データを使用
+                    ctx.putImageData(imageData, 0, 0);
+                }
                 
                 // 説明文をリセット
                 document.getElementById('canvasInstruction').textContent = '👆 この写真上で線を2本描いて角度を測定してください';
@@ -1185,7 +1228,7 @@
             } else {
                 // 通常のリセット
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                drawCanvas();
+                redrawCanvas();
             }
             
             showStatus('🔄 線をリセットしました', 'info');
