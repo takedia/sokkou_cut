@@ -40,102 +40,6 @@
             font-style: italic;
         }
         
-        .instructions {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        .diagram-container {
-            display: flex;
-            gap: 20px;
-            margin: 15px 0;
-            justify-content: space-around;
-            align-items: flex-start;
-        }
-        
-        .diagram-box {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-            width: 45%;
-            min-width: 140px;
-        }
-        
-        .section-svg {
-            width: 100%;
-            height: 100px;
-            margin-bottom: 8px;
-        }
-        
-        .bottom-svg {
-            width: 100%;
-            height: 100px;
-            margin-bottom: 8px;
-        }
-        
-        .diagram-title {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 12px;
-        }
-        
-        .dimension-example {
-            font-size: 10px;
-            color: #666;
-            line-height: 1.3;
-        }
-        
-        .advanced-result {
-            background: rgba(255, 255, 255, 0.95);
-            color: #333;
-            padding: 20px;
-            border-radius: 15px;
-            margin-top: 20px;
-            border: 3px solid #2196F3;
-        }
-        
-        .advanced-result h3 {
-            margin-top: 0;
-            color: #2196F3;
-            font-size: 18px;
-        }
-        
-        .section-diagram {
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            text-align: center;
-        }
-        
-        .cutting-positions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .position-item {
-            background: rgba(33, 150, 243, 0.1);
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .position-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2196F3;
-            margin: 5px 0;
-        }
-        
         .input-section {
             margin: 20px 0;
         }
@@ -352,189 +256,25 @@
             color: white;
         }
         
-        .section-config {
+        .instructions {
             background: rgba(255, 255, 255, 0.1);
             padding: 15px;
             border-radius: 15px;
-            margin: 20px 0;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .section-toggle {
-            margin-bottom: 15px;
-        }
-        
-        .toggle-switch {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-        
-        .switch {
-            position: relative;
-            width: 50px;
-            height: 24px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            transition: all 0.3s;
-        }
-        
-        .switch.active {
-            background: #4CAF50;
-        }
-        
-        .switch-slider {
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            transition: all 0.3s;
-        }
-        
-        .switch.active .switch-slider {
-            transform: translateX(26px);
-        }
-        
-        .dimension-inputs {
-            display: none;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .dimension-inputs.active {
-            display: grid;
-        }
-        
-        .dimension-group {
-            text-align: center;
-        }
-        
-        .dimension-label {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 5px;
-        }
-        
-        .dimension-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
+            margin-bottom: 20px;
             font-size: 14px;
-            text-align: center;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🔧 側溝切断角度計算アプリ</h1>
-        <div class="version">Version 2.3.0 - Advanced Sectional Calculation Edition</div>
+        <div class="version">Version 2.2.2 - Static Image Guide Edition</div>
         
         <div class="instructions">
-            <strong>使い方:</strong><br>
+            <strong>使い方：</strong><br>
             📐 <strong>直接入力</strong>：角度と幅を入力するだけ<br>
-            📷 <strong>角度ガイド</strong>：カメラで角度を合わせて測定<br>
-            🔧 <strong>断面形状</strong>：側溝の傾斜面を考慮した精密計算<br><br>
-            
-            <div style="display: flex; gap: 15px; margin: 15px 0; justify-content: space-between;">
-                <div style="background: rgba(255, 255, 255, 0.95); border-radius: 8px; padding: 12px; text-align: center; width: 48%;">
-                    <div style="font-weight: bold; color: #333; margin-bottom: 8px; font-size: 12px;">断面図</div>
-                    <svg width="100%" height="100" viewBox="0 0 120 140">
-                        <defs>
-                            <pattern id="concrete" patternUnits="userSpaceOnUse" width="3" height="3">
-                                <rect width="3" height="3" fill="#ffff99"/>
-                                <path d="M0,3 L3,0" stroke="#e6e600" stroke-width="0.3"/>
-                            </pattern>
-                        </defs>
-                        
-                        <!-- 角ばったU型外形 -->
-                        <path d="M20 30 L20 100 L30 110 L90 110 L100 100 L100 30 Z" 
-                              fill="url(#concrete)" stroke="#333" stroke-width="1.5"/>
-                        
-                        <!-- 角ばったU型内部空洞 -->
-                        <path d="M30 30 L30 80 L40 90 L80 90 L90 80 L90 30 Z" 
-                              fill="#ffffff" stroke="#333" stroke-width="1"/>
-                        
-                        <!-- 測定ポイント（黒丸） -->
-                        <circle cx="20" cy="30" r="1.5" fill="#000"/>
-                        <circle cx="100" cy="30" r="1.5" fill="#000"/>
-                        <circle cx="20" cy="100" r="1.5" fill="#000"/>
-                        <circle cx="100" cy="100" r="1.5" fill="#000"/>
-                        <circle cx="30" cy="110" r="1.5" fill="#000"/>
-                        <circle cx="90" cy="110" r="1.5" fill="#000"/>
-                        
-                        <!-- 断面線とラベル -->
-                        <line x1="5" y1="30" x2="115" y2="30" stroke="#ff0000" stroke-width="1" stroke-dasharray="2,2"/>
-                        <text x="2" y="33" font-size="8" font-weight="bold" fill="#ff0000">A</text>
-                        <text x="117" y="33" font-size="8" font-weight="bold" fill="#ff0000">A'</text>
-                        
-                        <line x1="5" y1="100" x2="115" y2="100" stroke="#0000ff" stroke-width="1" stroke-dasharray="2,2"/>
-                        <text x="2" y="103" font-size="8" font-weight="bold" fill="#0000ff">B</text>
-                        <text x="117" y="103" font-size="8" font-weight="bold" fill="#0000ff">B'</text>
-                        
-                        <line x1="5" y1="110" x2="115" y2="110" stroke="#008000" stroke-width="1" stroke-dasharray="2,2"/>
-                        <text x="2" y="113" font-size="8" font-weight="bold" fill="#008000">C</text>
-                        <text x="117" y="113" font-size="8" font-weight="bold" fill="#008000">C'</text>
-                    </svg>
-                    <div style="font-size: 10px; color: #666; line-height: 1.3;">
-                        A-A': 上面 420mm<br>
-                        B-B': 傾斜部<br>
-                        C-C': 底面 360mm
-                    </div>
-                </div>
-                
-                <div style="background: rgba(255, 255, 255, 0.95); border-radius: 8px; padding: 12px; text-align: center; width: 48%;">
-                    <div style="font-weight: bold; color: #333; margin-bottom: 8px; font-size: 12px;">底面図</div>
-                    <svg width="100%" height="100" viewBox="0 0 160 120">
-                        <defs>
-                            <pattern id="concrete2" patternUnits="userSpaceOnUse" width="3" height="3">
-                                <rect width="3" height="3" fill="#ffff99"/>
-                                <path d="M0,3 L3,0" stroke="#e6e600" stroke-width="0.3"/>
-                            </pattern>
-                        </defs>
-                        
-                        <!-- 外枠（長方形） -->
-                        <rect x="40" y="20" width="80" height="80" fill="url(#concrete2)" stroke="#333" stroke-width="1.5"/>
-                        
-                        <!-- 内部 -->
-                        <rect x="50" y="20" width="60" height="80" fill="url(#concrete2)" stroke="#333" stroke-width="1"/>
-                        
-                        <!-- 測定ポイント（黒丸） -->
-                        <circle cx="40" cy="35" r="1.5" fill="#000"/>
-                        <circle cx="120" cy="35" r="1.5" fill="#000"/>
-                        <circle cx="40" cy="65" r="1.5" fill="#000"/>
-                        <circle cx="120" cy="65" r="1.5" fill="#000"/>
-                        <circle cx="50" cy="85" r="1.5" fill="#000"/>
-                        <circle cx="110" cy="85" r="1.5" fill="#000"/>
-                        
-                        <!-- 断面線 -->
-                        <line x1="25" y1="35" x2="135" y2="35" stroke="#ff0000" stroke-width="1" stroke-dasharray="2,2"/>
-                        <text x="20" y="38" font-size="8" font-weight="bold" fill="#ff0000">A</text>
-                        <text x="137" y="38" font-size="8" font-weight="bold" fill="#ff0000">A'</text>
-                        
-                        <line x1="25" y1="65" x2="135" y2="65" stroke="#0000ff" stroke-width="1" stroke-dasharray="2,2"/>
-                        <text x="20" y="68" font-size="8" font-weight="bold" fill="#0000ff">B</text>
-                        <text x="137" y="68" font-size="8" font-weight="bold" fill="#0000ff">B'</text>
-                        
-                        <line x1="25" y1="85" x2="135" y2="85" stroke="#008000" stroke-width="1" stroke-dasharray="2,2"/>
-                        <text x="20" y="88" font-size="8" font-weight="bold" fill="#008000">C</text>
-                        <text x="137" y="88" font-size="8" font-weight="bold" fill="#008000">C'</text>
-                    </svg>
-                    <div style="font-size: 10px; color: #666; line-height: 1.3;">
-                        B-B': 13・122mm<br>
-                        C-C': 21・122mm<br>
-                        <span style="color:#999;">(135°例)</span>
-                    </div>
-                </div>
-            </div>
-            
+            📷 <strong>角度ガイド</strong>：カメラで角度を合わせて測定<br><br>
             <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 10px;">
                 💡 スライダーで角度を調整すると、リアルタイムで切断長さが表示されます
             </div>
@@ -549,29 +289,6 @@
         <div class="input-section">
             <label for="productWidth">📏 製品の幅 (cm)</label>
             <input type="number" id="productWidth" placeholder="例: 57" value="57" step="0.1" min="0.1">
-        </div>
-        
-        <!-- 断面形状設定 -->
-        <div class="section-config">
-            <div class="section-toggle">
-                <div class="toggle-switch" onclick="toggleSectionMode()">
-                    <div class="switch" id="sectionSwitch">
-                        <div class="switch-slider"></div>
-                    </div>
-                    <span>🔧 断面形状を考慮した計算</span>
-                </div>
-            </div>
-            
-            <div class="dimension-inputs" id="dimensionInputs">
-                <div class="dimension-group">
-                    <div class="dimension-label">上面幅 BB' (mm)</div>
-                    <input type="number" class="dimension-input" id="topWidth" placeholder="420" value="420">
-                </div>
-                <div class="dimension-group">
-                    <div class="dimension-label">底面幅 CC' (mm)</div>
-                    <input type="number" class="dimension-input" id="bottomWidth" placeholder="360" value="360">
-                </div>
-            </div>
         </div>
         
         <button class="calc-button" id="directCalcBtn">
@@ -621,7 +338,7 @@
         
         <!-- 結果表示 -->
         <div id="result" class="result" style="display: none;">
-            <h3>📋 基本計算結果</h3>
+            <h3>📋 計算結果</h3>
             <div class="result-item">
                 <strong>切断角度:</strong>
                 <div class="result-value" id="cutAngle">---°</div>
@@ -631,58 +348,18 @@
                 <div class="result-value" id="cutLength">--- cm</div>
             </div>
         </div>
-        
-        <!-- 断面形状考慮結果 -->
-        <div id="advancedResult" class="advanced-result" style="display: none;">
-            <h3>🔧 断面形状を考慮した切断位置</h3>
-            
-            <div class="section-diagram">
-                <div style="font-weight: bold; margin-bottom: 10px;">側溝断面図</div>
-                <div style="font-size: 12px; color: #666;">
-                    BB'面（上面幅）: <span id="dispTopWidth">420</span>mm / CC'面（底面幅）: <span id="dispBottomWidth">360</span>mm
-                </div>
-            </div>
-            
-            <div class="cutting-positions">
-                <div class="position-item">
-                    <div><strong>BB'面（上面幅）</strong></div>
-                    <div class="position-value" id="leftDistance">13・122</div>
-                    <div style="font-size: 12px; color: #666;">A部切込幅・残り幅(mm)</div>
-                </div>
-                <div class="position-item">
-                    <div><strong>CC'面（底面幅）</strong></div>
-                    <div class="position-value" id="rightDistance">21・114</div>
-                    <div style="font-size: 12px; color: #666;">A部切込幅・残り幅(mm)</div>
-                </div>
-                <div class="position-item">
-                    <div><strong>計算比率</strong></div>
-                    <div class="position-value" id="topLeftDistance">25.96%</div>
-                </div>
-                <div class="position-item">
-                    <div><strong>設定角度</strong></div>
-                    <div class="position-value" id="topRightDistance">135°</div>
-                </div>
-            </div>
-            
-            <div style="margin-top: 15px; padding: 10px; background: rgba(255, 193, 7, 0.2); border-radius: 8px; font-size: 13px;">
-                💡 A部・A'部切込み幅でケガキ線を表示<br>
-                📐 三角形切断：左右対称のA部・A'部で正確な切断<br>
-                🔧 底面図に赤い三角形でケガキ位置を可視化
-            </div>
-        </div>
     </div>
 
     <script>
         // グローバル変数
-        const APP_VERSION = "2.3.0";
-        const VERSION_NAME = "Advanced Sectional Calculation Edition";
+        const APP_VERSION = "2.2.2";
+        const VERSION_NAME = "Static Image Guide Edition";
         const BUILD_DATE = "2024-12-19";
         
         let video, angleGuideCanvas, angleGuideCtx, capturedImage;
         let stream = null;
         let targetAngle = 135;
         let isCaptured = false;
-        let sectionModeEnabled = false;
 
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
@@ -719,16 +396,6 @@
             // 角度スライダー
             document.getElementById('angleSlider').addEventListener('input', updateTargetAngle);
             
-            // 断面形状入力の変更監視
-            ['topWidth', 'bottomWidth'].forEach(id => {
-                document.getElementById(id).addEventListener('input', function() {
-                    updateRealtimeDisplay();
-                    if (sectionModeEnabled) {
-                        calculateSectionPositions();
-                    }
-                });
-            });
-            
             // 入力フィールドでのリアルタイム計算
             document.getElementById('manualAngle').addEventListener('input', calculateDirect);
             document.getElementById('productWidth').addEventListener('input', function() {
@@ -749,29 +416,6 @@
             if (!validateInputs(angle, width)) return;
             
             performCalculation(angle, width);
-            
-            // 断面形状モードが有効な場合は詳細計算も実行
-            if (sectionModeEnabled) {
-                calculateSectionPositions();
-            }
-        }
-
-        // 断面形状モードの切り替え
-        function toggleSectionMode() {
-            sectionModeEnabled = !sectionModeEnabled;
-            const switchElement = document.getElementById('sectionSwitch');
-            const dimensionInputs = document.getElementById('dimensionInputs');
-            
-            if (sectionModeEnabled) {
-                switchElement.classList.add('active');
-                dimensionInputs.classList.add('active');
-                showStatus('🔧 断面形状を考慮した計算モードを有効にしました', 'success');
-            } else {
-                switchElement.classList.remove('active');
-                dimensionInputs.classList.remove('active');
-                document.getElementById('advancedResult').style.display = 'none';
-                showStatus('📐 基本計算モードに戻りました', 'info');
-            }
         }
 
         // ガイド角度で計算
@@ -783,11 +427,6 @@
             if (!validateInputs(targetAngle, width)) return;
             
             performCalculation(targetAngle, width);
-            
-            // 断面形状モードが有効な場合は詳細計算も実行
-            if (sectionModeEnabled) {
-                calculateSectionPositions();
-            }
         }
 
         // 入力値検証
@@ -982,144 +621,7 @@
             showStatus('⏹️ カメラを停止しました（画像メモリも解放）', 'info');
         }
 
-        // 断面形状を考慮した切断位置計算
-        function calculateSectionPositions() {
-            console.log('🔧 断面形状を考慮した計算開始');
-            
-            // 入力値の取得
-            const topWidth = parseFloat(document.getElementById('topWidth').value) || 420;  // BB'
-            const bottomWidth = parseFloat(document.getElementById('bottomWidth').value) || 360;  // CC'
-            
-            // 現在の角度を取得（直接入力またはガイド角度）
-            let currentAngle = parseFloat(document.getElementById('manualAngle').value) || targetAngle;
-            
-            if (!currentAngle || currentAngle <= 0 || currentAngle >= 180) {
-                showStatus('❌ 有効な角度を設定してください', 'error');
-                return;
-            }
-            
-            try {
-                // 製品幅の取得
-                const productWidth = parseFloat(document.getElementById('productWidth').value) || 57;
-                const productWidthMm = productWidth * 10; // cmをmmに変換 (570mm)
-                
-                // まず基本計算で切断長さを求める
-                const halfAngle = (180 - currentAngle) / 2;
-                const cutAngle = 90 - halfAngle;
-                const cutAngleRad = (cutAngle * Math.PI) / 180;
-                const tanValue = Math.tan(cutAngleRad);
-                const cutLength = productWidth / tanValue; // cm単位
-                const cutLengthMm = cutLength * 10; // mm単位
-                
-                // ブログ参考の比率計算：切断長さ ÷ 側溝幅
-                const ratio = cutLengthMm / productWidthMm;
-                
-                // ブログの計算方法に基づく各部位の計算
-                // 左側面取り部分（左端から50mm）
-                const leftSide = 50 * ratio;
-                
-                // 左面取り部から30mm右側（左端から80mm）
-                const leftBevel = 80 * ratio;
-                
-                // BB'面とCC'面での計算
-                // A部切込み幅（左側）
-                const bb_A_cut = Math.round(leftSide);  // 約13mm
-                const cc_A_cut = Math.round(leftBevel); // 約21mm
-                
-                // A'部切込み幅（右側）- 残り幅を計算
-                const bb_A_prime_remaining = topWidth - (bb_A_cut * 2);  // 420 - (13*2) = 394 → 表示用に調整
-                const cc_A_prime_remaining = bottomWidth - (cc_A_cut * 2); // 360 - (21*2) = 318 → 表示用に調整
-                
-                // 表示用の値（13・122、21・114の形式）
-                const bb_display_remaining = 122;  // 実際の設計値
-                const cc_display_remaining = 114;  // 実際の設計値
-                
-                // 結果を表示
-                document.getElementById('dispTopWidth').textContent = topWidth;
-                document.getElementById('dispBottomWidth').textContent = bottomWidth;
-                
-                // 13・122、21・114の表示形式
-                document.getElementById('leftDistance').textContent = `${bb_A_cut}・${bb_display_remaining}`;
-                document.getElementById('rightDistance').textContent = `${cc_A_cut}・${cc_display_remaining}`;
-                document.getElementById('topLeftDistance').textContent = `${(ratio * 100).toFixed(2)}%`;
-                document.getElementById('topRightDistance').textContent = `${currentAngle}°`;
-                
-                document.getElementById('advancedResult').style.display = 'block';
-                
-                // 底面図に三角形ケガキ線を描画
-                updateBottomViewDiagram(bb_A_cut, cc_A_cut);
-                
-                console.log('🔧 断面形状計算完了', {
-                    角度: currentAngle,
-                    切断長さ: cutLengthMm.toFixed(1) + 'mm',
-                    比率: (ratio * 100).toFixed(4) + '%',
-                    'BB面A部': bb_A_cut + 'mm',
-                    'BB面残り': bb_display_remaining + 'mm',
-                    'CC面A部': cc_A_cut + 'mm',
-                    'CC面残り': cc_display_remaining + 'mm'
-                });
-                
-            } catch (error) {
-                console.error('🔧 断面形状計算エラー:', error);
-                showStatus('❌ 断面形状計算でエラーが発生しました', 'error');
-            }
-        }
-        
-        // 底面図を更新する関数
-        function updateBottomViewDiagram(bbCut, ccCut) {
-            // 底面図のSVGを直接更新
-            const bottomSvg = document.querySelector('.diagram-box:last-child svg');
-            if (!bottomSvg) return;
-            
-            // 既存の三角形とラベルを削除
-            const existingTriangles = bottomSvg.querySelectorAll('polygon[fill*="255, 255, 0"]');
-            const existingLabels = bottomSvg.querySelectorAll('text[fill="#ff6600"]');
-            
-            existingTriangles.forEach(triangle => triangle.remove());
-            existingLabels.forEach(label => label.remove());
-            
-            // 新しい三角形ケガキ線（左側）
-            const triangleLeft = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-            triangleLeft.setAttribute('points', '40,30 53,30 40,110');
-            triangleLeft.setAttribute('fill', 'rgba(255, 255, 0, 0.4)');
-            triangleLeft.setAttribute('stroke', '#ff6600');
-            triangleLeft.setAttribute('stroke-width', '1.5');
-            triangleLeft.setAttribute('stroke-dasharray', '3,2');
-            bottomSvg.appendChild(triangleLeft);
-            
-            // 新しい三角形ケガキ線（右側）
-            const triangleRight = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-            triangleRight.setAttribute('points', '120,30 107,30 120,110');
-            triangleRight.setAttribute('fill', 'rgba(255, 255, 0, 0.4)');
-            triangleRight.setAttribute('stroke', '#ff6600');
-            triangleRight.setAttribute('stroke-width', '1.5');
-            triangleRight.setAttribute('stroke-dasharray', '3,2');
-            bottomSvg.appendChild(triangleRight);
-            
-            // 新しい寸法表示
-            const bbLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            bbLabel.setAttribute('x', '80');
-            bbLabel.setAttribute('y', '125');
-            bbLabel.setAttribute('font-size', '11');
-            bbLabel.setAttribute('font-weight', 'bold');
-            bbLabel.setAttribute('text-anchor', 'middle');
-            bbLabel.setAttribute('fill', '#ff6600');
-            bbLabel.textContent = `B-B': ${bbCut}・122mm`;
-            bottomSvg.appendChild(bbLabel);
-            
-            const ccLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            ccLabel.setAttribute('x', '80');
-            ccLabel.setAttribute('y', '135');
-            ccLabel.setAttribute('font-size', '11');
-            ccLabel.setAttribute('font-weight', 'bold');
-            ccLabel.setAttribute('text-anchor', 'middle');
-            ccLabel.setAttribute('fill', '#ff6600');
-            ccLabel.textContent = `C-C': ${ccCut}・114mm`;
-            bottomSvg.appendChild(ccLabel);
-        }
-        
-        // 既存のSVGに三角形を追加する関数（使用されなくなった関数を削除）
-
+        // 角度ガイドを描画
         function drawAngleGuide() {
             console.log('🎨 角度ガイド描画開始');
             
@@ -1301,12 +803,6 @@
                     "簡単操作"
                 ],
                 changelog: {
-                    "2.3.0": [
-                        "断面形状を考慮した切断位置計算機能を追加",
-                        "上面幅・底面幅・深さ・壁厚の入力対応",
-                        "傾斜面による底面切断位置の補正計算",
-                        "詳細な離れ寸法表示機能"
-                    ],
                     "2.2.2": [
                         "静止画撮影機能を追加",
                         "撮影後の角度ガイド調整機能",
