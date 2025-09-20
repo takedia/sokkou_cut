@@ -40,6 +40,15 @@
             font-style: italic;
         }
         
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
         .input-section {
             margin: 20px 0;
         }
@@ -69,7 +78,85 @@
             box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
         }
         
-        /* カメラモード */
+        .section-config {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .section-toggle {
+            margin-bottom: 15px;
+        }
+        
+        .toggle-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        
+        .switch.active {
+            background: #4CAF50;
+        }
+        
+        .switch-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .switch.active .switch-slider {
+            transform: translateX(26px);
+        }
+        
+        .dimension-inputs {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .dimension-inputs.active {
+            display: grid;
+        }
+        
+        .dimension-group {
+            text-align: center;
+        }
+        
+        .dimension-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 5px;
+        }
+        
+        .dimension-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 14px;
+            text-align: center;
+        }
+        
         .video-container {
             position: relative;
             width: 100%;
@@ -205,7 +292,6 @@
             transform: translateY(-2px);
         }
         
-        /* 結果表示 */
         .result {
             background: rgba(255, 255, 255, 0.9);
             color: #333;
@@ -236,6 +322,51 @@
             margin: 5px 0;
         }
         
+        .advanced-result {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 3px solid #2196F3;
+        }
+        
+        .advanced-result h3 {
+            margin-top: 0;
+            color: #2196F3;
+            font-size: 18px;
+        }
+        
+        .section-diagram {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .cutting-positions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .position-item {
+            background: rgba(33, 150, 243, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .position-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2196F3;
+            margin: 5px 0;
+        }
+        
         .status {
             background: rgba(255, 255, 255, 0.9);
             color: #333;
@@ -256,25 +387,114 @@
             color: white;
         }
         
-        .instructions {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1.5;
+        input[type="file"] {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🔧 側溝切断角度計算アプリ</h1>
-        <div class="version">Version 2.2.2 - Static Image Guide Edition</div>
+        <div class="version">Version 2.3.0 - Advanced Sectional Calculation Edition</div>
         
         <div class="instructions">
-            <strong>使い方：</strong><br>
+            <strong>使い方:</strong><br>
             📐 <strong>直接入力</strong>：角度と幅を入力するだけ<br>
-            📷 <strong>角度ガイド</strong>：カメラで角度を合わせて測定<br><br>
+            📷 <strong>角度ガイド</strong>：カメラで角度を合わせて測定<br>
+            🔧 <strong>断面形状</strong>：側溝の傾斜面を考慮した精密計算<br><br>
+            
+            <div style="display: flex; gap: 15px; margin: 15px 0; justify-content: space-between;">
+                <div style="background: rgba(255, 255, 255, 0.95); border-radius: 8px; padding: 12px; text-align: center; width: 48%;">
+                    <div style="font-weight: bold; color: #333; margin-bottom: 8px; font-size: 12px;">断面図</div>
+                    <svg width="100%" height="100" viewBox="0 0 120 140">
+                        <defs>
+                            <pattern id="concrete" patternUnits="userSpaceOnUse" width="3" height="3">
+                                <rect width="3" height="3" fill="#ffff99"/>
+                                <path d="M0,3 L3,0" stroke="#e6e600" stroke-width="0.3"/>
+                            </pattern>
+                        </defs>
+                        
+                        <!-- 角ばったU型外形 -->
+                        <path d="M20 30 L20 100 L30 110 L90 110 L100 100 L100 30 Z" 
+                              fill="url(#concrete)" stroke="#333" stroke-width="1.5"/>
+                        
+                        <!-- 角ばったU型内部空洞 -->
+                        <path d="M30 30 L30 80 L40 90 L80 90 L90 80 L90 30 Z" 
+                              fill="#ffffff" stroke="#333" stroke-width="1"/>
+                        
+                        <!-- 測定ポイント（黒丸） -->
+                        <circle cx="20" cy="30" r="1.5" fill="#000"/>
+                        <circle cx="100" cy="30" r="1.5" fill="#000"/>
+                        <circle cx="20" cy="100" r="1.5" fill="#000"/>
+                        <circle cx="100" cy="100" r="1.5" fill="#000"/>
+                        <circle cx="30" cy="110" r="1.5" fill="#000"/>
+                        <circle cx="90" cy="110" r="1.5" fill="#000"/>
+                        
+                        <!-- 断面線とラベル -->
+                        <line x1="5" y1="30" x2="115" y2="30" stroke="#ff0000" stroke-width="1" stroke-dasharray="2,2"/>
+                        <text x="2" y="33" font-size="8" font-weight="bold" fill="#ff0000">A</text>
+                        <text x="117" y="33" font-size="8" font-weight="bold" fill="#ff0000">A'</text>
+                        
+                        <line x1="5" y1="100" x2="115" y2="100" stroke="#0000ff" stroke-width="1" stroke-dasharray="2,2"/>
+                        <text x="2" y="103" font-size="8" font-weight="bold" fill="#0000ff">B</text>
+                        <text x="117" y="103" font-size="8" font-weight="bold" fill="#0000ff">B'</text>
+                        
+                        <line x1="5" y1="110" x2="115" y2="110" stroke="#008000" stroke-width="1" stroke-dasharray="2,2"/>
+                        <text x="2" y="113" font-size="8" font-weight="bold" fill="#008000">C</text>
+                        <text x="117" y="113" font-size="8" font-weight="bold" fill="#008000">C'</text>
+                    </svg>
+                    <div style="font-size: 10px; color: #666; line-height: 1.3;">
+                        A-A': 上面 420mm<br>
+                        B-B': 傾斜部<br>
+                        C-C': 底面 360mm
+                    </div>
+                </div>
+                
+                <div style="background: rgba(255, 255, 255, 0.95); border-radius: 8px; padding: 12px; text-align: center; width: 48%;">
+                    <div style="font-weight: bold; color: #333; margin-bottom: 8px; font-size: 12px;">底から見た図</div>
+                    <svg width="100%" height="100" viewBox="0 0 160 120">
+                        <defs>
+                            <pattern id="concrete2" patternUnits="userSpaceOnUse" width="3" height="3">
+                                <rect width="3" height="3" fill="#ffff99"/>
+                                <path d="M0,3 L3,0" stroke="#e6e600" stroke-width="0.3"/>
+                            </pattern>
+                        </defs>
+                        
+                        <!-- 外枠（長方形） -->
+                        <rect x="40" y="20" width="80" height="80" fill="url(#concrete2)" stroke="#333" stroke-width="1.5"/>
+                        
+                        <!-- 内部 -->
+                        <rect x="50" y="20" width="60" height="80" fill="url(#concrete2)" stroke="#333" stroke-width="1"/>
+                        
+                        <!-- 測定ポイント（黒丸） -->
+                        <circle cx="40" cy="35" r="1.5" fill="#000"/>
+                        <circle cx="120" cy="35" r="1.5" fill="#000"/>
+                        <circle cx="40" cy="65" r="1.5" fill="#000"/>
+                        <circle cx="120" cy="65" r="1.5" fill="#000"/>
+                        <circle cx="50" cy="85" r="1.5" fill="#000"/>
+                        <circle cx="110" cy="85" r="1.5" fill="#000"/>
+                        
+                        <!-- 断面線 -->
+                        <line x1="25" y1="35" x2="135" y2="35" stroke="#ff0000" stroke-width="1" stroke-dasharray="2,2"/>
+                        <text x="20" y="38" font-size="8" font-weight="bold" fill="#ff0000">A</text>
+                        <text x="137" y="38" font-size="8" font-weight="bold" fill="#ff0000">A'</text>
+                        
+                        <line x1="25" y1="65" x2="135" y2="65" stroke="#0000ff" stroke-width="1" stroke-dasharray="2,2"/>
+                        <text x="20" y="68" font-size="8" font-weight="bold" fill="#0000ff">B</text>
+                        <text x="137" y="68" font-size="8" font-weight="bold" fill="#0000ff">B'</text>
+                        
+                        <line x1="25" y1="85" x2="135" y2="85" stroke="#008000" stroke-width="1" stroke-dasharray="2,2"/>
+                        <text x="20" y="88" font-size="8" font-weight="bold" fill="#008000">C</text>
+                        <text x="137" y="88" font-size="8" font-weight="bold" fill="#008000">C'</text>
+                    </svg>
+                    <div style="font-size: 10px; color: #666; line-height: 1.3;">
+                        B-B': 13・122mm<br>
+                        C-C': 21・122mm<br>
+                        <span style="color:#999;">(135°例)</span>
+                    </div>
+                </div>
+            </div>
+            
             <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 10px;">
                 💡 スライダーで角度を調整すると、リアルタイムで切断長さが表示されます
             </div>
@@ -289,6 +509,37 @@
         <div class="input-section">
             <label for="productWidth">📏 製品の幅 (cm)</label>
             <input type="number" id="productWidth" placeholder="例: 57" value="57" step="0.1" min="0.1">
+        </div>
+        
+        <!-- 断面形状設定 -->
+        <div class="section-config">
+            <div class="section-toggle">
+                <div class="toggle-switch" onclick="toggleSectionMode()">
+                    <div class="switch" id="sectionSwitch">
+                        <div class="switch-slider"></div>
+                    </div>
+                    <span>🔧 断面形状を考慮した計算</span>
+                </div>
+            </div>
+            
+            <div class="dimension-inputs" id="dimensionInputs">
+                <div class="dimension-group">
+                    <div class="dimension-label">上面幅 (mm)</div>
+                    <input type="number" class="dimension-input" id="topWidth" placeholder="420" value="420">
+                </div>
+                <div class="dimension-group">
+                    <div class="dimension-label">底面幅 (mm)</div>
+                    <input type="number" class="dimension-input" id="bottomWidth" placeholder="360" value="360">
+                </div>
+                <div class="dimension-group">
+                    <div class="dimension-label">深さ (mm)</div>
+                    <input type="number" class="dimension-input" id="depth" placeholder="200" value="200">
+                </div>
+                <div class="dimension-group">
+                    <div class="dimension-label">壁厚 (mm)</div>
+                    <input type="number" class="dimension-input" id="wallThickness" placeholder="50" value="50">
+                </div>
+            </div>
         </div>
         
         <button class="calc-button" id="directCalcBtn">
@@ -338,7 +589,7 @@
         
         <!-- 結果表示 -->
         <div id="result" class="result" style="display: none;">
-            <h3>📋 計算結果</h3>
+            <h3>📋 基本計算結果</h3>
             <div class="result-item">
                 <strong>切断角度:</strong>
                 <div class="result-value" id="cutAngle">---°</div>
@@ -348,18 +599,56 @@
                 <div class="result-value" id="cutLength">--- cm</div>
             </div>
         </div>
+        
+        <!-- 断面形状考慮結果 -->
+        <div id="advancedResult" class="advanced-result" style="display: none;">
+            <h3>🔧 断面形状を考慮した切断位置</h3>
+            
+            <div class="section-diagram">
+                <div style="font-weight: bold; margin-bottom: 10px;">側溝断面図</div>
+                <div style="font-size: 12px; color: #666;">
+                    上面幅: <span id="dispTopWidth">420</span>mm / 底面幅: <span id="dispBottomWidth">360</span>mm<br>
+                    深さ: <span id="dispDepth">200</span>mm / 壁厚: <span id="dispWallThickness">50</span>mm
+                </div>
+            </div>
+            
+            <div class="cutting-positions">
+                <div class="position-item">
+                    <div><strong>底面左側の離れ寸法</strong></div>
+                    <div class="position-value" id="leftDistance">--- mm</div>
+                </div>
+                <div class="position-item">
+                    <div><strong>底面右側の離れ寸法</strong></div>
+                    <div class="position-value" id="rightDistance">--- mm</div>
+                </div>
+                <div class="position-item">
+                    <div><strong>上面左側の離れ寸法</strong></div>
+                    <div class="position-value" id="topLeftDistance">--- mm</div>
+                </div>
+                <div class="position-item">
+                    <div><strong>上面右側の離れ寸法</strong></div>
+                    <div class="position-value" id="topRightDistance">--- mm</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 15px; padding: 10px; background: rgba(255, 193, 7, 0.2); border-radius: 8px; font-size: 13px;">
+                💡 ヒント: 底面での切断位置は、側溝の傾斜面により上面とは異なります<br>
+                📐 図の例：B-B'面で13・122mm、C-C'面で21・122mmの離れ寸法
+            </div>
+        </div>
     </div>
 
     <script>
         // グローバル変数
-        const APP_VERSION = "2.2.2";
-        const VERSION_NAME = "Static Image Guide Edition";
+        const APP_VERSION = "2.3.0";
+        const VERSION_NAME = "Advanced Sectional Calculation Edition";
         const BUILD_DATE = "2024-12-19";
         
         let video, angleGuideCanvas, angleGuideCtx, capturedImage;
         let stream = null;
         let targetAngle = 135;
         let isCaptured = false;
+        let sectionModeEnabled = false;
 
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
@@ -396,439 +685,4 @@
             // 角度スライダー
             document.getElementById('angleSlider').addEventListener('input', updateTargetAngle);
             
-            // 入力フィールドでのリアルタイム計算
-            document.getElementById('manualAngle').addEventListener('input', calculateDirect);
-            document.getElementById('productWidth').addEventListener('input', function() {
-                updateRealtimeDisplay();
-                if (document.getElementById('manualAngle').value) {
-                    calculateDirect();
-                }
-            });
-        }
-
-        // 直接計算
-        function calculateDirect() {
-            console.log('🧮 直接計算開始');
-            
-            const angle = parseFloat(document.getElementById('manualAngle').value);
-            const width = parseFloat(document.getElementById('productWidth').value);
-            
-            if (!validateInputs(angle, width)) return;
-            
-            performCalculation(angle, width);
-        }
-
-        // ガイド角度で計算
-        function useGuideAngle() {
-            console.log('🧮 ガイド角度で計算開始');
-            
-            const width = parseFloat(document.getElementById('productWidth').value) || 57;
-            
-            if (!validateInputs(targetAngle, width)) return;
-            
-            performCalculation(targetAngle, width);
-        }
-
-        // 入力値検証
-        function validateInputs(angle, width) {
-            if (!angle || isNaN(angle)) {
-                showStatus('❌ 角度を入力してください（例: 135）', 'error');
-                return false;
-            }
-            
-            if (!width || isNaN(width)) {
-                showStatus('❌ 製品幅を入力してください（例: 57）', 'error');
-                return false;
-            }
-            
-            if (angle <= 0 || angle >= 180) {
-                showStatus('❌ 角度は1°〜179°の範囲で入力してください', 'error');
-                return false;
-            }
-            
-            if (width <= 0) {
-                showStatus('❌ 製品幅は0より大きい値を入力してください', 'error');
-                return false;
-            }
-            
-            return true;
-        }
-
-        // 計算実行
-        function performCalculation(angle, width) {
-            try {
-                showStatus('🔄 計算中...', 'info');
-                
-                // 切断角度の計算
-                const halfAngle = (180 - angle) / 2;
-                const cutAngle = 90 - halfAngle;
-                
-                // 切断長さの計算
-                const cutAngleRad = (cutAngle * Math.PI) / 180;
-                const tanValue = Math.tan(cutAngleRad);
-                const cutLength = width / tanValue;
-                
-                console.log('📐 計算結果 - 切断角度:', cutAngle, '切断長さ:', cutLength);
-                
-                // 結果表示
-                document.getElementById('cutAngle').textContent = cutAngle.toFixed(1) + '°';
-                document.getElementById('cutLength').textContent = cutLength.toFixed(1) + ' cm';
-                
-                showResult();
-                showStatus('✅ 計算完了！', 'success');
-                
-            } catch (error) {
-                console.error('💥 計算エラー:', error);
-                showStatus('❌ 計算エラーが発生しました', 'error');
-            }
-        }
-
-        // カメラ機能
-        async function startCamera() {
-            console.log('📷 カメラ起動試行');
-            
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
-                });
-                
-                video.srcObject = stream;
-                video.style.display = 'block';
-                await video.play();
-                
-                // 角度ガイドキャンバスも表示
-                angleGuideCanvas.style.display = 'block';
-                document.getElementById('angleControl').style.display = 'block';
-                
-                resizeAngleGuideCanvas();
-                
-                // 角度ガイドを自動で表示
-                drawAngleGuide();
-                
-                document.getElementById('captureBtn').disabled = false;
-                document.getElementById('stopBtn').disabled = false;
-                
-                // リアルタイム表示を初期化
-                updateRealtimeDisplay();
-                
-                showStatus('📷 カメラが起動しました。📸撮影ボタンで静止画を撮影してください', 'success');
-                
-            } catch (error) {
-                console.error('カメラエラー:', error);
-                
-                let errorMessage = 'カメラにアクセスできません: ';
-                if (error.name === 'NotAllowedError') {
-                    errorMessage += 'カメラの使用が許可されていません。ブラウザの設定でカメラを許可してください。';
-                } else {
-                    errorMessage += error.message;
-                }
-                
-                showStatus('❌ ' + errorMessage, 'error');
-            }
-        }
-
-        // 写真撮影機能
-        function capturePhoto() {
-            console.log('📸 写真撮影開始');
-            
-            try {
-                // キャンバスを作成して写真をキャプチャ
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                canvas.width = video.videoWidth || 640;
-                canvas.height = video.videoHeight || 480;
-                
-                console.log('📐 撮影サイズ:', canvas.width + 'x' + canvas.height);
-                
-                // ビデオフレームをキャンバスに描画
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                // キャンバスから画像データを取得
-                const imageDataURL = canvas.toDataURL('image/jpeg', 0.8);
-                
-                console.log('📸 画像データURL生成完了');
-                
-                // 撮影した画像を表示
-                capturedImage.src = imageDataURL;
-                capturedImage.style.display = 'block';
-                capturedImage.onload = function() {
-                    console.log('📷 画像読み込み完了');
-                    
-                    // 角度ガイドを表示
-                    angleGuideCanvas.style.display = 'block';
-                    document.getElementById('angleControl').style.display = 'block';
-                    
-                    // キャンバスサイズを画像に合わせて調整
-                    setTimeout(() => {
-                        resizeAngleGuideCanvas();
-                        drawAngleGuide();
-                        console.log('📐 角度ガイド描画完了');
-                    }, 100);
-                };
-                
-                // ビデオを非表示
-                video.style.display = 'none';
-                
-                // ボタン状態を更新
-                document.getElementById('captureBtn').disabled = true;
-                document.getElementById('useGuideAngleBtn').disabled = false;
-                
-                isCaptured = true;
-                
-                // 画像は一時的なメモリ内データURLとして保存（ブラウザ終了時に自動削除）
-                console.log('💾 画像は一時的なメモリ内データとして保存（永続保存されません）');
-                
-                showStatus('📸 撮影完了！下のスライダーで角度を調整してください', 'success');
-                
-            } catch (error) {
-                console.error('📸 撮影エラー:', error);
-                showStatus('❌ 撮影に失敗しました: ' + error.message, 'error');
-            }
-        }
-
-        function stopCamera() {
-            console.log('⏹️ カメラ停止');
-            
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-            
-            // 表示をリセット
-            video.style.display = 'none';
-            capturedImage.style.display = 'none';
-            angleGuideCanvas.style.display = 'none';
-            document.getElementById('angleControl').style.display = 'none';
-            
-            // 撮影画像のメモリを解放
-            if (capturedImage.src) {
-                console.log('🗑️ 撮影画像のメモリを解放');
-                capturedImage.src = '';
-                // ガベージコレクションを促す
-                if (window.gc) {
-                    window.gc();
-                }
-            }
-            
-            // ボタン状態をリセット
-            document.getElementById('captureBtn').disabled = true;
-            document.getElementById('stopBtn').disabled = true;
-            document.getElementById('useGuideAngleBtn').disabled = true;
-            
-            isCaptured = false;
-            
-            showStatus('⏹️ カメラを停止しました（画像メモリも解放）', 'info');
-        }
-
-        // 角度ガイドを描画
-        function drawAngleGuide() {
-            console.log('🎨 角度ガイド描画開始');
-            
-            const centerX = angleGuideCanvas.width / 2;
-            const centerY = angleGuideCanvas.height / 2;
-            const radius = Math.min(centerX, centerY) * 0.6;
-            
-            console.log('📐 描画パラメータ - 中心:', centerX + ',' + centerY, '半径:', radius);
-            
-            // キャンバスをクリア
-            angleGuideCtx.clearRect(0, 0, angleGuideCanvas.width, angleGuideCanvas.height);
-            
-            // 目標角度のラインを描画
-            const startAngle = (180 - targetAngle) / 2;
-            const endAngle = startAngle + targetAngle;
-            
-            // 角度の線（太い緑線）
-            angleGuideCtx.strokeStyle = 'rgba(76, 175, 80, 0.9)';
-            angleGuideCtx.lineWidth = 4;
-            angleGuideCtx.lineCap = 'round';
-            angleGuideCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            angleGuideCtx.shadowBlur = 2;
-            
-            // 左の線
-            const leftRadian = (startAngle * Math.PI) / 180;
-            const leftX = centerX + radius * Math.cos(leftRadian);
-            const leftY = centerY + radius * Math.sin(leftRadian);
-            
-            angleGuideCtx.beginPath();
-            angleGuideCtx.moveTo(centerX, centerY);
-            angleGuideCtx.lineTo(leftX, leftY);
-            angleGuideCtx.stroke();
-            
-            // 右の線
-            const rightRadian = (endAngle * Math.PI) / 180;
-            const rightX = centerX + radius * Math.cos(rightRadian);
-            const rightY = centerY + radius * Math.sin(rightRadian);
-            
-            angleGuideCtx.beginPath();
-            angleGuideCtx.moveTo(centerX, centerY);
-            angleGuideCtx.lineTo(rightX, rightY);
-            angleGuideCtx.stroke();
-            
-            // 角度の弧を描画
-            angleGuideCtx.strokeStyle = 'rgba(76, 175, 80, 0.7)';
-            angleGuideCtx.lineWidth = 2;
-            angleGuideCtx.beginPath();
-            angleGuideCtx.arc(centerX, centerY, radius * 0.7, leftRadian, rightRadian);
-            angleGuideCtx.stroke();
-            
-            // 影をリセット
-            angleGuideCtx.shadowBlur = 0;
-            
-            // 中心点
-            angleGuideCtx.fillStyle = 'rgba(76, 175, 80, 0.9)';
-            angleGuideCtx.beginPath();
-            angleGuideCtx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
-            angleGuideCtx.fill();
-            
-            // 角度ラベル（背景付き）
-            angleGuideCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            angleGuideCtx.fillRect(centerX - 25, centerY - radius * 0.9, 50, 20);
-            angleGuideCtx.fillStyle = 'rgba(255, 255, 255, 1)';
-            angleGuideCtx.font = 'bold 16px Arial';
-            angleGuideCtx.textAlign = 'center';
-            angleGuideCtx.fillText(targetAngle + '°', centerX, centerY - radius * 0.8);
-            
-            // 使用説明（背景付き）
-            const instructionY = angleGuideCanvas.height - 30;
-            angleGuideCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            angleGuideCtx.fillRect(0, instructionY - 10, angleGuideCanvas.width, 30);
-            angleGuideCtx.fillStyle = 'rgba(255, 255, 255, 1)';
-            angleGuideCtx.font = '12px Arial';
-            if (isCaptured) {
-                angleGuideCtx.fillText('スライダーで角度調整してください', centerX, instructionY + 5);
-            } else {
-                angleGuideCtx.fillText('📸撮影ボタンで静止画キャプチャ', centerX, instructionY + 5);
-            }
-            
-            console.log('✅ 角度ガイド描画完了');
-        }
-
-        // 目標角度の更新
-        function updateTargetAngle() {
-            targetAngle = parseInt(document.getElementById('angleSlider').value);
-            document.getElementById('targetAngle').textContent = targetAngle + '°';
-            
-            drawAngleGuide();
-            updateRealtimeDisplay();
-        }
-        
-        // リアルタイム切断長さ表示の更新
-        function updateRealtimeDisplay() {
-            const width = parseFloat(document.getElementById('productWidth').value) || 57;
-            
-            try {
-                // 切断角度の計算
-                const halfAngle = (180 - targetAngle) / 2;
-                const cutAngle = 90 - halfAngle;
-                
-                // 切断長さの計算
-                const cutAngleRad = (cutAngle * Math.PI) / 180;
-                const tanValue = Math.tan(cutAngleRad);
-                const cutLength = width / tanValue;
-                
-                // リアルタイム表示を更新
-                document.getElementById('realtimeCutLength').textContent = cutLength.toFixed(1) + 'cm';
-                document.getElementById('currentWidth').textContent = width.toString();
-                
-            } catch (error) {
-                document.getElementById('realtimeCutLength').textContent = '---cm';
-                console.error('リアルタイム計算エラー:', error);
-            }
-        }
-
-        // 角度ガイドキャンバスのサイズ調整
-        function resizeAngleGuideCanvas() {
-            let rect;
-            console.log('📐 キャンバスサイズ調整開始');
-            
-            if (isCaptured && capturedImage.style.display === 'block') {
-                // 撮影後は画像サイズに合わせる
-                rect = capturedImage.getBoundingClientRect();
-                console.log('📷 撮影画像サイズ:', rect.width + 'x' + rect.height);
-            } else {
-                // ライブビュー時はビデオサイズに合わせる
-                rect = video.getBoundingClientRect();
-                console.log('📹 ビデオサイズ:', rect.width + 'x' + rect.height);
-            }
-            
-            // キャンバスサイズを設定
-            angleGuideCanvas.width = rect.width || 400;
-            angleGuideCanvas.height = rect.height || 200;
-            
-            console.log('📐 角度ガイドキャンバスサイズ:', angleGuideCanvas.width + 'x' + angleGuideCanvas.height);
-            
-            // 描画を実行
-            drawAngleGuide();
-        }
-
-        // ユーティリティ関数
-        function showStatus(message, type = 'info') {
-            const statusDiv = document.getElementById('status');
-            statusDiv.textContent = message;
-            statusDiv.className = 'status ' + type;
-            statusDiv.style.display = 'block';
-            console.log('📢 ステータス:', message);
-            
-            if (type === 'success') {
-                setTimeout(() => {
-                    hideStatus();
-                }, 3000);
-            }
-        }
-
-        function hideStatus() {
-            document.getElementById('status').style.display = 'none';
-        }
-
-        function showResult() {
-            document.getElementById('result').style.display = 'block';
-        }
-
-        function hideResult() {
-            document.getElementById('result').style.display = 'none';
-        }
-
-        // バージョン情報を表示（開発者用）
-        function showVersionInfo() {
-            const versionInfo = {
-                version: APP_VERSION,
-                name: VERSION_NAME,
-                buildDate: BUILD_DATE,
-                features: [
-                    "直接角度入力計算",
-                    "リアルタイム角度ガイド",
-                    "切断長さ即時計算",
-                    "カメラプレビュー機能",
-                    "簡単操作"
-                ],
-                changelog: {
-                    "2.2.2": [
-                        "静止画撮影機能を追加",
-                        "撮影後の角度ガイド調整機能",
-                        "静止画像での精密角度合わせ",
-                        "ライブビューから静止画モードへの切り替え"
-                    ],
-                    "2.2.1": [
-                        "シンプルで確実な角度ガイド機能に統一",
-                        "複雑な線描画機能を削除",
-                        "カメラ角度ガイドに特化",
-                        "操作性を大幅改善"
-                    ]
-                },
-                author: "Pipe Angle Calculator Team",
-                license: "MIT License"
-            };
-            
-            console.table(versionInfo.features);
-            console.log("📋 Version Info:", versionInfo);
-            console.log("🔄 Changelog:", versionInfo.changelog);
-            
-            return versionInfo;
-        }
-
-        // グローバル関数として公開（デバッグ用）
-        window.showVersionInfo = showVersionInfo;
-    </script>
-</body>
-</html>
+            // 断面形状入力
