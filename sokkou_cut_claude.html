@@ -696,7 +696,7 @@
             
             const centerX = angleGuideCanvas.width / 2;
             const centerY = angleGuideCanvas.height / 2;
-            const radius = Math.min(centerX, centerY) * 0.6;
+            const radius = Math.min(centerX, centerY) * 0.82;
             
             console.log('📐 描画パラメータ - 中心:', centerX + ',' + centerY, '半径:', radius);
             
@@ -707,9 +707,9 @@
             const startAngle = (180 - targetAngle) / 2;
             const endAngle = startAngle + targetAngle;
             
-            // 角度の線（太い緑線）
-            angleGuideCtx.strokeStyle = 'rgba(76, 175, 80, 0.9)';
-            angleGuideCtx.lineWidth = 4;
+            // 角度の線（細く明るいガイドライン）
+            angleGuideCtx.strokeStyle = 'rgba(210, 255, 130, 0.95)';
+            angleGuideCtx.lineWidth = 2;
             angleGuideCtx.lineCap = 'round';
             angleGuideCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
             angleGuideCtx.shadowBlur = 2;
@@ -735,8 +735,8 @@
             angleGuideCtx.stroke();
             
             // 角度の弧を描画
-            angleGuideCtx.strokeStyle = 'rgba(76, 175, 80, 0.7)';
-            angleGuideCtx.lineWidth = 2;
+            angleGuideCtx.strokeStyle = 'rgba(210, 255, 130, 0.8)';
+            angleGuideCtx.lineWidth = 1.5;
             angleGuideCtx.beginPath();
             angleGuideCtx.arc(centerX, centerY, radius * 0.7, leftRadian, rightRadian);
             angleGuideCtx.stroke();
@@ -745,7 +745,7 @@
             angleGuideCtx.shadowBlur = 0;
             
             // 中心点
-            angleGuideCtx.fillStyle = 'rgba(76, 175, 80, 0.9)';
+            angleGuideCtx.fillStyle = 'rgba(210, 255, 130, 0.95)';
             angleGuideCtx.beginPath();
             angleGuideCtx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
             angleGuideCtx.fill();
