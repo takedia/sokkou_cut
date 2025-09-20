@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>側溝切断角度計算アプリ - 完全版</title>
+    <title>U字溝カットガイド - 完全版</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -330,8 +330,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔧 側溝切断角度計算アプリ</h1>
-        <div class="version">Version 2.2.2 - Static Image Guide Edition</div>
+        <h1>🔧 U字溝カットガイド</h1>
+        <div class="version">Version 1.01</div>
         
         <div class="instructions">
             <strong>使い方：</strong><br>
@@ -343,14 +343,21 @@
         </div>
         
         <!-- 直接入力セクション -->
-        <div class="input-section">
-            <label for="manualAngle">📐 曲げる角度 (度)</label>
-            <input type="number" id="manualAngle" placeholder="例: 135" step="0.1" min="1" max="179">
-        </div>
-        
-        <div class="input-section">
-            <label for="productWidth">📏 製品の幅 (cm)</label>
-            <input type="number" id="productWidth" placeholder="例: 57" value="57" step="0.1" min="0.1">
+        <div class="input-section" style="display: flex; gap: 10px; align-items: end;">
+            <div style="flex: 1;">
+                <label for="manualAngle">📐 曲げる角度</label>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input type="number" id="manualAngle" placeholder="180" value="180" step="0.1" min="1" max="180" style="flex: 1;">
+                    <span style="color: white; font-weight: bold;">°</span>
+                </div>
+            </div>
+            <div style="flex: 1;">
+                <label for="productWidth">📏 製品の幅</label>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input type="number" id="productWidth" placeholder="520" value="520" step="1" min="1" style="flex: 1;">
+                    <span style="color: white; font-weight: bold;">mm</span>
+                </div>
+            </div>
         </div>
         
         <button class="calc-button" id="directCalcBtn">
@@ -371,20 +378,20 @@
                 <!-- 角度調整スライダー -->
                 <div id="angleControl" class="angle-control" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <div>目標角度: <span class="angle-value" id="targetAngle">135°</span></div>
+                        <div>目標角度: <span class="angle-value" id="targetAngle">180°</span></div>
                         <div style="font-size: 14px; color: #333;">
-                            切断長さ: <span style="font-weight: bold; color: #4CAF50;" id="realtimeCutLength">23.6cm</span>
+                            切断長さ: <span style="font-weight: bold; color: #4CAF50;" id="realtimeCutLength">0.0mm</span>
                         </div>
                     </div>
-                    <input type="range" id="angleSlider" class="angle-slider" min="30" max="170" value="135" step="1">
+                    <input type="range" id="angleSlider" class="angle-slider" min="30" max="180" value="180" step="1">
                     <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 5px;">
                         <span>30°</span>
                         <span>90°</span>
                         <span>135°</span>
-                        <span>170°</span>
+                        <span>180°</span>
                     </div>
                     <div style="font-size: 12px; color: #666; margin-top: 5px; text-align: center;">
-                        製品幅: <span id="currentWidth">57</span>cm での計算
+                        製品幅: <span id="currentWidth">520</span>mm での計算
                     </div>
                 </div>
 
@@ -409,25 +416,25 @@
             </div>
             <div class="result-item">
                 <strong>切断する長さ:</strong>
-                <div class="result-value" id="cutLength">--- cm</div>
+                <div class="result-value" id="cutLength">--- mm</div>
             </div>
         </div>
     </div>
 
     <script>
         // グローバル変数
-        const APP_VERSION = "2.2.2";
-        const VERSION_NAME = "Static Image Guide Edition";
+        const APP_VERSION = "1.01";
+        const VERSION_NAME = "U字溝カットガイド";
         const BUILD_DATE = "2024-12-19";
         
         let video, angleGuideCanvas, angleGuideCtx, capturedImage, cameraSection;
         let stream = null;
-        let targetAngle = 135;
+        let targetAngle = 180;
         let isCaptured = false;
 
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
-            console.log(`🚀 側溝切断角度計算アプリ v${APP_VERSION} (${VERSION_NAME}) が読み込まれました！`);
+            console.log(`🚀 U字溝カットガイド v${APP_VERSION} (${VERSION_NAME}) が読み込まれました！`);
             
             // 要素の取得
             cameraSection = document.getElementById('cameraSection');
@@ -487,7 +494,7 @@
         function useGuideAngle() {
             console.log('🧮 ガイド角度で計算開始');
             
-            const width = parseFloat(document.getElementById('productWidth').value) || 57;
+            const width = parseFloat(document.getElementById('productWidth').value) || 520;
             
             if (!validateInputs(targetAngle, width)) return;
             
@@ -497,17 +504,17 @@
         // 入力値検証
         function validateInputs(angle, width) {
             if (!angle || isNaN(angle)) {
-                showStatus('❌ 角度を入力してください（例: 135）', 'error');
+                showStatus('❌ 角度を入力してください（例: 45）', 'error');
                 return false;
             }
             
             if (!width || isNaN(width)) {
-                showStatus('❌ 製品幅を入力してください（例: 57）', 'error');
+                showStatus('❌ 製品幅を入力してください（例: 520）', 'error');
                 return false;
             }
             
-            if (angle <= 0 || angle >= 180) {
-                showStatus('❌ 角度は1°〜179°の範囲で入力してください', 'error');
+            if (angle <= 0 || angle > 180) {
+                showStatus('❌ 角度は1°〜180°の範囲で入力してください', 'error');
                 return false;
             }
             
@@ -528,16 +535,25 @@
                 const halfAngle = (180 - angle) / 2;
                 const cutAngle = 90 - halfAngle;
                 
-                // 切断長さの計算
+                // 180°の場合は切断長さ0、切断角度は90°
+                if (angle >= 180) {
+                    document.getElementById('cutAngle').textContent = '90.0°';
+                    document.getElementById('cutLength').textContent = '0.0 mm';
+                    showResult();
+                    showStatus('✅ 計算完了！（180°は直線のため切断長さ0）', 'success');
+                    return;
+                }
+                
+                // 切断長さの計算（mm単位で表示）
                 const cutAngleRad = (cutAngle * Math.PI) / 180;
                 const tanValue = Math.tan(cutAngleRad);
-                const cutLength = width / tanValue;
+                const cutLength = width / tanValue; // mm単位のまま計算
                 
                 console.log('📐 計算結果 - 切断角度:', cutAngle, '切断長さ:', cutLength);
                 
-                // 結果表示
+                // 結果表示（mm表示）
                 document.getElementById('cutAngle').textContent = cutAngle.toFixed(1) + '°';
-                document.getElementById('cutLength').textContent = cutLength.toFixed(1) + ' cm';
+                document.getElementById('cutLength').textContent = cutLength.toFixed(1) + ' mm';
                 
                 showResult();
                 showStatus('✅ 計算完了！', 'success');
@@ -784,24 +800,31 @@
         
         // リアルタイム切断長さ表示の更新
         function updateRealtimeDisplay() {
-            const width = parseFloat(document.getElementById('productWidth').value) || 57;
+            const width = parseFloat(document.getElementById('productWidth').value) || 520;
             
             try {
+                // 180°の場合は切断長さ0
+                if (targetAngle >= 180) {
+                    document.getElementById('realtimeCutLength').textContent = '0.0mm';
+                    document.getElementById('currentWidth').textContent = width.toString();
+                    return;
+                }
+                
                 // 切断角度の計算
                 const halfAngle = (180 - targetAngle) / 2;
                 const cutAngle = 90 - halfAngle;
                 
-                // 切断長さの計算
+                // 切断長さの計算（mm単位で表示）
                 const cutAngleRad = (cutAngle * Math.PI) / 180;
                 const tanValue = Math.tan(cutAngleRad);
-                const cutLength = width / tanValue;
+                const cutLength = width / tanValue; // mm単位のまま計算
                 
-                // リアルタイム表示を更新
-                document.getElementById('realtimeCutLength').textContent = cutLength.toFixed(1) + 'cm';
+                // リアルタイム表示を更新（mm表示）
+                document.getElementById('realtimeCutLength').textContent = cutLength.toFixed(1) + 'mm';
                 document.getElementById('currentWidth').textContent = width.toString();
                 
             } catch (error) {
-                document.getElementById('realtimeCutLength').textContent = '---cm';
+                document.getElementById('realtimeCutLength').textContent = '---mm';
                 console.error('リアルタイム計算エラー:', error);
             }
         }
