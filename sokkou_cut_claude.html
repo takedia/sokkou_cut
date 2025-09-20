@@ -69,6 +69,68 @@
             box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
         }
         
+        /* カメラ角度ガイド セクション */
+        #cameraSection {
+            margin-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 20px;
+        }
+
+        #cameraSection summary {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 0;
+            user-select: none;
+            transition: background 0.3s ease, transform 0.2s ease;
+            list-style: none;
+        }
+
+        #cameraSection summary::-webkit-details-marker {
+            display: none;
+        }
+
+        #cameraSection summary::marker {
+            display: none;
+        }
+
+        #cameraSection summary::after {
+            content: '＋';
+            font-size: 16px;
+            transition: transform 0.2s ease;
+        }
+
+        #cameraSection[open] summary::after {
+            content: '－';
+        }
+
+        #cameraSection summary:hover,
+        #cameraSection summary:focus {
+            background: rgba(255, 255, 255, 0.25);
+            outline: none;
+        }
+
+        #cameraSection[open] summary {
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        #cameraSection .camera-content {
+            margin-top: 0;
+        }
+
+        #cameraSection[open] .camera-content {
+            margin-top: 15px;
+        }
+
         /* カメラモード */
         .video-container {
             position: relative;
@@ -296,42 +358,44 @@
         </button>
         
         <!-- カメラ角度ガイドセクション -->
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
-            <h3 style="text-align: center; margin-bottom: 15px;">📷 カメラ角度ガイド</h3>
-            
-            <div class="video-container">
-                <video id="video" style="display: none;"></video>
-                <img id="capturedImage" style="display: none;">
-                <canvas id="angleGuide" class="angle-guide" style="display: none;"></canvas>
-            </div>
-            
-            <!-- 角度調整スライダー -->
-            <div id="angleControl" class="angle-control" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div>目標角度: <span class="angle-value" id="targetAngle">135°</span></div>
-                    <div style="font-size: 14px; color: #333;">
-                        切断長さ: <span style="font-weight: bold; color: #4CAF50;" id="realtimeCutLength">23.6cm</span>
+        <details id="cameraSection" class="camera-section">
+            <summary>📷 カメラ角度ガイド</summary>
+
+            <div class="camera-content">
+                <div class="video-container">
+                    <video id="video" style="display: none;"></video>
+                    <img id="capturedImage" style="display: none;">
+                    <canvas id="angleGuide" class="angle-guide" style="display: none;"></canvas>
+                </div>
+
+                <!-- 角度調整スライダー -->
+                <div id="angleControl" class="angle-control" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div>目標角度: <span class="angle-value" id="targetAngle">135°</span></div>
+                        <div style="font-size: 14px; color: #333;">
+                            切断長さ: <span style="font-weight: bold; color: #4CAF50;" id="realtimeCutLength">23.6cm</span>
+                        </div>
+                    </div>
+                    <input type="range" id="angleSlider" class="angle-slider" min="30" max="170" value="135" step="1">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 5px;">
+                        <span>30°</span>
+                        <span>90°</span>
+                        <span>135°</span>
+                        <span>170°</span>
+                    </div>
+                    <div style="font-size: 12px; color: #666; margin-top: 5px; text-align: center;">
+                        製品幅: <span id="currentWidth">57</span>cm での計算
                     </div>
                 </div>
-                <input type="range" id="angleSlider" class="angle-slider" min="30" max="170" value="135" step="1">
-                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 5px;">
-                    <span>30°</span>
-                    <span>90°</span>
-                    <span>135°</span>
-                    <span>170°</span>
-                </div>
-                <div style="font-size: 12px; color: #666; margin-top: 5px; text-align: center;">
-                    製品幅: <span id="currentWidth">57</span>cm での計算
+
+                <div class="controls">
+                    <button id="startCameraBtn">📷 カメラ起動</button>
+                    <button id="captureBtn" disabled>📸 撮影</button>
+                    <button id="stopBtn" disabled>⏹️ 停止</button>
+                    <button id="useGuideAngleBtn" disabled style="background: linear-gradient(45deg, #4CAF50, #45a049);">📐 この角度で計算</button>
                 </div>
             </div>
-            
-            <div class="controls">
-                <button id="startCameraBtn">📷 カメラ起動</button>
-                <button id="captureBtn" disabled>📸 撮影</button>
-                <button id="stopBtn" disabled>⏹️ 停止</button>
-                <button id="useGuideAngleBtn" disabled style="background: linear-gradient(45deg, #4CAF50, #45a049);">📐 この角度で計算</button>
-            </div>
-        </div>
+        </details>
         
         <!-- ステータス表示 -->
         <div id="status" class="status" style="display: none;"></div>
@@ -356,7 +420,7 @@
         const VERSION_NAME = "Static Image Guide Edition";
         const BUILD_DATE = "2024-12-19";
         
-        let video, angleGuideCanvas, angleGuideCtx, capturedImage;
+        let video, angleGuideCanvas, angleGuideCtx, capturedImage, cameraSection;
         let stream = null;
         let targetAngle = 135;
         let isCaptured = false;
@@ -366,6 +430,7 @@
             console.log(`🚀 側溝切断角度計算アプリ v${APP_VERSION} (${VERSION_NAME}) が読み込まれました！`);
             
             // 要素の取得
+            cameraSection = document.getElementById('cameraSection');
             video = document.getElementById('video');
             angleGuideCanvas = document.getElementById('angleGuide');
             angleGuideCtx = angleGuideCanvas.getContext('2d');
@@ -486,10 +551,14 @@
         // カメラ機能
         async function startCamera() {
             console.log('📷 カメラ起動試行');
-            
+
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
+                if (cameraSection) {
+                    cameraSection.open = true;
+                }
+
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
                 });
                 
                 video.srcObject = stream;
@@ -627,7 +696,7 @@
             
             const centerX = angleGuideCanvas.width / 2;
             const centerY = angleGuideCanvas.height / 2;
-            const radius = Math.min(centerX, centerY) * 0.6;
+            const radius = Math.min(centerX, centerY) * 0.9;
             
             console.log('📐 描画パラメータ - 中心:', centerX + ',' + centerY, '半径:', radius);
             
@@ -638,9 +707,9 @@
             const startAngle = (180 - targetAngle) / 2;
             const endAngle = startAngle + targetAngle;
             
-            // 角度の線（太い緑線）
-            angleGuideCtx.strokeStyle = 'rgba(76, 175, 80, 0.9)';
-            angleGuideCtx.lineWidth = 4;
+            // 角度の線（細く明るいガイドライン）
+            angleGuideCtx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+            angleGuideCtx.lineWidth = 1.2;
             angleGuideCtx.lineCap = 'round';
             angleGuideCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
             angleGuideCtx.shadowBlur = 2;
@@ -666,8 +735,8 @@
             angleGuideCtx.stroke();
             
             // 角度の弧を描画
-            angleGuideCtx.strokeStyle = 'rgba(76, 175, 80, 0.7)';
-            angleGuideCtx.lineWidth = 2;
+            angleGuideCtx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            angleGuideCtx.lineWidth = 1;
             angleGuideCtx.beginPath();
             angleGuideCtx.arc(centerX, centerY, radius * 0.7, leftRadian, rightRadian);
             angleGuideCtx.stroke();
@@ -676,7 +745,7 @@
             angleGuideCtx.shadowBlur = 0;
             
             // 中心点
-            angleGuideCtx.fillStyle = 'rgba(76, 175, 80, 0.9)';
+            angleGuideCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
             angleGuideCtx.beginPath();
             angleGuideCtx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
             angleGuideCtx.fill();
