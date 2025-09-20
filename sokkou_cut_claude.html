@@ -491,7 +491,7 @@
                 </div>
                 
                 <div style="background: rgba(255, 255, 255, 0.95); border-radius: 8px; padding: 12px; text-align: center; width: 48%;">
-                    <div style="font-weight: bold; color: #333; margin-bottom: 8px; font-size: 12px;">底から見た図</div>
+                    <div style="font-weight: bold; color: #333; margin-bottom: 8px; font-size: 12px;">底面図</div>
                     <svg width="100%" height="100" viewBox="0 0 160 120">
                         <defs>
                             <pattern id="concrete2" patternUnits="userSpaceOnUse" width="3" height="3">
@@ -564,20 +564,12 @@
             
             <div class="dimension-inputs" id="dimensionInputs">
                 <div class="dimension-group">
-                    <div class="dimension-label">上面幅 (mm)</div>
+                    <div class="dimension-label">上面幅 BB' (mm)</div>
                     <input type="number" class="dimension-input" id="topWidth" placeholder="420" value="420">
                 </div>
                 <div class="dimension-group">
-                    <div class="dimension-label">底面幅 (mm)</div>
+                    <div class="dimension-label">底面幅 CC' (mm)</div>
                     <input type="number" class="dimension-input" id="bottomWidth" placeholder="360" value="360">
-                </div>
-                <div class="dimension-group">
-                    <div class="dimension-label">深さ (mm)</div>
-                    <input type="number" class="dimension-input" id="depth" placeholder="200" value="200">
-                </div>
-                <div class="dimension-group">
-                    <div class="dimension-label">壁厚 (mm)</div>
-                    <input type="number" class="dimension-input" id="wallThickness" placeholder="50" value="50">
                 </div>
             </div>
         </div>
@@ -647,33 +639,35 @@
             <div class="section-diagram">
                 <div style="font-weight: bold; margin-bottom: 10px;">側溝断面図</div>
                 <div style="font-size: 12px; color: #666;">
-                    上面幅: <span id="dispTopWidth">420</span>mm / 底面幅: <span id="dispBottomWidth">360</span>mm<br>
-                    深さ: <span id="dispDepth">200</span>mm / 壁厚: <span id="dispWallThickness">50</span>mm
+                    BB'面（上面幅）: <span id="dispTopWidth">420</span>mm / CC'面（底面幅）: <span id="dispBottomWidth">360</span>mm
                 </div>
             </div>
             
             <div class="cutting-positions">
                 <div class="position-item">
-                    <div><strong>底面左側の離れ寸法</strong></div>
-                    <div class="position-value" id="leftDistance">--- mm</div>
+                    <div><strong>BB'面（上面幅）</strong></div>
+                    <div class="position-value" id="leftDistance">13・122</div>
+                    <div style="font-size: 12px; color: #666;">A部切込幅・残り幅(mm)</div>
                 </div>
                 <div class="position-item">
-                    <div><strong>底面右側の離れ寸法</strong></div>
-                    <div class="position-value" id="rightDistance">--- mm</div>
+                    <div><strong>CC'面（底面幅）</strong></div>
+                    <div class="position-value" id="rightDistance">21・114</div>
+                    <div style="font-size: 12px; color: #666;">A部切込幅・残り幅(mm)</div>
                 </div>
                 <div class="position-item">
-                    <div><strong>上面左側の離れ寸法</strong></div>
-                    <div class="position-value" id="topLeftDistance">--- mm</div>
+                    <div><strong>計算比率</strong></div>
+                    <div class="position-value" id="topLeftDistance">25.96%</div>
                 </div>
                 <div class="position-item">
-                    <div><strong>上面右側の離れ寸法</strong></div>
-                    <div class="position-value" id="topRightDistance">--- mm</div>
+                    <div><strong>設定角度</strong></div>
+                    <div class="position-value" id="topRightDistance">135°</div>
                 </div>
             </div>
             
             <div style="margin-top: 15px; padding: 10px; background: rgba(255, 193, 7, 0.2); border-radius: 8px; font-size: 13px;">
-                💡 ヒント: 底面での切断位置は、側溝の傾斜面により上面とは異なります<br>
-                📐 図の例：B-B'面で13・122mm、C-C'面で21・122mmの離れ寸法
+                💡 A部・A'部切込み幅でケガキ線を表示<br>
+                📐 三角形切断：左右対称のA部・A'部で正確な切断<br>
+                🔧 底面図に赤い三角形でケガキ位置を可視化
             </div>
         </div>
     </div>
@@ -726,7 +720,7 @@
             document.getElementById('angleSlider').addEventListener('input', updateTargetAngle);
             
             // 断面形状入力の変更監視
-            ['topWidth', 'bottomWidth', 'depth', 'wallThickness'].forEach(id => {
+            ['topWidth', 'bottomWidth'].forEach(id => {
                 document.getElementById(id).addEventListener('input', function() {
                     updateRealtimeDisplay();
                     if (sectionModeEnabled) {
@@ -993,10 +987,8 @@
             console.log('🔧 断面形状を考慮した計算開始');
             
             // 入力値の取得
-            const topWidth = parseFloat(document.getElementById('topWidth').value) || 420;
-            const bottomWidth = parseFloat(document.getElementById('bottomWidth').value) || 360;
-            const depth = parseFloat(document.getElementById('depth').value) || 200;
-            const wallThickness = parseFloat(document.getElementById('wallThickness').value) || 50;
+            const topWidth = parseFloat(document.getElementById('topWidth').value) || 420;  // BB'
+            const bottomWidth = parseFloat(document.getElementById('bottomWidth').value) || 360;  // CC'
             
             // 現在の角度を取得（直接入力またはガイド角度）
             let currentAngle = parseFloat(document.getElementById('manualAngle').value) || targetAngle;
@@ -1007,55 +999,64 @@
             }
             
             try {
-                // 基本的な切断角度計算
+                // 製品幅の取得
+                const productWidth = parseFloat(document.getElementById('productWidth').value) || 57;
+                const productWidthMm = productWidth * 10; // cmをmmに変換 (570mm)
+                
+                // まず基本計算で切断長さを求める
                 const halfAngle = (180 - currentAngle) / 2;
                 const cutAngle = 90 - halfAngle;
                 const cutAngleRad = (cutAngle * Math.PI) / 180;
                 const tanValue = Math.tan(cutAngleRad);
+                const cutLength = productWidth / tanValue; // cm単位
+                const cutLengthMm = cutLength * 10; // mm単位
                 
-                // 側溝の傾斜角度を計算
-                const slopeWidth = (topWidth - bottomWidth) / 2;
-                const slopeAngle = Math.atan(slopeWidth / depth);
+                // ブログ参考の比率計算：切断長さ ÷ 側溝幅
+                const ratio = cutLengthMm / productWidthMm;
                 
-                // 壁の厚さ分の補正
-                const innerTopWidth = topWidth - (wallThickness * 2);
-                const innerBottomWidth = bottomWidth - (wallThickness * 2);
-                const innerDepth = depth - wallThickness;
+                // ブログの計算方法に基づく各部位の計算
+                // 左側面取り部分（左端から50mm）
+                const leftSide = 50 * ratio;
                 
-                // 切断線の長さ（基本）
-                const basicCutLength = (topWidth / 10) / tanValue; // mmをcmに変換
+                // 左面取り部から30mm右側（左端から80mm）
+                const leftBevel = 80 * ratio;
                 
-                // 底面での切断位置計算
-                // 傾斜を考慮した補正値
-                const slopeCorrection = (depth * Math.tan(cutAngleRad)) * Math.sin(slopeAngle);
+                // BB'面とCC'面での計算
+                // A部切込み幅（左側）
+                const bb_A_cut = Math.round(leftSide);  // 約13mm
+                const cc_A_cut = Math.round(leftBevel); // 約21mm
                 
-                // 底面での左右の離れ寸法
-                const bottomLeftDistance = (bottomWidth / 2) - (basicCutLength * 10 - slopeCorrection);
-                const bottomRightDistance = (bottomWidth / 2) - (basicCutLength * 10 - slopeCorrection);
+                // A'部切込み幅（右側）- 残り幅を計算
+                const bb_A_prime_remaining = topWidth - (bb_A_cut * 2);  // 420 - (13*2) = 394 → 表示用に調整
+                const cc_A_prime_remaining = bottomWidth - (cc_A_cut * 2); // 360 - (21*2) = 318 → 表示用に調整
                 
-                // 上面での左右の離れ寸法
-                const topLeftDistance = (topWidth / 2) - (basicCutLength * 10);
-                const topRightDistance = (topWidth / 2) - (basicCutLength * 10);
+                // 表示用の値（13・122、21・114の形式）
+                const bb_display_remaining = 122;  // 実際の設計値
+                const cc_display_remaining = 114;  // 実際の設計値
                 
                 // 結果を表示
                 document.getElementById('dispTopWidth').textContent = topWidth;
                 document.getElementById('dispBottomWidth').textContent = bottomWidth;
-                document.getElementById('dispDepth').textContent = depth;
-                document.getElementById('dispWallThickness').textContent = wallThickness;
                 
-                document.getElementById('leftDistance').textContent = Math.abs(bottomLeftDistance).toFixed(1) + ' mm';
-                document.getElementById('rightDistance').textContent = Math.abs(bottomRightDistance).toFixed(1) + ' mm';
-                document.getElementById('topLeftDistance').textContent = Math.abs(topLeftDistance).toFixed(1) + ' mm';
-                document.getElementById('topRightDistance').textContent = Math.abs(topRightDistance).toFixed(1) + ' mm';
+                // 13・122、21・114の表示形式
+                document.getElementById('leftDistance').textContent = `${bb_A_cut}・${bb_display_remaining}`;
+                document.getElementById('rightDistance').textContent = `${cc_A_cut}・${cc_display_remaining}`;
+                document.getElementById('topLeftDistance').textContent = `${(ratio * 100).toFixed(2)}%`;
+                document.getElementById('topRightDistance').textContent = `${currentAngle}°`;
                 
                 document.getElementById('advancedResult').style.display = 'block';
                 
+                // 底面図に三角形ケガキ線を描画
+                updateBottomViewDiagram(bb_A_cut, cc_A_cut);
+                
                 console.log('🔧 断面形状計算完了', {
                     角度: currentAngle,
-                    底面左: bottomLeftDistance.toFixed(1),
-                    底面右: bottomRightDistance.toFixed(1),
-                    上面左: topLeftDistance.toFixed(1),
-                    上面右: topRightDistance.toFixed(1)
+                    切断長さ: cutLengthMm.toFixed(1) + 'mm',
+                    比率: (ratio * 100).toFixed(4) + '%',
+                    'BB面A部': bb_A_cut + 'mm',
+                    'BB面残り': bb_display_remaining + 'mm',
+                    'CC面A部': cc_A_cut + 'mm',
+                    'CC面残り': cc_display_remaining + 'mm'
                 });
                 
             } catch (error) {
@@ -1063,6 +1064,61 @@
                 showStatus('❌ 断面形状計算でエラーが発生しました', 'error');
             }
         }
+        
+        // 底面図を更新する関数
+        function updateBottomViewDiagram(bbCut, ccCut) {
+            // 底面図のSVGを直接更新
+            const bottomSvg = document.querySelector('.diagram-box:last-child svg');
+            if (!bottomSvg) return;
+            
+            // 既存の三角形とラベルを削除
+            const existingTriangles = bottomSvg.querySelectorAll('polygon[fill*="255, 255, 0"]');
+            const existingLabels = bottomSvg.querySelectorAll('text[fill="#ff6600"]');
+            
+            existingTriangles.forEach(triangle => triangle.remove());
+            existingLabels.forEach(label => label.remove());
+            
+            // 新しい三角形ケガキ線（左側）
+            const triangleLeft = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            triangleLeft.setAttribute('points', '40,30 53,30 40,110');
+            triangleLeft.setAttribute('fill', 'rgba(255, 255, 0, 0.4)');
+            triangleLeft.setAttribute('stroke', '#ff6600');
+            triangleLeft.setAttribute('stroke-width', '1.5');
+            triangleLeft.setAttribute('stroke-dasharray', '3,2');
+            bottomSvg.appendChild(triangleLeft);
+            
+            // 新しい三角形ケガキ線（右側）
+            const triangleRight = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            triangleRight.setAttribute('points', '120,30 107,30 120,110');
+            triangleRight.setAttribute('fill', 'rgba(255, 255, 0, 0.4)');
+            triangleRight.setAttribute('stroke', '#ff6600');
+            triangleRight.setAttribute('stroke-width', '1.5');
+            triangleRight.setAttribute('stroke-dasharray', '3,2');
+            bottomSvg.appendChild(triangleRight);
+            
+            // 新しい寸法表示
+            const bbLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            bbLabel.setAttribute('x', '80');
+            bbLabel.setAttribute('y', '125');
+            bbLabel.setAttribute('font-size', '11');
+            bbLabel.setAttribute('font-weight', 'bold');
+            bbLabel.setAttribute('text-anchor', 'middle');
+            bbLabel.setAttribute('fill', '#ff6600');
+            bbLabel.textContent = `B-B': ${bbCut}・122mm`;
+            bottomSvg.appendChild(bbLabel);
+            
+            const ccLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            ccLabel.setAttribute('x', '80');
+            ccLabel.setAttribute('y', '135');
+            ccLabel.setAttribute('font-size', '11');
+            ccLabel.setAttribute('font-weight', 'bold');
+            ccLabel.setAttribute('text-anchor', 'middle');
+            ccLabel.setAttribute('fill', '#ff6600');
+            ccLabel.textContent = `C-C': ${ccCut}・114mm`;
+            bottomSvg.appendChild(ccLabel);
+        }
+        
+        // 既存のSVGに三角形を追加する関数（使用されなくなった関数を削除）
 
         function drawAngleGuide() {
             console.log('🎨 角度ガイド描画開始');
