@@ -397,10 +397,14 @@
 
                 <div class="controls">
                     <button id="startCameraBtn">📷 カメラ起動</button>
+                    <button id="loadImageBtn">🖼️ 画像読込</button>
                     <button id="captureBtn" disabled>📸 撮影</button>
                     <button id="stopBtn" disabled>⏹️ 停止</button>
                     <button id="useGuideAngleBtn" disabled style="background: linear-gradient(45deg, #4CAF50, #45a049);">📐 この角度で計算</button>
                 </div>
+                
+                <!-- 隠しファイル入力 -->
+                <input type="file" id="imageInput" accept="image/*" style="display: none;">
             </div>
         </details>
         
@@ -461,9 +465,13 @@
             
             // カメラ操作ボタン
             document.getElementById('startCameraBtn').addEventListener('click', startCamera);
+            document.getElementById('loadImageBtn').addEventListener('click', loadImage);
             document.getElementById('captureBtn').addEventListener('click', capturePhoto);
             document.getElementById('stopBtn').addEventListener('click', stopCamera);
             document.getElementById('useGuideAngleBtn').addEventListener('click', useGuideAngle);
+            
+            // 画像読込
+            document.getElementById('imageInput').addEventListener('change', handleImageLoad);
             
             // 角度スライダー
             document.getElementById('angleSlider').addEventListener('input', updateTargetAngle);
@@ -612,6 +620,78 @@
             }
         }
 
+        // 画像読込機能
+        function loadImage() {
+            console.log('🖼️ 画像読込開始');
+            document.getElementById('imageInput').click();
+        }
+
+        // 画像読込処理
+        function handleImageLoad(event) {
+            console.log('🖼️ 画像ファイル処理開始');
+            
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // ファイルタイプの確認
+            if (!file.type.startsWith('image/')) {
+                showStatus('❌ 画像ファイルを選択してください', 'error');
+                return;
+            }
+            
+            // カメラを停止
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            // セクションを開く
+            if (cameraSection) {
+                cameraSection.open = true;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                console.log('🖼️ 画像データ読込完了');
+                
+                // 読み込んだ画像を表示
+                capturedImage.src = e.target.result;
+                capturedImage.style.display = 'block';
+                video.style.display = 'none';
+                
+                capturedImage.onload = function() {
+                    console.log('🖼️ 画像表示完了');
+                    
+                    // 角度ガイドを表示
+                    angleGuideCanvas.style.display = 'block';
+                    document.getElementById('angleControl').style.display = 'block';
+                    
+                    // キャンバスサイズを画像に合わせて調整
+                    setTimeout(() => {
+                        resizeAngleGuideCanvas();
+                        drawAngleGuide();
+                        console.log('📐 角度ガイド描画完了');
+                    }, 100);
+                };
+                
+                // ボタン状態を更新
+                document.getElementById('captureBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('useGuideAngleBtn').disabled = false;
+                
+                isCaptured = true;
+                
+                showStatus('🖼️ 画像読込完了！下のスライダーで角度を調整してください', 'success');
+            };
+            
+            reader.onerror = function() {
+                console.error('🖼️ 画像読込エラー');
+                showStatus('❌ 画像の読み込みに失敗しました', 'error');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
         // 写真撮影機能
         function capturePhoto() {
             console.log('📸 写真撮影開始');
@@ -695,6 +775,9 @@
                     window.gc();
                 }
             }
+            
+            // ファイル入力もリセット
+            document.getElementById('imageInput').value = '';
             
             // ボタン状態をリセット
             document.getElementById('captureBtn').disabled = true;
