@@ -20,6 +20,8 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
 from kivy.uix.accordion import Accordion, AccordionItem
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.widget import Widget
 from kivy.graphics import Color, Line, Ellipse, Rectangle
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
@@ -28,6 +30,7 @@ from kivy.core.window import Window
 from kivy.logger import Logger
 import math
 import os
+from glob import glob
 import numpy as np
 
 # デバッグ用ウィンドウサイズ
@@ -36,15 +39,58 @@ Window.size = (400, 700)
 # フォント設定
 def setup_font():
     try:
+        # 優先的に環境変数で指定されたフォントを利用
+        env_font = os.environ.get("KIVY_JP_FONT")
+        if env_font and os.path.exists(env_font):
+            LabelBase.register(name="Japanese", fn_regular=env_font)
+            Logger.info(f"日本語フォント: 環境変数から {env_font}")
+            return "Japanese"
+
+        font_paths = []
+
         if os.name == 'nt':
-            font_paths = [
+            font_paths.extend([
                 "C:/Windows/Fonts/meiryo.ttc",
-                "C:/Windows/Fonts/msgothic.ttc"
+                "C:/Windows/Fonts/msgothic.ttc",
+                "C:/Windows/Fonts/YuGothM.ttc",
+            ])
+        else:
+            search_dirs = [
+                "/usr/share/fonts",
+                "/usr/local/share/fonts",
+                os.path.expanduser("~/.local/share/fonts"),
+                "/System/Library/Fonts",
+                "/Library/Fonts",
             ]
-            for font_path in font_paths:
-                if os.path.exists(font_path):
+
+            patterns = [
+                "**/NotoSansCJK*.ttc",
+                "**/NotoSansCJKjp*.otf",
+                "**/NotoSansJP*.otf",
+                "**/NotoSansJP*.ttf",
+                "**/SourceHanSansJP*.otf",
+                "**/SourceHanSansJP*.ttc",
+                "**/ipagp.ttf",
+                "**/ipam.ttf",
+                "**/ipaexg.ttf",
+                "**/TakaoPGothic.ttf",
+                "**/HiraginoSans-*.ttc",
+            ]
+
+            for directory in search_dirs:
+                if not os.path.isdir(directory):
+                    continue
+                for pattern in patterns:
+                    font_paths.extend(glob(os.path.join(directory, pattern), recursive=True))
+
+        for font_path in font_paths:
+            if os.path.exists(font_path):
+                try:
                     LabelBase.register(name="Japanese", fn_regular=font_path)
+                    Logger.info(f"日本語フォント: {font_path}")
                     return "Japanese"
+                except Exception as font_error:
+                    Logger.warning(f"フォント登録失敗: {font_path} ({font_error})")
     except Exception as e:
         Logger.info(f"フォント設定エラー: {e}")
     return None
@@ -191,13 +237,13 @@ class CameraWidget(Image):
         
         return None
 
-class AngleGuideOverlay(BoxLayout):
+class AngleGuideOverlay(Widget):
     """角度ガイドオーバーレイ"""
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.angle = 135
-        self.bind(size=self.update_overlay)
+        self.bind(size=self.update_overlay, pos=self.update_overlay)
         
     def set_angle(self, angle):
         self.angle = angle
@@ -427,14 +473,22 @@ class CameraGuideApp(App):
         camera_layout = BoxLayout(orientation='vertical', spacing=3, padding=3)
         
         # カメラプレビューエリア
-        camera_container = BoxLayout(size_hint_y=0.7)
-        
+        camera_container = FloatLayout(size_hint_y=0.7)
+
         # カメラウィジェット
-        self.camera_widget = CameraWidget()
+        self.camera_widget = CameraWidget(
+            allow_stretch=True,
+            keep_ratio=True,
+            size_hint=(1, 1),
+            pos_hint={"x": 0, "y": 0}
+        )
         camera_container.add_widget(self.camera_widget)
-        
+
         # 角度ガイドオーバーレイ
-        self.angle_overlay = AngleGuideOverlay()
+        self.angle_overlay = AngleGuideOverlay(
+            size_hint=(1, 1),
+            pos_hint={"x": 0, "y": 0}
+        )
         camera_container.add_widget(self.angle_overlay)
         
         camera_layout.add_widget(camera_container)
