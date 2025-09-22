@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-U字溝カットガイド - 実働カメラ機能版
-OpenCVを使用した実際のカメラ機能を実装
-
-機能:
-- リアルタイムカメラプレビュー
-- 角度ガイドオーバーレイ
-- カメラ撮影機能
-- 複数カメラ対応
+U字溝カットガイド（カメラ版）- シンプル安定版
+- 絵文字なし（文字化け対策）
+- 左右バーを個別に調整できる2本スライダー
+- ガイドは細く・長く・即時更新
 """
 
 from kivy.app import App
@@ -17,12 +13,10 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.slider import Slider
 from kivy.uix.scrollview import ScrollView
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.image import Image
-from kivy.uix.accordion import Accordion, AccordionItem
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.image import Image
 from kivy.uix.widget import Widget
-from kivy.graphics import Color, Line, Ellipse, Rectangle
+from kivy.graphics import Color, Line, Ellipse
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from kivy.core.text import LabelBase
@@ -31,709 +25,362 @@ from kivy.logger import Logger
 import math
 import os
 from glob import glob
-import numpy as np
 
-# デバッグ用ウィンドウサイズ
+# 画面サイズ（必要なら調整）
 Window.size = (400, 700)
 
-# フォント設定
+# 日本語フォント（あれば使う）
 def setup_font():
     try:
-        # 優先的に環境変数で指定されたフォントを利用
         env_font = os.environ.get("KIVY_JP_FONT")
         if env_font and os.path.exists(env_font):
             LabelBase.register(name="Japanese", fn_regular=env_font)
-            Logger.info(f"日本語フォント: 環境変数から {env_font}")
             return "Japanese"
 
-        font_paths = []
-
+        candidates = []
         if os.name == 'nt':
-            font_paths.extend([
+            candidates = [
                 "C:/Windows/Fonts/meiryo.ttc",
-                "C:/Windows/Fonts/msgothic.ttc",
                 "C:/Windows/Fonts/YuGothM.ttc",
-            ])
+                "C:/Windows/Fonts/msgothic.ttc",
+            ]
         else:
             search_dirs = [
-                "/usr/share/fonts",
-                "/usr/local/share/fonts",
+                "/usr/share/fonts", "/usr/local/share/fonts",
                 os.path.expanduser("~/.local/share/fonts"),
-                "/System/Library/Fonts",
-                "/Library/Fonts",
+                "/System/Library/Fonts", "/Library/Fonts",
             ]
-
             patterns = [
-                "**/NotoSansCJK*.ttc",
-                "**/NotoSansCJKjp*.otf",
-                "**/NotoSansJP*.otf",
-                "**/NotoSansJP*.ttf",
-                "**/SourceHanSansJP*.otf",
-                "**/SourceHanSansJP*.ttc",
-                "**/ipagp.ttf",
-                "**/ipam.ttf",
-                "**/ipaexg.ttf",
-                "**/TakaoPGothic.ttf",
-                "**/HiraginoSans-*.ttc",
+                "**/NotoSansJP*.otf", "**/NotoSansJP*.ttf",
+                "**/NotoSansCJKjp*.otf", "**/SourceHanSansJP*.otf",
+                "**/ipaexg.ttf", "**/ipagp.ttf", "**/ipam.ttf",
             ]
-
-            for directory in search_dirs:
-                if not os.path.isdir(directory):
-                    continue
-                for pattern in patterns:
-                    font_paths.extend(glob(os.path.join(directory, pattern), recursive=True))
-
-        for font_path in font_paths:
-            if os.path.exists(font_path):
-                try:
-                    LabelBase.register(name="Japanese", fn_regular=font_path)
-                    Logger.info(f"日本語フォント: {font_path}")
-                    return "Japanese"
-                except Exception as font_error:
-                    Logger.warning(f"フォント登録失敗: {font_path} ({font_error})")
+            for d in search_dirs:
+                for p in patterns:
+                    candidates.extend(glob(os.path.join(d, p), recursive=True))
+        for path in candidates:
+            if os.path.exists(path):
+                LabelBase.register(name="Japanese", fn_regular=path)
+                Logger.info(f"Font set: {path}")
+                return "Japanese"
     except Exception as e:
-        Logger.info(f"フォント設定エラー: {e}")
+        Logger.warning(f"Font setup failed: {e}")
     return None
 
 FONT_NAME = setup_font()
 
-# OpenCV設定
+# OpenCV（カメラは任意。動かなくてもアプリは落ちない）
 try:
     import cv2
     OPENCV_AVAILABLE = True
-    Logger.info("OpenCV利用可能")
-except ImportError:
+except Exception:
     OPENCV_AVAILABLE = False
-    Logger.warning("OpenCV利用不可")
+    Logger.warning("OpenCV unavailable. Camera buttons will still show but do nothing.")
 
 class CameraWidget(Image):
-    """実働カメラウィジェット"""
-    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.capture = None
         self.is_playing = False
-        self.camera_index = 0
         self.fps = 30
-        
-    def detect_cameras(self):
-        """利用可能なカメラを検出"""
-        available_cameras = []
-        for i in range(5):  # 最大5台まで検出
-            cap = cv2.VideoCapture(i)
-            if cap.isOpened():
-                available_cameras.append(i)
-                cap.release()
-                Logger.info(f"カメラ {i} 検出")
-            else:
-                Logger.info(f"カメラ {i} 利用不可")
-        return available_cameras
-    
-    def start_camera(self, camera_index=0):
-        """カメラ開始"""
+
+    def start(self, index=0):
         if not OPENCV_AVAILABLE:
-            Logger.error("OpenCVが利用できません")
             return False
-        
         try:
-            # 既存のカメラを停止
             if self.capture:
                 self.capture.release()
-            
-            Logger.info(f"カメラ {camera_index} 起動試行")
-            self.capture = cv2.VideoCapture(camera_index)
-            
+            self.capture = cv2.VideoCapture(index)
             if not self.capture.isOpened():
-                Logger.error(f"カメラ {camera_index} を開けません")
                 return False
-            
-            # カメラ設定
-            self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-            self.capture.set(cv2.CAP_PROP_FPS, self.fps)
-            
-            # テストフレーム取得
-            ret, frame = self.capture.read()
-            if not ret:
-                Logger.error("カメラからフレームを取得できません")
-                self.capture.release()
-                return False
-            
-            self.camera_index = camera_index
             self.is_playing = True
-            
-            # フレーム更新開始
-            Clock.schedule_interval(self.update_frame, 1.0 / self.fps)
-            
-            Logger.info(f"カメラ {camera_index} 起動成功")
+            Clock.schedule_interval(self._update, 1.0/self.fps)
             return True
-            
         except Exception as e:
-            Logger.error(f"カメラ起動エラー: {e}")
-            if self.capture:
-                self.capture.release()
-                self.capture = None
+            Logger.error(f"Camera start error: {e}")
             return False
-    
-    def stop_camera(self):
-        """カメラ停止"""
+
+    def stop(self):
         self.is_playing = False
-        Clock.unschedule(self.update_frame)
-        
+        Clock.unschedule(self._update)
         if self.capture:
             self.capture.release()
             self.capture = None
-        
-        # 黒画面に戻す
         self.texture = None
-        Logger.info("カメラ停止")
-    
-    def update_frame(self, dt):
-        """フレーム更新"""
-        if not self.is_playing or not self.capture:
-            return False
-        
-        try:
-            ret, frame = self.capture.read()
-            if not ret:
-                Logger.warning("フレーム取得失敗")
-                return True
-            
-            # フレームを処理
-            frame = cv2.flip(frame, 0)  # 垂直反転（Kivyの座標系に合わせる）
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
-            # テクスチャ作成
-            h, w, c = frame_rgb.shape
-            texture = Texture.create(size=(w, h), colorfmt='rgb')
-            texture.blit_buffer(frame_rgb.flatten(), colorfmt='rgb', bufferfmt='ubyte')
-            
-            # テクスチャを画像に適用
-            self.texture = texture
-            
-            return True
-            
-        except Exception as e:
-            Logger.error(f"フレーム更新エラー: {e}")
-            return False
-    
-    def capture_image(self):
-        """現在のフレームをキャプチャ"""
+
+    def _update(self, dt):
         if not self.capture or not self.is_playing:
-            return None
-        
-        try:
-            ret, frame = self.capture.read()
-            if ret:
-                # タイムスタンプ付きで保存
-                import datetime
-                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename = f"capture_{timestamp}.jpg"
-                cv2.imwrite(filename, frame)
-                Logger.info(f"画像保存: {filename}")
-                return frame
-        except Exception as e:
-            Logger.error(f"画像キャプチャエラー: {e}")
-        
-        return None
+            return
+        ok, frame = self.capture.read()
+        if not ok:
+            return
+        frame = cv2.flip(frame, 0)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        h, w = frame.shape[:2]
+        tex = Texture.create(size=(w, h), colorfmt='rgb')
+        tex.blit_buffer(frame.tobytes(), colorfmt='rgb', bufferfmt='ubyte')
+        self.texture = tex
 
 class AngleGuideOverlay(Widget):
-    """角度ガイドオーバーレイ"""
-
+    """薄く長い2本バー。左・右を度数で指定（0°=右、90°=上）。枠の内側で必ず止まる。"""
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.angle = 135
+        self.left_angle = 45.0
+        self.right_angle = 135.0
+        self.line_width = 2.0
+
+        # ← 調整つまみ（質問の2点）
+        self.length_ratio = 0.82   # 0.0〜1.0: 1.0で枠の端ピッタリ、0.9で10%短く
+        self.center_bias  = -0.18   # -0.5〜+0.5くらい: +で上へ、-で下へ（高さに対する比）
+
         self.bind(size=self.update_overlay, pos=self.update_overlay)
-        
-    def set_angle(self, angle):
-        self.angle = angle
+
+    def set_angles(self, left_deg, right_deg):
+        l = float(left_deg); r = float(right_deg)
+        if r <= l:
+            r = min(180.0, l + 1.0)
+        self.left_angle, self.right_angle = l, r
         self.update_overlay()
-        
+
+    # ← インスタンスメソッドに変更（self を使えるように）
+    def _edge_point(self, cx, cy, deg, x0, y0, x1, y1):
+        rad = math.radians(deg)
+        dx, dy = math.cos(rad), math.sin(rad)
+        eps = 1e-9
+        ts = []
+        if dx > eps:      ts.append((x1 - cx) / dx)
+        elif dx < -eps:   ts.append((x0 - cx) / dx)
+        if dy > eps:      ts.append((y1 - cy) / dy)
+        elif dy < -eps:   ts.append((y0 - cy) / dy)
+        if not ts:
+            return cx, cy
+        t_edge = min([t for t in ts if t > 0], default=0.0)
+
+        # 枠の端までの距離に ratio を掛けて短くする
+        ratio = max(0.0, min(1.0, float(self.length_ratio)))
+        t = ratio * t_edge
+        return cx + dx * t, cy + dy * t
+
     def update_overlay(self, *args):
         self.canvas.after.clear()
-        
-        if self.width == 0 or self.height == 0:
-            Clock.schedule_once(lambda dt: self.update_overlay(), 0.1)
+        if self.width <= 0 or self.height <= 0:
             return
-        
-        try:
-            with self.canvas.after:
-                # 半透明背景
-                Color(0, 0, 0, 0.3)
-                Rectangle(pos=self.pos, size=self.size)
-                
-                # ガイドライン（明るい緑）
-                Color(0.2, 1, 0.2, 0.9)
-                
-                center_x = self.width / 2
-                center_y = self.height / 2
-                radius = min(self.width, self.height) * 0.3
-                
-                # 中心点
-                Ellipse(pos=(center_x - 8, center_y - 8), size=(16, 16))
-                
-                # 角度ライン計算
-                start_angle = (180 - self.angle) / 2
-                end_angle = start_angle + self.angle
-                
-                # 左ライン
-                left_rad = math.radians(start_angle)
-                left_x = center_x + radius * math.cos(left_rad)
-                left_y = center_y + radius * math.sin(left_rad)
-                Line(points=[center_x, center_y, left_x, left_y], width=4)
-                
-                # 右ライン
-                right_rad = math.radians(end_angle)
-                right_x = center_x + radius * math.cos(right_rad)
-                right_y = center_y + radius * math.sin(right_rad)
-                Line(points=[center_x, center_y, right_x, right_y], width=4)
-                
-                # 角度弧
-                Color(0.2, 1, 0.2, 0.6)
-                arc_radius = radius * 0.7
-                for i in range(int(start_angle), int(end_angle) + 1, 2):
-                    rad = math.radians(i)
-                    x = center_x + arc_radius * math.cos(rad)
-                    y = center_y + arc_radius * math.sin(rad)
-                    Ellipse(pos=(x - 2, y - 2), size=(4, 4))
-                
-        except Exception as e:
-            Logger.error(f"オーバーレイ描画エラー: {e}")
+
+        # オーバーレイ自身の矩形（画像表示領域に合わせたい場合はここを差し替え）
+        x0, y0 = self.x, self.y
+        x1, y1 = self.x + self.width, self.y + self.height
+
+        # 支点（中心）を上下にオフセット
+        cx = (x0 + x1) / 2.0
+        cy = (y0 + y1) / 2.0 + self.center_bias * self.height
+
+        # 交点（枠内）までで止める
+        lx, ly = self._edge_point(cx, cy, self.left_angle,  x0, y0, x1, y1)
+        rx, ry = self._edge_point(cx, cy, self.right_angle, x0, y0, x1, y1)
+
+        with self.canvas.after:
+            Color(0.65, 1.0, 0.35, 0.95)  # 左右バー
+            Line(points=[cx, cy, lx, ly], width=self.line_width)
+            Line(points=[cx, cy, rx, ry], width=self.line_width)
+            Color(0.85, 1.0, 0.6, 0.95)   # 支点
+            Ellipse(pos=(cx - 3, cy - 3), size=(6, 6))
 
 class CameraGuideApp(App):
-    """カメラ機能付きメインアプリ"""
-    
     def build(self):
-        # メインスクロールビュー
-        scroll = ScrollView(
-            do_scroll_x=False,
-            do_scroll_y=True,
-            scroll_type=['content']
-        )
-        
-        main_layout = BoxLayout(
-            orientation='vertical',
-            padding=10,
-            spacing=8,
-            size_hint_y=None
-        )
-        main_layout.bind(minimum_height=main_layout.setter('height'))
-        
-        # ヘッダー
-        header = self.create_header()
-        main_layout.add_widget(header)
-        
-        # 入力セクション
-        input_section = self.create_input_section()
-        main_layout.add_widget(input_section)
-        
-        # 計算ボタン
-        calc_btn = Button(
-            text="🧮 計算実行",
-            size_hint_y=None,
-            height=45,
-            font_size=14,
-            background_color=(0.2, 0.7, 0.2, 1),
-            font_name=FONT_NAME
-        )
-        calc_btn.bind(on_press=self.calculate)
-        main_layout.add_widget(calc_btn)
-        
-        # カメラセクション
-        if OPENCV_AVAILABLE:
-            camera_section = self.create_camera_section()
-            main_layout.add_widget(camera_section)
-        else:
-            no_camera = Label(
-                text="📷 カメラ機能を使用するには 'pip install opencv-python' が必要です",
-                size_hint_y=None,
-                height=50,
-                font_size=11,
-                color=(1, 0.3, 0.3, 1),
-                font_name=FONT_NAME,
-                text_size=(None, None),
-                halign='center'
-            )
-            main_layout.add_widget(no_camera)
-        
-        # ステータス
-        self.status_label = Label(
-            text="✅ アプリ起動完了",
-            size_hint_y=None,
-            height=25,
-            font_size=11,
-            color=(0.2, 0.8, 1, 1),
-            font_name=FONT_NAME
-        )
-        main_layout.add_widget(self.status_label)
-        
-        # 結果表示
-        result_section = self.create_result_section()
-        main_layout.add_widget(result_section)
-        
-        # 余白
-        spacer = Label(text="", size_hint_y=None, height=30)
-        main_layout.add_widget(spacer)
-        
-        scroll.add_widget(main_layout)
-        return scroll
-    
-    def create_header(self):
-        layout = BoxLayout(orientation='vertical', size_hint_y=None, height=50, spacing=3)
-        
-        title = Label(
-            text="📐 U字溝カットガイド（カメラ版）",
-            size_hint_y=None,
-            height=30,
-            font_size=16,
-            bold=True,
-            font_name=FONT_NAME
-        )
-        layout.add_widget(title)
-        
-        subtitle = Label(
-            text="カメラで角度を測定して切断寸法を計算",
-            size_hint_y=None,
-            height=17,
-            font_size=10,
-            color=(0.7, 0.7, 0.7, 1),
-            font_name=FONT_NAME
-        )
-        layout.add_widget(subtitle)
-        
-        return layout
-    
-    def create_input_section(self):
-        layout = BoxLayout(orientation='vertical', size_hint_y=None, height=90, spacing=5)
-        
-        # 入力フィールド
-        input_row = BoxLayout(orientation='horizontal', size_hint_y=None, height=60, spacing=8)
-        
-        # 角度入力
-        angle_box = BoxLayout(orientation='vertical')
-        angle_box.add_widget(Label(
-            text="角度(°)", 
-            size_hint_y=None, 
-            height=15, 
-            font_size=10,
-            font_name=FONT_NAME
-        ))
-        self.angle_input = TextInput(
-            text="135",
-            input_filter='float',
-            multiline=False,
-            size_hint_y=None,
-            height=40,
-            font_size=12
-        )
-        self.angle_input.bind(text=self.on_input_change)
-        angle_box.add_widget(self.angle_input)
-        input_row.add_widget(angle_box)
-        
-        # 幅入力
+        scroll = ScrollView(do_scroll_x=False, do_scroll_y=True, scroll_type=['content'])
+        root = BoxLayout(orientation='vertical', padding=10, spacing=8, size_hint_y=None)
+        root.bind(minimum_height=root.setter('height'))
+
+        # タイトル
+        title = Label(text="U字溝カットガイド", size_hint_y=None, height=30,
+                      font_size=16, bold=True, font_name=FONT_NAME)
+        subtitle = Label(text="カメラで角度を測って切断寸法を算出", size_hint_y=None, height=18,
+                         font_size=10, color=(0.7,0.7,0.7,1), font_name=FONT_NAME)
+        root.add_widget(title); root.add_widget(subtitle)
+
+        # 入力
+        inp = BoxLayout(orientation='horizontal', size_hint_y=None, height=60, spacing=8)
+        # 角度（手入力で計算したい時）
+        left_box = BoxLayout(orientation='vertical')
+        left_box.add_widget(Label(text="角度(°)", size_hint_y=None, height=15, font_size=10, font_name=FONT_NAME))
+        self.angle_input = TextInput(text="135", input_filter='float', multiline=False,
+                                     size_hint_y=None, height=40, font_size=12)
+        left_box.add_widget(self.angle_input)
+        inp.add_widget(left_box)
+
+        # 幅
         width_box = BoxLayout(orientation='vertical')
-        width_box.add_widget(Label(
-            text="幅(mm)", 
-            size_hint_y=None, 
-            height=15, 
-            font_size=10,
-            font_name=FONT_NAME
-        ))
-        self.width_input = TextInput(
-            text="520",
-            input_filter='float',
-            multiline=False,
-            size_hint_y=None,
-            height=40,
-            font_size=12
-        )
+        width_box.add_widget(Label(text="幅(mm)", size_hint_y=None, height=15, font_size=10, font_name=FONT_NAME))
+        self.width_input = TextInput(text="520", input_filter='float', multiline=False,
+                                     size_hint_y=None, height=40, font_size=12)
         width_box.add_widget(self.width_input)
-        input_row.add_widget(width_box)
-        
-        layout.add_widget(input_row)
-        
-        # クイックボタン
-        quick_row = BoxLayout(orientation='horizontal', size_hint_y=None, height=25, spacing=3)
-        for angle in [90, 120, 135, 150]:
-            btn = Button(
-                text=f"{angle}°",
-                font_size=9,
-                font_name=FONT_NAME
-            )
-            btn.bind(on_press=lambda x, a=angle: self.set_quick_angle(a))
-            quick_row.add_widget(btn)
-        layout.add_widget(quick_row)
-        
-        return layout
-    
-    def create_camera_section(self):
-        accordion = Accordion(orientation='vertical', size_hint_y=None, height=300)
-        
-        camera_item = AccordionItem(title='📷 カメラ角度ガイド（タップして開く）')
-        camera_layout = BoxLayout(orientation='vertical', spacing=3, padding=3)
-        
-        # カメラプレビューエリア
-        camera_container = FloatLayout(size_hint_y=0.7)
+        inp.add_widget(width_box)
+        root.add_widget(inp)
 
-        # カメラウィジェット
-        self.camera_widget = CameraWidget(
-            allow_stretch=True,
-            keep_ratio=True,
-            size_hint=(1, 1),
-            pos_hint={"x": 0, "y": 0}
-        )
-        camera_container.add_widget(self.camera_widget)
+        # 計算ボタン
+        btn_calc = Button(text="計算実行", size_hint_y=None, height=42, font_size=14,
+                          background_color=(0.2,0.7,0.2,1), font_name=FONT_NAME)
+        btn_calc.bind(on_press=self.calculate_from_manual)
+        root.add_widget(btn_calc)
 
-        # 角度ガイドオーバーレイ
-        self.angle_overlay = AngleGuideOverlay(
-            size_hint=(1, 1),
-            pos_hint={"x": 0, "y": 0}
-        )
-        camera_container.add_widget(self.angle_overlay)
-        
-        camera_layout.add_widget(camera_container)
-        
-        # 角度制御
-        angle_control = self.create_angle_control()
-        camera_layout.add_widget(angle_control)
-        
-        # カメラ操作ボタン
-        button_layout = BoxLayout(
-            orientation='horizontal', 
-            size_hint_y=None, 
-            height=30, 
-            spacing=2
-        )
-        
-        start_btn = Button(text="📷起動", font_size=9, font_name=FONT_NAME)
-        start_btn.bind(on_press=self.start_camera)
-        button_layout.add_widget(start_btn)
-        
-        capture_btn = Button(text="📸撮影", font_size=9, font_name=FONT_NAME)
-        capture_btn.bind(on_press=self.capture_image)
-        button_layout.add_widget(capture_btn)
-        
-        stop_btn = Button(text="⏹️停止", font_size=9, font_name=FONT_NAME)
-        stop_btn.bind(on_press=self.stop_camera)
-        button_layout.add_widget(stop_btn)
-        
-        guide_calc_btn = Button(text="📐計算", font_size=9, font_name=FONT_NAME)
-        guide_calc_btn.bind(on_press=self.calculate_with_guide)
-        button_layout.add_widget(guide_calc_btn)
-        
-        camera_layout.add_widget(button_layout)
-        
-        camera_item.add_widget(camera_layout)
-        accordion.add_widget(camera_item)
-        
-        return accordion
-    
-    def create_angle_control(self):
-        layout = BoxLayout(orientation='vertical', size_hint_y=None, height=50, spacing=2)
-        
-        # 角度表示
-        self.angle_display = Label(
-            text="角度: 135° | 長さ: 216.5mm",
-            size_hint_y=None,
-            height=15,
-            font_size=9,
-            font_name=FONT_NAME
-        )
-        layout.add_widget(self.angle_display)
-        
-        # スライダー
-        self.angle_slider = Slider(
-            min=30, max=180, value=135, step=1,
-            size_hint_y=None, height=20
-        )
-        self.angle_slider.bind(value=self.on_slider_change)
-        layout.add_widget(self.angle_slider)
-        
-        # 目盛り
-        scale_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=15)
-        for angle in [30, 90, 135, 180]:
-            scale_layout.add_widget(Label(
-                text=f"{angle}°", 
-                font_size=7,
-                font_name=FONT_NAME
-            ))
-        layout.add_widget(scale_layout)
-        
-        return layout
-    
-    def create_result_section(self):
-        layout = BoxLayout(orientation='vertical', size_hint_y=None, height=80, spacing=3)
-        
-        title = Label(
-            text="📋 計算結果",
-            size_hint_y=None,
-            height=20,
-            font_size=12,
-            bold=True,
-            font_name=FONT_NAME
-        )
-        layout.add_widget(title)
-        
-        result_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=57)
-        
-        # 切断角度
-        angle_result = BoxLayout(orientation='vertical')
-        angle_result.add_widget(Label(
-            text="切断角度", 
-            size_hint_y=0.3, 
-            font_size=9,
-            font_name=FONT_NAME
-        ))
-        self.result_angle = Label(
-            text="67.5°",
-            size_hint_y=0.7,
-            font_size=14,
-            bold=True,
-            color=(0.2, 0.8, 0.2, 1),
-            font_name=FONT_NAME
-        )
-        angle_result.add_widget(self.result_angle)
-        result_layout.add_widget(angle_result)
-        
-        # 切断長さ
-        length_result = BoxLayout(orientation='vertical')
-        length_result.add_widget(Label(
-            text="切断長さ", 
-            size_hint_y=0.3, 
-            font_size=9,
-            font_name=FONT_NAME
-        ))
-        self.result_length = Label(
-            text="216.5 mm",
-            size_hint_y=0.7,
-            font_size=14,
-            bold=True,
-            color=(0.2, 0.8, 0.2, 1),
-            font_name=FONT_NAME
-        )
-        length_result.add_widget(self.result_length)
-        result_layout.add_widget(length_result)
-        
-        layout.add_widget(result_layout)
-        
-        return layout
-    
-    # イベントハンドラー
-    def set_quick_angle(self, angle):
-        self.angle_input.text = str(angle)
-        self.angle_slider.value = angle
-        self.update_displays(angle)
-    
-    def on_input_change(self, instance, value):
+        # カメラ＋ガイド
+        cam_area = FloatLayout(size_hint_y=None, height=240)
+        self.camera_view = CameraWidget(allow_stretch=True, keep_ratio=True,
+                                        size_hint=(1,1), pos_hint={"x":0,"y":0})
+        cam_area.add_widget(self.camera_view)
+
+        self.overlay = AngleGuideOverlay(size_hint=(1,1), pos_hint={"x":0,"y":0})
+        cam_area.add_widget(self.overlay)
+
+        root.add_widget(cam_area)
+
+        # 2本だけのスライダー
+        sliders = BoxLayout(orientation='vertical', size_hint_y=None, height=90, spacing=4)
+        self.info_label = Label(text="左: 45°  右: 135°  |  開き角: 90°  長さ: --- mm",
+                                size_hint_y=None, height=18, font_size=11, font_name=FONT_NAME)
+        sliders.add_widget(self.info_label)
+
+        row1 = BoxLayout(orientation='horizontal', size_hint_y=None, height=30, spacing=6)
+        row1.add_widget(Label(text="左バー", size_hint_x=None, width=42, font_size=10, font_name=FONT_NAME))
+        self.left_slider = Slider(min=0, max=180, value=45, step=1)
+        row1.add_widget(self.left_slider)
+        sliders.add_widget(row1)
+
+        row2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=30, spacing=6)
+        row2.add_widget(Label(text="右バー", size_hint_x=None, width=42, font_size=10, font_name=FONT_NAME))
+        self.right_slider = Slider(min=0, max=180, value=135, step=1)
+        row2.add_widget(self.right_slider)
+        sliders.add_widget(row2)
+
+        self.left_slider.bind(value=self.on_left_change)
+        self.right_slider.bind(value=self.on_right_change)
+        root.add_widget(sliders)
+
+        # カメラ操作（絵文字なし）
+        cam_btns = BoxLayout(orientation='horizontal', size_hint_y=None, height=34, spacing=4)
+        b1 = Button(text="カメラ起動", font_size=11, font_name=FONT_NAME)
+        b2 = Button(text="撮影", font_size=11, font_name=FONT_NAME)
+        b3 = Button(text="停止", font_size=11, font_name=FONT_NAME)
+        b4 = Button(text="この角度で計算", font_size=11, font_name=FONT_NAME)
+
+        b1.bind(on_press=self.start_camera)
+        b3.bind(on_press=self.stop_camera)
+        b4.bind(on_press=self.calculate_from_guide)
+
+        cam_btns.add_widget(b1); cam_btns.add_widget(b2); cam_btns.add_widget(b3); cam_btns.add_widget(b4)
+        root.add_widget(cam_btns)
+
+        # ステータス & 結果
+        self.status = Label(text="起動しました", size_hint_y=None, height=20, font_size=10,
+                            color=(0.2,0.8,1,1), font_name=FONT_NAME)
+        root.add_widget(self.status)
+
+        res = BoxLayout(orientation='horizontal', size_hint_y=None, height=70, spacing=8)
+        left = BoxLayout(orientation='vertical')
+        left.add_widget(Label(text="切断角度", size_hint_y=None, height=18, font_size=10, font_name=FONT_NAME))
+        self.res_angle = Label(text="--.-°", font_size=16, bold=True, color=(0.2,0.8,0.2,1), font_name=FONT_NAME)
+        left.add_widget(self.res_angle)
+        res.add_widget(left)
+
+        right = BoxLayout(orientation='vertical')
+        right.add_widget(Label(text="切断長さ", size_hint_y=None, height=18, font_size=10, font_name=FONT_NAME))
+        self.res_len = Label(text="--- mm", font_size=16, bold=True, color=(0.2,0.8,0.2,1), font_name=FONT_NAME)
+        right.add_widget(self.res_len)
+        res.add_widget(right)
+
+        root.add_widget(res)
+
+        # 初期計算表示
+        self._update_overlay_and_info()
+
+        scroll.add_widget(root)
+        return scroll
+
+    # -------- スライダー連動 --------
+    def on_left_change(self, inst, val):
+        v = int(val)
+        # 右より小さく保つ
+        if v >= self.right_slider.value:
+            v = int(self.right_slider.value) - 1
+            self.left_slider.value = max(0, v)
+        self._update_overlay_and_info()
+
+    def on_right_change(self, inst, val):
+        v = int(val)
+        if v <= self.left_slider.value:
+            v = int(self.left_slider.value) + 1
+            self.right_slider.value = min(180, v)
+        self._update_overlay_and_info()
+
+    def _update_overlay_and_info(self):
+        l = int(self.left_slider.value)
+        r = int(self.right_slider.value)
+        self.overlay.set_angles(l, r)
+
+        open_angle = r - l  # 0〜180の範囲に保っているのでそのまま差
+        cut_len = self._calc_length(open_angle)
+
+        self.info_label.text = f"左: {l}°  右: {r}°  |  開き角: {open_angle}°  長さ: {cut_len}"
+        # 手入力欄は開き角を表示（分かりやすさ優先）
+        self.angle_input.text = str(open_angle)
+
+    # -------- 計算 --------
+    def _calc_length(self, angle_deg):
+        """開き角から切断長さを算出（幅はmm）"""
         try:
-            if value:
-                angle = float(value)
-                angle = max(30, min(180, angle))
-                self.angle_slider.value = angle
-                self.update_displays(angle)
+            width = float(self.width_input.text) if self.width_input.text else 520.0
         except:
-            pass
-    
-    def on_slider_change(self, instance, value):
-        angle = int(value)
-        self.angle_input.text = str(angle)
-        self.update_displays(angle)
-    
-    def update_displays(self, angle):
-        # 角度ガイド更新
-        if hasattr(self, 'angle_overlay'):
-            self.angle_overlay.set_angle(angle)
-        
-        # リアルタイム計算
+            width = 520.0
+        if angle_deg >= 180:
+            return "0.0 mm"
+        # 切断角 = 90 - (180 - 開き角)/2
+        cut_angle = 90.0 - (180.0 - float(angle_deg)) / 2.0
+        if cut_angle <= 0:
+            return "--- mm"
+        length = width / math.tan(math.radians(cut_angle))
+        return f"{length:.1f} mm"
+
+    def calculate_from_manual(self, *args):
+        # angle_input は「開き角」を入れる前提
         try:
-            width = float(self.width_input.text) if self.width_input.text else 520
-            
-            if angle >= 180:
-                cut_length = 0
-            else:
-                half_angle = (180 - angle) / 2
-                cut_angle = 90 - half_angle
-                cut_angle_rad = math.radians(cut_angle)
-                cut_length = width / math.tan(cut_angle_rad)
-            
-            self.angle_display.text = f"角度: {angle}° | 長さ: {cut_length:.1f}mm"
+            a = float(self.angle_input.text)
         except:
-            self.angle_display.text = f"角度: {angle}° | 長さ: ---mm"
-    
-    def calculate(self, instance):
+            self.status.text = "角度を正しく入力してください"
+            return
+        self._apply_result_from_open_angle(a)
+
+    def calculate_from_guide(self, *args):
+        a = int(self.right_slider.value) - int(self.left_slider.value)
+        self._apply_result_from_open_angle(a)
+
+    def _apply_result_from_open_angle(self, open_angle):
+        if not (1 <= open_angle <= 180):
+            self.status.text = "角度は1〜180°の範囲で"
+            return
+        cut_angle = 90.0 - (180.0 - float(open_angle)) / 2.0
+        if cut_angle <= 0:
+            self.status.text = "角度が小さすぎます"
+            return
         try:
-            angle = float(self.angle_input.text)
             width = float(self.width_input.text)
-            
-            if angle <= 0 or angle > 180:
-                self.status_label.text = "❌ 角度は1°〜180°で入力してください"
-                return
-            
-            if width <= 0:
-                self.status_label.text = "❌ 幅は0より大きい値を入力してください"
-                return
-            
-            self.status_label.text = "🔄 計算中..."
-            
-            if angle >= 180:
-                self.result_angle.text = "90.0°"
-                self.result_length.text = "0.0 mm"
-                self.status_label.text = "✅ 完了！（直線）"
-                return
-            
-            half_angle = (180 - angle) / 2
-            cut_angle = 90 - half_angle
-            cut_angle_rad = math.radians(cut_angle)
-            cut_length = width / math.tan(cut_angle_rad)
-            
-            self.result_angle.text = f"{cut_angle:.1f}°"
-            self.result_length.text = f"{cut_length:.1f} mm"
-            
-            self.angle_slider.value = angle
-            self.update_displays(angle)
-            
-            self.status_label.text = "✅ 計算完了！"
-            
-        except ValueError:
-            self.status_label.text = "❌ 数値を正しく入力してください"
-        except Exception as e:
-            self.status_label.text = f"❌ エラー: {str(e)}"
-    
-    def calculate_with_guide(self, instance):
-        angle = self.angle_slider.value
-        self.angle_input.text = str(int(angle))
-        self.calculate(instance)
-    
-    # カメラ機能
-    def start_camera(self, instance):
-        if not OPENCV_AVAILABLE:
-            self.status_label.text = "❌ OpenCVが必要です"
+        except:
+            self.status.text = "幅(mm)を入力してください"
             return
-        
-        # 利用可能なカメラを検出
-        cameras = self.camera_widget.detect_cameras()
-        if not cameras:
-            self.status_label.text = "❌ カメラが見つかりません"
-            return
-        
-        # 最初のカメラで起動試行
-        if self.camera_widget.start_camera(cameras[0]):
-            self.status_label.text = f"📷 カメラ{cameras[0]}開始"
-        else:
-            self.status_label.text = "❌ カメラ開始失敗"
-    
-    def stop_camera(self, instance):
-        if hasattr(self, 'camera_widget'):
-            self.camera_widget.stop_camera()
-            self.status_label.text = "⏹️ カメラ停止"
-    
-    def capture_image(self, instance):
-        if hasattr(self, 'camera_widget'):
-            frame = self.camera_widget.capture_image()
-            if frame is not None:
-                self.status_label.text = "📸 撮影完了！"
-            else:
-                self.status_label.text = "❌ 撮影失敗"
+        length = width / math.tan(math.radians(cut_angle))
+        self.res_angle.text = f"{cut_angle:.1f}°"
+        self.res_len.text = f"{length:.1f} mm"
+        self.status.text = "計算完了"
 
-if __name__ == '__main__':
+    # -------- カメラ --------
+    def start_camera(self, *args):
+        if self.camera_view.start(0):
+            self.status.text = "カメラ起動"
+        else:
+            self.status.text = "カメラを起動できませんでした"
+
+    def stop_camera(self, *args):
+        self.camera_view.stop()
+        self.status.text = "カメラ停止"
+
+if __name__ == "__main__":
     CameraGuideApp().run()
