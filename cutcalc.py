@@ -42,6 +42,7 @@ def setup_font():
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         for p in [r"C:/Windows/Fonts/meiryo.ttc",
                   r"C:/Windows/Fonts/YuGothM.ttc",
                   r"C:/Windows/Fonts/msgothic.ttc"]:
@@ -54,6 +55,8 @@ def setup_font():
                 fs = glob(os.path.join(d, pat), recursive=True)
                 if fs: LabelBase.register(name="JP", fn_regular=fs[0]); return "JP"
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -115,6 +118,9 @@ def setup_font():
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -178,6 +184,7 @@ class CameraWidget(Image):
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 # ---------- Overlay ----------
 class AngleGuideOverlay(Widget):
     def __init__(self, **kw):
@@ -201,6 +208,8 @@ class AngleGuideOverlay(Widget):
         return cx+dx*t, cy+dy*t
     def update_overlay(self,*_):
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -825,6 +834,10 @@ if __name__ == '__main__':
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+    CameraGuideApp().run()
+>>>>>>> Stashed changes
+=======
     CameraGuideApp().run()
 >>>>>>> Stashed changes
 =======
