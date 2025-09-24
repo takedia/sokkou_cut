@@ -1,24 +1,12 @@
 import math
 import os
-from datetime import datetime
 
 from kivy.app import App
 from kivy.core.text import LabelBase
 from kivy.lang import Builder
 from kivy.metrics import dp
-from kivy.properties import BooleanProperty, ListProperty, StringProperty
+from kivy.properties import ListProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.camera import Camera  # Imported for KV usage
-from kivy.utils import platform
-
-if platform == "android":
-    try:
-        from android.permissions import Permission, request_permissions
-
-        # When packaging for Android (e.g., Buildozer), ensure CAMERA permission is requested.
-        request_permissions([Permission.CAMERA])
-    except Exception as exc:  # pragma: no cover - platform-specific handling
-        print(f"Camera permission request failed: {exc}")
 
 
 def _register_japanese_capable_font():
@@ -382,62 +370,6 @@ KV = '''
                             halign: "center"
                             valign: "middle"
                             text_size: self.size
-
-            BoxLayout:
-                orientation: "vertical"
-                padding: dp(12)
-                spacing: dp(10)
-                size_hint_y: None
-                height: self.minimum_height
-                canvas.before:
-                    Color:
-                        rgba: 0.08, 0.08, 0.14, 0.9
-                    RoundedRectangle:
-                        pos: self.pos
-                        size: self.size
-                        radius: [dp(12),]
-
-                Label:
-                    text: "カメラプレビュー"
-                    font_size: dp(20)
-                    size_hint_y: None
-                    height: self.texture_size[1] + dp(8)
-                    halign: "left"
-                    text_size: self.width, None
-
-                Camera:
-                    id: camera_view
-                    resolution: 640, 480
-                    play: False
-                    size_hint_y: None
-                    height: dp(240)
-                    allow_stretch: True
-                    keep_ratio: True
-
-                BoxLayout:
-                    spacing: dp(8)
-                    size_hint_y: None
-                    height: dp(44)
-
-                    Button:
-                        text: "プレビュー停止" if root.camera_is_active else "プレビュー開始"
-                        font_size: dp(16)
-                        on_press: root.toggle_camera()
-
-                    Button:
-                        text: "撮影"
-                        font_size: dp(16)
-                        disabled: not root.camera_is_active
-                        on_press: root.capture_camera_frame()
-
-                Label:
-                    text: "プレビューを開始してから撮影してください。"
-                    font_size: dp(14)
-                    color: 0.7, 0.7, 0.85, 1
-                    size_hint_y: None
-                    height: self.texture_size[1] + dp(4)
-                    halign: "left"
-                    text_size: self.width, None
 '''
 
 class SokkouCutClaudeWidget(BoxLayout):
@@ -455,7 +387,6 @@ class SokkouCutClaudeWidget(BoxLayout):
     angle_from_vertical = StringProperty("---°")
     s_result = StringProperty("--- mm")
     x_result = StringProperty("--- mm")
-    camera_is_active = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -570,95 +501,10 @@ class SokkouCutClaudeWidget(BoxLayout):
         self.status_message = "計算完了！"
         self.status_color = [0.6, 0.9, 0.6, 1]
 
-    def _get_camera_widget(self):
-        return self.ids.get("camera_view")
-
-    def toggle_camera(self):
-        camera = self._get_camera_widget()
-        if camera is None:
-            self.status_message = "カメラウィジェットが見つかりません"
-            self.status_color = [0.95, 0.5, 0.5, 1]
-            return
-
-        if self.camera_is_active:
-            self.stop_camera_preview()
-            self.status_message = "カメラプレビューを停止しました"
-            self.status_color = [0.7, 0.85, 1.0, 1]
-            return
-
-        try:
-            if hasattr(camera, "start"):
-                camera.start()
-            camera.play = True
-            self.camera_is_active = True
-            self.status_message = "カメラプレビューを開始しました"
-            self.status_color = [0.7, 0.85, 1.0, 1]
-        except Exception as exc:
-            camera.play = False
-            self.camera_is_active = False
-            self.status_message = f"カメラを開始できませんでした: {exc}"
-            self.status_color = [0.95, 0.5, 0.5, 1]
-
-    def stop_camera_preview(self):
-        camera = self._get_camera_widget()
-        if camera is None:
-            self.camera_is_active = False
-            return
-
-        try:
-            camera.play = False
-            if hasattr(camera, "stop"):
-                camera.stop()
-        finally:
-            self.camera_is_active = False
-
-    def capture_camera_frame(self):
-        camera = self._get_camera_widget()
-        if camera is None:
-            self.status_message = "カメラウィジェットが見つかりません"
-            self.status_color = [0.95, 0.5, 0.5, 1]
-            return
-
-        texture = camera.texture
-        if texture is None:
-            self.status_message = "カメラの映像が利用できません"
-            self.status_color = [0.95, 0.5, 0.5, 1]
-            return
-
-        app = App.get_running_app()
-        base_dir = app.user_data_dir if app else os.path.abspath(os.getcwd())
-        save_dir = os.path.join(base_dir, "captures")
-
-        try:
-            os.makedirs(save_dir, exist_ok=True)
-        except OSError as exc:
-            self.status_message = f"保存用ディレクトリを作成できませんでした: {exc}"
-            self.status_color = [0.95, 0.5, 0.5, 1]
-            return
-
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = os.path.join(save_dir, f"capture_{timestamp}.png")
-
-        try:
-            texture.save(filename, flipped=False)
-        except Exception as exc:
-            self.status_message = f"画像を保存できませんでした: {exc}"
-            self.status_color = [0.95, 0.5, 0.5, 1]
-            return
-
-        self.status_message = f"画像を保存しました: {filename}"
-        self.status_color = [0.6, 0.9, 0.6, 1]
-
 class SokkouCutClaudeApp(App):
     def build(self):
         Builder.load_string(KV)
         return SokkouCutClaudeWidget()
-
-    def on_stop(self):  # pragma: no cover - depends on app lifecycle
-        root_widget = self.root
-        if root_widget:
-            root_widget.stop_camera_preview()
-        super().on_stop()
 
 if __name__ == "__main__":
     SokkouCutClaudeApp().run()
