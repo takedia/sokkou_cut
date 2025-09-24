@@ -39,6 +39,7 @@ Window.size = (420, 760)
 def setup_font():
     try:
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         for p in [r"C:/Windows/Fonts/meiryo.ttc",
                   r"C:/Windows/Fonts/YuGothM.ttc",
                   r"C:/Windows/Fonts/msgothic.ttc"]:
@@ -51,6 +52,8 @@ def setup_font():
                 fs = glob(os.path.join(d, pat), recursive=True)
                 if fs: LabelBase.register(name="JP", fn_regular=fs[0]); return "JP"
 =======
+=======
+>>>>>>> Stashed changes
         # 優先的に環境変数で指定されたフォントを利用
         env_font = os.environ.get("KIVY_JP_FONT")
         if env_font and os.path.exists(env_font):
@@ -103,6 +106,9 @@ def setup_font():
                     return "Japanese"
                 except Exception as font_error:
                     Logger.warning(f"フォント登録失敗: {font_path} ({font_error})")
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     except Exception as e:
         Logger.warning(f"Font setup failed: {e}")
@@ -157,6 +163,7 @@ class CameraWidget(Image):
         self.texture=tex
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 # ---------- Overlay ----------
 class AngleGuideOverlay(Widget):
     def __init__(self, **kw):
@@ -180,6 +187,8 @@ class AngleGuideOverlay(Widget):
         return cx+dx*t, cy+dy*t
     def update_overlay(self,*_):
 =======
+=======
+>>>>>>> Stashed changes
 class AngleGuideOverlay(Widget):
     """角度ガイドオーバーレイ"""
 
@@ -795,5 +804,9 @@ if __name__ == "__main__":
                 self.status_label.text = "❌ 撮影失敗"
 
 if __name__ == '__main__':
+<<<<<<< Updated upstream
+    CameraGuideApp().run()
+>>>>>>> Stashed changes
+=======
     CameraGuideApp().run()
 >>>>>>> Stashed changes
