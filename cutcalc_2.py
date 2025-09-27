@@ -283,19 +283,29 @@ class CameraGuideApp(App):
 
     # ====== スライダー→角度マッピング ======
     def _left_angle_from_slider(self):
-        # 左: 0..100 → 90..180
-        return 90.0 + 0.9 * float(self.left_slider.value)
+        # 左: 0..100 → 0..90
+        return 0.9 * float(self.left_slider.value)
+        
     def _right_angle_from_slider(self):
         # 右: 0..100 → 90..0
         return 90.0 - 0.9 * float(self.right_slider.value)
 
+
     def _update_overlay_and_info(self):
-        L = self._left_angle_from_slider()
-        R = self._right_angle_from_slider()
-        self.overlay.set_angles(L, R)
-        open_angle = L - R
+        L_disp = self._left_angle_from_slider()    # 0..90（表示用）
+        R_disp = self._right_angle_from_slider()   # 90..0（表示用＝描画用）
+
+        L_draw = 180.0 - L_disp   # ← 左ラインは左側(90..180°)に描く
+        R_draw = R_disp           # 右はそのまま
+
+        self.overlay.set_angles(L_draw, R_draw)
+
+        open_angle = 180.0 - (L_disp + R_disp)     # = (180-L_disp) - R_disp と同じ
         self.angle_input.text = f"{open_angle:.1f}"
-        self.info_label.text = f"左:{L:.1f}°  右:{R:.1f}°  |  開き角:{open_angle:.1f}°  長さ:{self._calc_length(open_angle)}"
+        self.info_label.text = (
+            f"左:{L_disp:.1f}°  右:{R_disp:.1f}°  |  開き角:{open_angle:.1f}°  長さ:{self._calc_length(open_angle)}"
+        )
+
 
     # ====== 計算ロジック（ボタン押下で実行） ======
     def _calc_length(self, open_angle):
