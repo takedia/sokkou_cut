@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>側溝切断角度計算（片側/両側モード）</title>
+<style>
+  :root{--bg1:#667eea;--bg2:#764ba2;--panel:rgba(255,255,255,.10);--txt:#fff;--accent:#4CAF50;--rightLine:#ffcc33;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:10px;min-height:100vh;color:var(--txt);
+       background:linear-gradient(135deg,var(--bg1),var(--bg2));
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;}
+  .container{max-width:420px;margin:0 auto;background:var(--panel);backdrop-filter:blur(10px);
+             border-radius:14px;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,.2);}
+  h1{font-size:16px;margin:0 0 6px}
+  .panel{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);
+         border-radius:12px;padding:8px;margin-top:8px}
+  #angleGuide{width:100%;aspect-ratio:4/3;background:rgba(0,0,0,.15);border-radius:10px;display:block;max-height:220px}
+  .row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .inline{display:inline-flex;align-items:center;gap:6px;line-height:1}
+  input[type="number"]{width:84px;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:#fff;color:#111;font-size:12px;}
+  .result{background:#fff;color:#111;border-radius:10px;padding:6px;font-weight:700;text-align:center;
+          display:flex;justify-content:center;gap:8px;flex-wrap:wrap;font-size:13px}
+  .chip{background:rgba(0,0,0,.06);border-radius:8px;padding:4px 6px}
+  .btn{appearance:none;border:none;border-radius:10px;padding:8px 10px;font-weight:700;cursor:pointer;
+       background:#fff;color:#333;box-shadow:0 1px 6px rgba(0,0,0,.15);font-size:12px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .primary{background:var(--accent);color:#fff}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  input[type="range"]{flex:1;min-width:140px;height:30px;position:relative;z-index:1;background:transparent;-webkit-appearance:none}
+  input[type="range"]::-webkit-slider-runnable-track{height:6px;background:#fff;border-radius:6px}
+  input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);margin-top:-6px}
+  input[type="range"]::-moz-range-track{height:6px;background:#fff;border-radius:6px}
+  input[type="range"]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);border:none}
+  .disabledWrap{opacity:.5}
+  .disabledWrap input[type="range"]{pointer-events:none;filter:grayscale(100%)}
+  .toggle{position:relative;display:inline-flex;align-items:center;gap:8px}
+  .toggle input{appearance:none;width:42px;height:24px;border-radius:999px;background:#bbb;position:relative;outline:none;cursor:pointer;transition:.2s}
+  .toggle input:checked{background:var(--accent)}
+  .toggle input::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+  .toggle input:checked::after{transform:translateX(18px)}
+  .muted{opacity:.8;font-size:12px}
+  .top-pill{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#111;border-radius:999px;
+            padding:4px 8px;font-weight:700;font-size:12px;box-shadow:0 1px 6px rgba(0,0,0,.15)}
+
+/* 下部の2ボタンを非表示（DOMと機能は温存） */
+  #useGuideAngleBtn,
+  #clearGuideBtn { display: none !important; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>側溝切断角度計算</h1>
+
+  <!-- ガイド -->
+  <div class="panel" style="margin-top:0">
+    <canvas id="angleGuide"></canvas>
+  </div>
+
+  <!-- スライダー行 + モード切替 + 切断長（上部表示） -->
+  <div class="panel">
+
+    <!-- 上段：トグル＆切断長（指に隠れない位置へ） -->
+    <div class="row" style="justify-content:space-between;gap:10px;margin-bottom:6px">
+      <label class="toggle" title="桝など片側カット用">
+        <span class="muted">両側</span>
+        <input type="checkbox" id="modeToggle">
+        <span class="muted">片側</span>
+      </label>
+      <span class="top-pill">切断長:<span id="topCutLength">—</span></span>
+    </div>
+
+    <!-- 下段：左右スライダー（従来どおり） -->
+    <div class="row" style="gap:10px">
+      <div class="inline" id="leftWrap" style="flex:1">
+        <span class="inline" id="labelL">L:</span>
+        <input type="range" id="simpleLeftSlider" min="0" max="100" value="50" aria-label="左バー">
+      </div>
+      <div class="inline" id="rightWrap" style="flex:1">
+        <span class="inline" id="labelR">R:</span>
+        <input type="range" id="simpleRightSlider" min="0" max="100" value="50" aria-label="右バー">
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- 入力 -->
+  <div class="panel">
+    <div class="row">
+      角(°):<input id="manualAngle" type="number" step="0.1" placeholder="例90">
+      W(mm):<input id="productWidth" type="number" step="1" value="520">
+      <button class="btn" id="directCalcBtn">計算</button>
+    </div>
+    <div class="result" style="margin-top:6px">
+      <div class="chip">片側角:<span id="cutAngle">—</span>°</div>
+      <div class="chip">切断長:<span id="cutLength">—</span></div>
+    </div>
+    <div class="muted" style="text-align:center;margin-top:4px" id="modeHint">
+      モード: 両側（2本の製品を並べてカット）
+    </div>
+  </div>
+
+  <!-- カメラ / 画像 -->
+  <div class="panel">
+    <div class="grid-2">
+      <button class="btn" id="startCameraBtn">Cam</button>
+      <button class="btn" id="stopBtn" disabled>Stop</button>
+      <button class="btn" id="captureBtn" disabled>Shot</button>
+      <label class="btn" style="text-align:center;cursor:pointer">
+        Img<input id="imageInput" type="file" accept="image/*" style="display:none">
+      </label>
+    </div>
+    <!-- ビデオは非表示。キャンバスに重ね描きする -->
+    <video id="video" playsinline style="display:none"></video>
+    <canvas id="photoCanvas" style="display:none"></canvas>
+    <div class="grid-2" style="margin-top:6px">
+      <button class="btn primary" id="useGuideAngleBtn">ガイド角で計算</button>
+      <button class="btn" id="clearGuideBtn">ガイド消去</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let leftAngle=135.0,rightAngle=45.0;
+let isCaptured=false, stream=null, liveRAF=null;
+let mode="dual"; // "dual"=両側, "single"=片側
+let LEN_CAP_FACTOR = 2.0; // 切断長の上限（幅×係数）
+
+const guide=document.getElementById('angleGuide');
+const gtx=guide.getContext('2d');
+const video=document.getElementById('video');
+const photo=document.getElementById('photoCanvas');
+
+function fitCanvas(){
+  const w=Math.round(guide.getBoundingClientRect().width);
+  guide.width=w; guide.height=Math.round(w*3/4);
+  requestRender();
+}
+window.addEventListener('resize',fitCanvas);
+
+/* ========== 描画 ========== */
+function drawBackground(){
+  const W=guide.width,H=guide.height;
+  gtx.clearRect(0,0,W,H);
+
+  if(stream && video.readyState>=2 && liveRAF){
+    // ライブ映像をカバーで描画
+    const vw=video.videoWidth,vh=video.videoHeight,cw=W,ch=H;
+    const vr=vw/vh,cr=cw/ch;let dw,dh,dx,dy;
+    if(vr>cr){dh=ch;dw=dh*vr;dx=(cw-dw)/2;dy=0;}else{dw=cw;dh=dw/vr;dx=0;dy=(ch-dh)/2;}
+    gtx.drawImage(video,dx,dy,dw,dh);
+  }else if(isCaptured && photo.width && photo.height){
+    // 静止画をフィットで描画
+    gtx.drawImage(photo,0,0,W,H);
+  }else{
+    // 何もないときは背景そのまま（CSSの色）
+  }
+}
+
+function drawGuide(){
+  const W=guide.width,H=guide.height,cx=W/2,cy=H*0.35,r=Math.min(cx,cy)*1.8;
+
+  // 右ガイド
+  if(mode==="single"){
+    // 上から下までの縦線（色分け）
+    gtx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--rightLine').trim() || '#ffcc33';
+    gtx.lineWidth=3;
+    gtx.beginPath(); gtx.moveTo(cx,0); gtx.lineTo(cx,H); gtx.stroke();
+    rightAngle = 90; // 固定
+  }else{
+    const rrad=rightAngle*Math.PI/180;
+    const rx=cx+r*Math.cos(rrad), ry=cy+r*Math.sin(rrad);
+    gtx.strokeStyle='rgba(210,255,130,.95)'; gtx.lineWidth=2;
+    gtx.beginPath(); gtx.moveTo(cx,cy); gtx.lineTo(rx,ry); gtx.stroke();
+  }
+
+  // 左ガイド
+  const lrad=leftAngle*Math.PI/180;
+  const lx=cx+r*Math.cos(lrad), ly=cy+r*Math.sin(lrad);
+  gtx.strokeStyle='rgba(210,255,130,.95)'; gtx.lineWidth=2;
+  gtx.beginPath(); gtx.moveTo(cx,cy); gtx.lineTo(lx,ly); gtx.stroke();
+
+  // 中心点
+  gtx.fillStyle='rgba(210,255,130,.95)'; gtx.beginPath(); gtx.arc(cx,cy,4,0,Math.PI*2); gtx.fill();
+}
+
+function renderAll(){
+  drawBackground();
+  drawGuide();
+}
+
+function requestRender(){
+  if(liveRAF){ /* ライブループが次フレで描くので何もしない */ }
+  else{ renderAll(); }
+}
+
+/* ========== 角度・計算系 ========== */
+function getWidth(){ return parseFloat(document.getElementById('productWidth').value)||520; }
+
+// 開き角（dual）または 2×片側角（single）を返す
+function openAngleFromGuide(){
+  if(mode==="dual"){
+    return Math.max(0,leftAngle-rightAngle);
+  }else{
+    const single = Math.abs(leftAngle - 90);
+    return single * 2;
+  }
+}
+
+function clampLen(len,width){
+  if(!(width>0)) return len;
+  return Math.min(len, LEN_CAP_FACTOR * width); // 上限＝幅×係数
+}
+
+function lerpAngle(lv, startDeg, endDeg){ // lv: 0-100
+  return startDeg + (endDeg - startDeg) * (lv / 100);
+}
+
+function updateSimple(){
+  const lv = +document.getElementById('simpleLeftSlider').value;
+  const rv = +document.getElementById('simpleRightSlider').value;
+
+  if(mode === "dual"){
+    // 左: 180→90（右に動かすほど小さく）／右: 90→0
+    leftAngle  = lerpAngle(lv, 180, 90);
+    rightAngle = lerpAngle(rv,  90,  0);
+    const open = openAngleFromGuide();
+    document.getElementById('manualAngle').value = open.toFixed(1); // 開き角表示
+  }else{
+    // 片側：両側と「連動の向き」を合わせる → 左: 270→90（右ほど小さく）
+    rightAngle = 90; // 固定
+    leftAngle  = lerpAngle(lv, 270, 90);
+    const single = Math.abs(leftAngle - 90);    // 片側角
+    document.getElementById('manualAngle').value = single.toFixed(1);
+  }
+
+  requestRender();
+  updateTopCutLength();
+}
+
+function validateInputs(angle,width){
+  if(!(angle>0 && angle<180)){ alert('角度は0～180'); return false; }
+  if(!(width>0)){ alert('幅(mm)を入力'); return false; }
+  return true;
+}
+
+function performCalculationFromOpen(openAngle,width){
+  const cut = openAngle/2;
+  let len = width/Math.tan(cut*Math.PI/180);
+  len = clampLen(len,width);
+  document.getElementById('cutAngle').textContent = cut.toFixed(1);
+  document.getElementById('cutLength').textContent = len.toFixed(1)+' mm';
+  document.getElementById('topCutLength').textContent = len.toFixed(1)+' mm';
+}
+
+function calculateDirect(){
+  const width = getWidth();
+  const val = parseFloat(document.getElementById('manualAngle').value);
+  if(mode==="dual"){
+    if(!validateInputs(val,width)) return;    // manualAngle=開き角
+    performCalculationFromOpen(val,width);
+  }else{
+    const open = val*2;                        // manualAngle=片側角 → 開き角へ
+    if(!validateInputs(open,width)) return;
+    performCalculationFromOpen(open,width);
+  }
+}
+
+function useGuideAngle(){
+  const width=getWidth();
+  const open = openAngleFromGuide();
+  if(!validateInputs(open,width)) return;
+  performCalculationFromOpen(open,width);
+}
+
+function updateTopCutLength(){
+  const width=getWidth();
+  let open = openAngleFromGuide();
+  if(open>0 && open<180 && width>0){
+    const cut=open/2;
+    let len=width/Math.tan(cut*Math.PI/180);
+    len = clampLen(len,width);
+    document.getElementById('topCutLength').textContent = len.toFixed(1)+' mm';
+  }else{
+    document.getElementById('topCutLength').textContent = '—';
+  }
+}
+
+/* ========== カメラ ========== */
+async function startCamera(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    video.srcObject=stream; await video.play();
+    // videoは非表示のまま。以降はキャンバスに描画
+    document.getElementById('startCameraBtn').disabled=true;
+    document.getElementById('stopBtn').disabled=false;
+    document.getElementById('captureBtn').disabled=false;
+    isCaptured=false;
+    fitCanvas();
+    startLiveLoop();
+  }catch(e){ alert('カメラ開始不可:'+e.message); }
+}
+
+function startLiveLoop(){
+  if(liveRAF) return;
+  const draw = ()=>{
+    if(!stream){ liveRAF=null; return; }
+    renderAll();
+    liveRAF = requestAnimationFrame(draw);
+  };
+  liveRAF = requestAnimationFrame(draw);
+}
+
+function stopLiveLoop(){
+  if(liveRAF){ cancelAnimationFrame(liveRAF); liveRAF=null; }
+}
+
+function stopCamera(){
+  stopLiveLoop();
+  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  video.pause(); video.removeAttribute('srcObject'); // videoは非表示のまま
+  document.getElementById('startCameraBtn').disabled=false;
+  document.getElementById('stopBtn').disabled=true;
+  document.getElementById('captureBtn').disabled=true;
+  isCaptured=false;
+  renderAll(); // 背景クリアしてガイドだけ
+}
+
+function capturePhoto(){
+  // ライブの現在フレームを静止画として保存し、ライブを止めて固定表示
+  if(!(video.videoWidth>0)){ alert('映像なし'); return; }
+  photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d');
+  const vw=video.videoWidth,vh=video.videoHeight,cw=photo.width,ch=photo.height;
+  const vr=vw/vh,cr=cw/ch;let dw,dh,dx,dy;
+  if(vr>cr){dh=ch;dw=dh*vr;dx=(cw-dw)/2;dy=0;}else{dw=cw;dh=dw/vr;dx=0;dy=(ch-dh)/2;}
+  p.clearRect(0,0,cw,ch); p.drawImage(video,dx,dy,dw,dh);
+  isCaptured=true;
+  stopLiveLoop(); // ループ停止＝静止画に固定
+  renderAll();
+}
+
+function drawCaptured(){ if(photo.width&&photo.height){ gtx.drawImage(photo,0,0,guide.width,guide.height); } }
+
+function handleImageLoad(ev){
+  const f=ev.target.files[0]; if(!f) return;
+  const img=new Image();
+  img.onload=()=>{
+    photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d');
+    const iw=img.width,ih=img.height,cw=photo.width,ch=photo.height; const ir=iw/ih,cr=cw/ch; let dw,dh,dx,dy;
+    if(ir>cr){dh=ch;dw=dh*ir;dx=(cw-dw)/2;dy=0;}else{dw=cw;dh=dw/ir;dx=0;dy=(ch-dh)/2;}
+    p.clearRect(0,0,cw,ch); p.drawImage(img,dx,dy,dw,dh);
+    isCaptured=true;
+    stopLiveLoop(); // 画像固定表示
+    renderAll();
+  };
+  img.src=URL.createObjectURL(f);
+}
+
+function clearGuide(){
+  isCaptured=false; photo.width=photo.height=0;
+  if(stream && !liveRAF) startLiveLoop(); // ライブ再開（ストリームが生きていれば）
+  renderAll();
+}
+
+/* ========== モード切替UI ========== */
+function applyModeUI(){
+  const isSingle = (mode==="single");
+  const rightWrap = document.getElementById('rightWrap');
+  const rightSlider = document.getElementById('simpleRightSlider');
+  if(isSingle){
+    rightWrap.classList.add('disabledWrap');
+    rightSlider.setAttribute('disabled','disabled');
+    rightSlider.value = 50; // 見た目の基準位置
+  }else{
+    rightWrap.classList.remove('disabledWrap');
+    rightSlider.removeAttribute('disabled');
+  }
+
+  document.getElementById('labelL').textContent = 'L:';
+  document.getElementById('modeHint').textContent = isSingle
+    ? 'モード: 片側（集水桝など、1本のみカット）'
+    : 'モード: 両側（2本の製品を並べてカット）';
+
+  updateSimple();
+}
+
+function setup(){
+  fitCanvas();
+
+  document.getElementById('simpleLeftSlider').addEventListener('input',updateSimple,{passive:true});
+  document.getElementById('simpleRightSlider').addEventListener('input',updateSimple,{passive:true});
+  document.getElementById('productWidth').addEventListener('input',()=>updateTopCutLength(),{passive:true});
+
+  document.getElementById('directCalcBtn').addEventListener('click',calculateDirect);
+  document.getElementById('useGuideAngleBtn').addEventListener('click',useGuideAngle);
+  document.getElementById('startCameraBtn').addEventListener('click',startCamera);
+  document.getElementById('stopBtn').addEventListener('click',stopCamera);
+  document.getElementById('captureBtn').addEventListener('click',capturePhoto);
+  document.getElementById('imageInput').addEventListener('change',handleImageLoad);
+  document.getElementById('clearGuideBtn').addEventListener('click',clearGuide);
+
+  const toggle = document.getElementById('modeToggle');
+  toggle.addEventListener('change',()=>{
+    mode = toggle.checked ? 'single' : 'dual';
+    applyModeUI();
+  });
+
+  mode='dual';
+  applyModeUI();
+  updateTopCutLength();
+}
+document.addEventListener('DOMContentLoaded',setup);
+</script>
+</body>
+</html>
