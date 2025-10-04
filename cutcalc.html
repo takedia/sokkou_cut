@@ -59,28 +59,31 @@
 
   <!-- スライダー行 + モード切替 + 切断長（上部表示） -->
   <div class="panel">
-    <div class="row" style="width:100%;justify-content:space-between;gap:10px">
-      <div class="inline" id="leftWrap">
+
+    <!-- 上段：トグル＆切断長（指に隠れない位置へ） -->
+    <div class="row" style="justify-content:space-between;gap:10px;margin-bottom:6px">
+      <label class="toggle" title="桝など片側カット用">
+        <span class="muted">両側</span>
+        <input type="checkbox" id="modeToggle">
+        <span class="muted">片側</span>
+      </label>
+      <span class="top-pill">切断長:<span id="topCutLength">—</span></span>
+    </div>
+
+    <!-- 下段：左右スライダー（従来どおり） -->
+    <div class="row" style="gap:10px">
+      <div class="inline" id="leftWrap" style="flex:1">
         <span class="inline" id="labelL">L:</span>
         <input type="range" id="simpleLeftSlider" min="0" max="100" value="50" aria-label="左バー">
       </div>
-      <div class="inline" id="rightWrap">
+      <div class="inline" id="rightWrap" style="flex:1">
         <span class="inline" id="labelR">R:</span>
         <input type="range" id="simpleRightSlider" min="0" max="100" value="50" aria-label="右バー">
       </div>
-
-      <div class="inline" style="gap:10px">
-        <!-- トグル -->
-        <label class="toggle" title="桝など片側カット用">
-          <span class="muted">両側</span>
-          <input type="checkbox" id="modeToggle">
-          <span class="muted">片側</span>
-        </label>
-        <!-- トグル横の常時表示 切断長 -->
-        <span class="top-pill">切断長:<span id="topCutLength">—</span></span>
-      </div>
     </div>
+
   </div>
+
 
   <!-- 入力 -->
   <div class="panel">
