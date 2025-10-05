@@ -23,7 +23,7 @@
     .disabledWrap{ opacity:.55 }
     .disabledWrap input[type="range"]{ pointer-events:none; filter:grayscale(100%) }
     input[type="number"]{ width:90px; padding:6px; border-radius:8px; border:1px solid rgba(255,255,255,.35); background:#fff; color:#111; font-size:12px }
-    .btn{ appearance:none; border:none; border-radius:10px; padding:8px 10px; font-weight:700; cursor:pointer; background:#fff; color:#333; box-shadow:0 1px 6px rgba(0,0,0,.15); font-size:12px }
+    .btn{ appearance:none; border:none; border-radius:10px; padding:8px 10px; font-weight:700; cursor:pointer; background:#fff; color:#333; box-shadow:0 1px 6px rgba(0,0,0,.15); font-size:11px }
     .primary{ background:var(--accent); color:#fff }
     .grid-1{ display:flex; gap:8px; flex-wrap:nowrap }
     .grid-1 .btn{ flex:1; min-width:0 }
@@ -38,15 +38,41 @@
     canvas, span, input, button { font-variant-numeric: tabular-nums; }
     .pill-sm .num { display:inline-block; width:4ch; text-align:right; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
     .pill-sm .unit { display:inline-block; }
+    #calcBtn { display: none; }
+    .row-nowrap {
+       display: flex;
+       flex-wrap: nowrap;
+       align-items: center;
+       gap: 6px;
+       font-size: 15px; /* ← 数字の表示サイズ */
+       white-space: nowrap;       /* 折返し禁止 */
+    }
+    .row-nowrap input[type="number"] {
+       flex-shrink: 1;            /* 幅が足りないときに縮む */
+       width: 50px;           /* 最小幅を確保（調整可） */
+       font-size: 15px; /* ← ラベル文字（製品幅…角度）も小さく */
+
+    }
   </style>
 </head>
 <body>
 <div class="container">
-  <h1>側溝カット簡単測定</h1>
+  <h1>側溝カットガイド</h1>
   <div class="panel canvasBlock">
-    <div class="muted" style="margin-bottom:6px">※横断は<strong>真上</strong>、縦断は<strong>真横</strong>から撮影。斜めは誤差大。</div>
+    <div class="muted" style="margin-bottom:6px">
+      <p>
+        ●横断方向でも縦断方向でも、基本的な測定方法は同じです。<br>
+        ●スライダーを動かし、ガイドバーのラインと水糸や構造物のラインを合わせ、角度を読み取ってください。<br>
+        ●片側モードは、集水桝・その他構造物に接続する場合に利用してください。<br>
+        ⚠️出来るだけ横断方向は真上・縦断方向は真横方向から撮影してください。<br>
+        ⚠️ケガキ線は、数ミリ～1㎝ほど余裕を持ち、切断後に目地で調整してください。<br>
+        ⚠️底面・反対側には、面がある事が殆どなので、さしがね（曲尺）等で90度にケガキます。(次バージョン対応予定)<br>
+
+      </p>
+
+    </div>
     <canvas id="angleGuide"></canvas>
-    <div class="muted" style="text-align:center; margin-top:6px">スライダーでガイド角度を調整</div>
+    <!--<div class="muted" style="text-align:center; margin-top:6px">スライダーでガイド角度を調整</div>-->
   </div>
   <div class="panel">
     <div class="row" style="justify-content:space-between; gap:12px">
@@ -60,31 +86,34 @@
     <div class="row" style="margin-top:18px">
       <div class="row" id="leftWrap" style="flex:1">
         <span class="muted">L</span>
-        <input type="range" id="leftSlider" min="0" max="100" value="50" aria-label="左バー" />
+        <input type="range" id="leftSlider" min="0" max="100" value="25" aria-label="左バー" />
       </div>
       <div class="row" id="rightWrap" style="flex:1">
         <span class="muted">R</span>
-        <input type="range" id="rightSlider" min="0" max="100" value="50" aria-label="右バー" />
+        <input type="range" id="rightSlider" min="0" max="100" value="75" aria-label="右バー" />
       </div>
     </div>
   </div>
   <div class="panel">
-    <div class="row" style="justify-content:space-between">
-      <div>
-        角(°): <input id="manualAngle" type="number" step="1" placeholder="例90" />
-        W(mm): <input id="productWidth" type="number" step="1" value="520" />
+    <div class="row" style="flex-direction:column; align-items:flex-start; gap:8px">
+      <div class="row-nowrap">
+        製品幅又は高さ(mm): <input id="productWidth" type="number" step="1" value="520" />
+        角度(°): <input id="manualAngle" type="number" step="1" placeholder="例90" />
       </div>
-      <button class="btn primary" id="calcBtn">計算</button>
+
+      <div style="align-self:flex-end">
+        <button class="btn primary" id="calcBtn">計算</button>
+      </div>
     </div>
 
     <div id="statusMsg" class="status" style="display:none"></div>
   </div>
   <div class="panel">
     <div class="grid-1">
-      <button class="btn" id="startCameraBtn">📷 Cam</button>
-      <button class="btn" id="stopBtn" disabled>⏹ Stop</button>
-      <button class="btn" id="captureBtn" disabled>📸 Shot</button>
-      <label class="btn" style="text-align:center; cursor:pointer">🖼 Img<input id="imageInput" type="file" accept="image/*" style="display:none" /></label>
+      <button class="btn" id="startCameraBtn">カメラ起動</button>
+      <button class="btn" id="stopBtn" disabled>カメラ停止</button>
+      <button class="btn" id="captureBtn" disabled>静止画像</button>
+      <label class="btn" style="text-align:center; cursor:pointer">画像読込<input id="imageInput" type="file" accept="image/*" style="display:none" /></label>
     </div>
     <video id="video" playsinline style="display:none"></video>
     <canvas id="photoCanvas" style="display:none"></canvas>
@@ -152,13 +181,13 @@
       const rad=from90*Math.PI/180; const t=Math.tan(rad);
       cutLen=(from90===0)?0:(t===0?Infinity:width/t);
       if(!isFinite(cutLen)||cutLen<0) cutLen=0;
-      angleLabel=`角(片側):${padNum(disp090,3)}°`;
+      angleLabel=`角度(片側):${padNum(disp090,3)}°`;
     }else{
       const half=Math.min(90, Math.max(0, openAngle/2));
       const rad=half*Math.PI/180; const t=Math.tan(rad);
       cutLen=(half===90)?0:(t===0?Infinity:width/t);
       if(!isFinite(cutLen)||cutLen<0) cutLen=0;
-      angleLabel=`角(両側):${padNum(openAngle,3)}°`;
+      angleLabel=`角度(両側):${padNum(openAngle,3)}°`;
     }
     // 上限クランプ（W×2）
     if(cutLen!==null){ cutLen=Math.min(cutLen, width*2); }
