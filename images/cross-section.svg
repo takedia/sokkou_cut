@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280" font-family="-apple-system, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif" font-size="11">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d67a2a"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3a7fc0"/>
+    </marker>
+  </defs>
+
+  <text x="210" y="18" text-anchor="middle" font-weight="700" font-size="13" fill="#222">横断方向（コーナー）— 上から見た図</text>
+
+  <!-- Left gutter (parallelogram going down-left from apex 210,55) -->
+  <polygon points="210,55 50,118 76,177 210,118" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1.4"/>
+  <polygon points="210,72 70,128 88,162 210,102" fill="#444" opacity="0.45"/>
+
+  <!-- Right gutter -->
+  <polygon points="210,55 370,118 344,177 210,118" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1.4"/>
+  <polygon points="210,72 350,128 332,162 210,102" fill="#444" opacity="0.45"/>
+
+  <!-- Cut line (seam from apex down bisector) -->
+  <line x1="210" y1="55" x2="210" y2="118" stroke="#2c8c2c" stroke-width="2.6"/>
+
+  <!-- Apex marker -->
+  <circle cx="210" cy="55" r="3" fill="#cc2c2c"/>
+  <text x="210" y="48" text-anchor="middle" fill="#666" font-size="10">頂点（外側コーナー）</text>
+
+  <!-- Cut length dimension (vertical, to the right of seam) -->
+  <line x1="230" y1="55" x2="230" y2="118" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <rect x="237" y="78" width="100" height="16" fill="#fff7ed" stroke="#d67a2a" stroke-width="0.6" rx="3"/>
+  <text x="287" y="89" text-anchor="middle" font-weight="700" fill="#9a4a10" font-size="11">切断長 = W/tan(θ/2)</text>
+
+  <!-- Width dimension W (along left gutter near far end) -->
+  <line x1="35" y1="124" x2="60" y2="184" stroke="#3a7fc0" stroke-width="1.2" marker-start="url(#ab)" marker-end="url(#ab)"/>
+  <text x="22" y="160" fill="#3a7fc0" font-weight="700" font-size="11">幅 W</text>
+
+  <!-- Angle theta arc and label -->
+  <path d="M180,68 A35,35 0 0 0 240,68" fill="none" stroke="#555" stroke-width="1.2"/>
+  <text x="210" y="86" text-anchor="middle" fill="#333" font-weight="700">θ</text>
+
+  <!-- Bottom annotations -->
+  <text x="210" y="220" text-anchor="middle" fill="#222" font-size="12">開き角 θ を読み取り、切断長を算出</text>
+  <text x="210" y="240" text-anchor="middle" fill="#666" font-size="10">例: W=520mm, θ=135° → 切断長 ≈ 215mm</text>
+  <text x="210" y="258" text-anchor="middle" fill="#666" font-size="10">2片を同じ角度で切ると接合面がきれいに合います</text>
+</svg>
