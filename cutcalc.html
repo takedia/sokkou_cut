@@ -42,16 +42,16 @@
     #calcBtn { display: none; }
     .row-nowrap {
        display: flex;
-       flex-wrap: nowrap;
+       flex-wrap: wrap;           /* 入らない時は折返し（スマホ縦対応） */
        align-items: center;
-       gap: 6px;
-       font-size: 15px; /* ← 数字の表示サイズ */
-       white-space: nowrap;       /* 折返し禁止 */
+       gap: 6px 10px;
+       font-size: 13px;
+       white-space: nowrap;
     }
     .row-nowrap input[type="number"] {
-       flex-shrink: 0;            /* 縮ませない（数字見切れ防止） */
-       width: 64px;               /* 3〜4桁が PC でも収まるサイズ */
-       font-size: 15px;
+       flex-shrink: 0;
+       width: 64px;
+       font-size: 14px;
     }
     /* 計測ログ モーダル */
     .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:100; padding:14px; }
@@ -121,7 +121,7 @@
   <div class="panel">
     <div class="row" style="flex-direction:column; align-items:flex-start; gap:8px">
       <div class="row-nowrap">
-        製品幅又は高さ(mm): <input id="productWidth" type="number" step="1" value="520" />
+        幅/高さ(mm): <input id="productWidth" type="number" step="1" value="520" />
         角度(°): <input id="manualAngle" type="number" step="1" placeholder="例90" />
       </div>
 
