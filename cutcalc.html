@@ -488,7 +488,7 @@
       rightAngle = lerp(rv, 90, 0); // 右: 90→0
     }else{
       rightAngle = 90;              // 片側は右固定
-      leftAngle  = lerp(lv,180,90); // 左:180→90（90°可動・水平以下）
+      leftAngle  = lerp(lv,180,100);// 左:180→100（真下を除く80°可動）
     }
     const ang=openAngleFromGuide();
     if(mode==='single'){
@@ -647,8 +647,8 @@
       document.getElementById('rightSlider').value = Math.round(rv);
       document.getElementById('manualAngle').value = Math.round(Math.abs(leftAngle - rightAngle));
     }else{
-      // 片側: leftAngle = 180 - 0.9*lv  → lv = (180 - leftAngle)/0.9
-      const lv = Math.max(0, Math.min(100, (180 - leftAngle)/0.9));
+      // 片側: leftAngle = 180 - 0.8*lv  → lv = (180 - leftAngle)/0.8
+      const lv = Math.max(0, Math.min(100, (180 - leftAngle)/0.8));
       document.getElementById('leftSlider').value = Math.round(lv);
       const open = openAngleFromGuide();
       document.getElementById('manualAngle').value = Math.round(Math.abs(open - 90));
@@ -666,9 +666,9 @@
         rightAngle = Math.max(0, Math.min(90, r));
       }
     }else{
-      // 片側: 90..180（水平以下のみ）
+      // 片側: 100..180（真下=90°は除外、水平以下のみ）
       let s = a;
-      if(s < 90) s = 90;
+      if(s < 100) s = 100;
       if(s > 180) s = 180;
       leftAngle = s;
     }
