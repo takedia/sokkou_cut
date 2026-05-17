@@ -13,8 +13,8 @@
 
   <!-- Big piece rectangle (top view) -->
   <rect x="40" y="50" width="320" height="90" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1.6"/>
-  <!-- Inner channel -->
-  <rect x="50" y="70" width="300" height="50" fill="#444" opacity="0.45"/>
+  <!-- Inner channel (extends to the right edge, wedge will overlay on the cut side) -->
+  <rect x="40" y="70" width="320" height="50" fill="#444" opacity="0.45"/>
   <!-- Outer outline -->
   <rect x="40" y="50" width="320" height="90" fill="none" stroke="#1a1a1a" stroke-width="1.6"/>
 
