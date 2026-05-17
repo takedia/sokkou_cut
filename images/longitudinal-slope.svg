@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280" font-family="-apple-system, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif" font-size="11">
+  <defs>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#cc2c2c"/>
+    </marker>
+  </defs>
+
+  <text x="210" y="18" text-anchor="middle" font-weight="700" font-size="13" fill="#222">縦断方向 — 法面/勾配での設置例（側面図）</text>
+
+  <!-- Sky -->
+  <rect x="0" y="24" width="420" height="246" fill="#e6f1f7"/>
+
+  <!-- Ground: top flat / slope (~31°) / bottom flat -->
+  <path d="M0,100 L160,100 L340,210 L420,210 L420,272 L0,272 Z" fill="#d4b48c" stroke="#7a5a3a" stroke-width="1.2"/>
+  <!-- Grass strip on each ground segment -->
+  <g stroke="#5a9c5a" stroke-width="2.6" stroke-linecap="round">
+    <line x1="0" y1="99" x2="160" y2="99"/>
+    <line x1="160" y1="99" x2="340" y2="209"/>
+    <line x1="340" y1="209" x2="420" y2="209"/>
+  </g>
+
+  <!-- Horizontal gutter on top -->
+  <!-- Slope unit vec: (180,110)/210.95 = (0.853, 0.521). perp_up = (0.521, -0.853) -->
+  <!-- Top gutter piece (horizontal): from (20,82) to (160,82) outer top, base at y=99 -->
+  <polygon points="20,82 160,82 160,99 20,99" fill="#bcbcbc" stroke="#1a1a1a" stroke-width="1"/>
+  <rect x="22" y="86" width="135" height="9" fill="#3a3a3a" opacity="0.55"/>
+
+  <!-- Sloped gutter piece on slope.
+       Base bottom-left at (160,99) (on slope corner), thickness 17 perp_up, length 175 along slope.
+       Base bottom-right = (160 + 175*0.853, 99 + 175*0.521) = (309.3, 190.2)
+       Top-left = (160 + 17*0.521, 99 + 17*-0.853) = (168.86, 84.5)
+       Top-right = (309.3 + 17*0.521, 190.2 + 17*-0.853) = (318.16, 175.7) -->
+  <polygon points="160,99 309.3,190.2 318.16,175.7 168.86,84.5" fill="#bcbcbc" stroke="#1a1a1a" stroke-width="1"/>
+  <!-- Sloped channel: between perp 4..13 of 17 -->
+  <!-- chBL = (160+4*0.521, 99+4*-0.853) = (162.08, 95.59)
+       chTL = (160+13*0.521, 99+13*-0.853) = (166.77, 87.91)
+       chBR = (309.3+4*0.521, 190.2+4*-0.853) = (311.38, 186.79)
+       chTR = (309.3+13*0.521, 190.2+13*-0.853) = (316.07, 179.11) -->
+  <polygon points="162.08,95.59 311.38,186.79 316.07,179.11 166.77,87.91" fill="#3a3a3a" opacity="0.55"/>
+
+  <!-- Miter cut line at the bend (from outer corner of top piece down to inner corner of slope piece) -->
+  <line x1="160" y1="82" x2="168.86" y2="84.5" stroke="#2c8c2c" stroke-width="2.4"/>
+
+  <!-- Slope angle θ arc (between horizontal piece's bottom and slope) -->
+  <path d="M148,99 A14,14 0 0 0 152,87" fill="none" stroke="#cc2c2c" stroke-width="1.2"/>
+  <text x="138" y="93" fill="#cc2c2c" font-weight="700" font-size="10">θ</text>
+
+  <!-- Piece labels -->
+  <text x="88" y="76" text-anchor="middle" fill="#222" font-size="10" font-weight="600">天端側ピース</text>
+  <text x="270" y="148" text-anchor="middle" fill="#222" font-size="10" font-weight="600">法面側ピース</text>
+
+  <!-- Bottom annotation -->
+  <text x="210" y="246" text-anchor="middle" fill="#222" font-size="12" font-weight="700">勾配の変化点で両ピースを斜めにカット</text>
+  <text x="210" y="263" text-anchor="middle" fill="#666" font-size="10">坂道・法面・縦排水で使用。両側モードと同じ計算式（θ=勾配角）</text>
+</svg>
