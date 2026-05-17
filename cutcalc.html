@@ -484,8 +484,8 @@
     const lv=+document.getElementById('leftSlider').value;
     const rv=+document.getElementById('rightSlider').value;
     if(mode==='dual'){
-      leftAngle  = lerp(lv,180,90); // 左:180→90
-      rightAngle = lerp(rv, 90, 0); // 右: 90→0
+      leftAngle  = lerp(lv,180,120); // 左:180→120（最大60°の偏角）
+      rightAngle = lerp(rv, 60,  0); // 右: 60→0
     }else{
       rightAngle = 90;              // 片側は右固定
       leftAngle  = lerp(lv,180,120);// 左:180→120（破線右側へのはみ出し防止）
@@ -641,8 +641,8 @@
   function angleDist(a, b){ let d=Math.abs(a-b)%360; if(d>180) d=360-d; return d; }
   function updateSliderFromAngle(){
     if(mode==='dual'){
-      const lv = Math.max(0, Math.min(100, (180 - leftAngle)/0.9));
-      const rv = Math.max(0, Math.min(100, (90  - rightAngle)/0.9));
+      const lv = Math.max(0, Math.min(100, (180 - leftAngle)/0.6));
+      const rv = Math.max(0, Math.min(100, (60  - rightAngle)/0.6));
       document.getElementById('leftSlider').value  = Math.round(lv);
       document.getElementById('rightSlider').value = Math.round(rv);
       document.getElementById('manualAngle').value = Math.round(Math.abs(leftAngle - rightAngle));
@@ -658,12 +658,12 @@
     const a = pointerAngleDeg(p);
     if(mode==='dual'){
       if(dragTarget==='left'){
-        leftAngle = Math.max(90, Math.min(180, a));
+        leftAngle = Math.max(120, Math.min(180, a));
       }else{
         let r = a;
-        if(r > 270) r = 0;
-        else if(r > 90 && r <= 270) r = 90;
-        rightAngle = Math.max(0, Math.min(90, r));
+        if(r > 300) r = 0;
+        else if(r > 60 && r <= 300) r = 60;
+        rightAngle = Math.max(0, Math.min(60, r));
       }
     }else{
       // 片側: 120..180（真下方向への過度な傾きを除外）
