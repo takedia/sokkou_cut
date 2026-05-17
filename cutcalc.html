@@ -11,7 +11,8 @@
     .container{ max-width:460px; margin:0 auto; background:var(--panel); backdrop-filter:blur(10px); border-radius:16px; padding:12px; box-shadow:0 10px 24px rgba(0,0,0,.2) }
     h1{ font-size:16px; margin:0 0 8px; text-align:center }
     .panel{ background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25); border-radius:14px; padding:10px; margin-top:12px }
-    #angleGuide{ width:100%; aspect-ratio:4/3; background:rgba(0,0,0,.15); border-radius:12px; display:block; max-height:260px; cursor:default }
+    #angleGuide{ width:100%; aspect-ratio:4/3; background:rgba(0,0,0,.15); border-radius:12px; display:block; max-height:260px; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
+    #angleGuide.dragging{ cursor:grabbing; }
     .canvasBlock{ margin-bottom:16px }
     .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap}
     .muted{ opacity:.85; font-size:12px }
@@ -51,6 +52,22 @@
        flex-shrink: 1;            /* 幅が足りないときに縮む */
        width: 50px;           /* 最小幅を確保（調整可） */
        font-size: 15px; /* ← ラベル文字（製品幅…角度）も小さく */}
+    /* 計測ログ モーダル */
+    .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:100; padding:14px; }
+    .modal-overlay.show{ display:flex; }
+    .modal-panel{ background:#fff; color:#111; border-radius:12px; padding:14px; width:100%; max-width:380px; max-height:80vh; overflow:auto; box-shadow:0 8px 24px rgba(0,0,0,.3); }
+    .modal-header{ display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:14px; margin-bottom:10px; }
+    .modal-close{ background:none; border:none; font-size:22px; cursor:pointer; padding:0 8px; color:#666; line-height:1; }
+    .modal-current{ background:#f3f4f6; padding:10px; border-radius:8px; margin-bottom:10px; font-size:12px; }
+    .modal-current-vals{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-bottom:8px; color:#222; }
+    .modal-row{ display:flex; gap:6px; align-items:center; }
+    .modal-row input[type="text"]{ flex:1; padding:6px 8px; border:1px solid #ccc; border-radius:6px; font-size:12px; }
+    .modal-list{ display:flex; flex-direction:column; gap:6px; }
+    .log-entry{ display:flex; justify-content:space-between; align-items:center; padding:8px; background:#fafafa; border:1px solid #eee; border-radius:6px; font-size:12px; gap:6px; }
+    .log-entry-info{ flex:1; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .log-entry-note{ font-family: -apple-system, sans-serif; color:#666; font-size:11px; }
+    .log-entry-del{ background:#fee; border:1px solid #fcc; color:#c00; padding:3px 9px; border-radius:5px; cursor:pointer; font-size:11px; }
+    .log-empty{ text-align:center; color:#999; padding:18px; font-size:12px; }
   </style>
 </head>
 <body>
@@ -79,6 +96,7 @@
         <input type="checkbox" id="modeToggle" />
         <span class="muted">片側</span>
       </label>
+      <button class="btn" id="flipBtn" title="左右反転" style="padding:5px 10px; font-size:14px">⇄</button>
       <span class="pill-sm">切断長: <span id="inlineCutLenNum" class="num">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="unit"> mm</span></span>
     </div>
     <div class="row" style="margin-top:18px">
@@ -108,10 +126,10 @@
   </div>
   <div class="panel">
     <div class="grid-1">
-      <button class="btn" id="startCameraBtn">カメラ起動</button>
-      <button class="btn" id="stopBtn" disabled>カメラ停止</button>
+      <button class="btn" id="cameraToggleBtn">カメラ起動</button>
       <button class="btn" id="captureBtn" disabled>静止画像</button>
       <label class="btn" style="text-align:center; cursor:pointer">画像読込<input id="imageInput" type="file" accept="image/*" style="display:none" /></label>
+      <button class="btn" id="logBtn">📋 ログ</button>
     </div>
     <video id="video" playsinline style="display:none"></video>
     <canvas id="photoCanvas" style="display:none"></canvas>
@@ -119,7 +137,7 @@
 </div>
 <script>
   // ===== 状態 =====
-  let leftAngle=135.0,rightAngle=45.0,mode='dual';
+  let leftAngle=135.0,rightAngle=45.0,mode='dual',flipped=false;
   const guide=document.getElementById('angleGuide');
   const gtx=guide.getContext('2d');
   // カメラ関連の参照と状態
@@ -208,30 +226,244 @@
     return (a>180)? 360-a : a;        // 0..180 対称
   }
 
-  // ===== ガイド描画 =====
+  // ===== 切断長の計算（mm） =====
+  function calcCutLenMm(angDeg, productWidthMm){
+    if(angDeg >= 89.5) return 0;
+    if(angDeg <= 0.5)  return productWidthMm * 2;
+    const t = Math.tan(angDeg*Math.PI/180);
+    return Math.min(productWidthMm / t, productWidthMm * 2);
+  }
+
+  // ===== ケガキ図インセット（カメラの邪魔にならない隅に小窓） =====
+  function drawCutMarkingInset(canvasW, canvasH, cutLenMm, productWidthMm){
+    const insetW = Math.min(160, canvasW * 0.42);
+    const insetH = 64; // 縦を圧縮して apex を上に持っていく余裕を作る
+    const insetX = flipped ? (canvasW - insetW - 8) : 8;
+    // 片側=上側、両側=下側
+    const insetY = (mode==='single') ? 34 : (canvasH - insetH - 8);
+
+    // パネル背景
+    gtx.fillStyle='rgba(0,0,0,0.62)';
+    gtx.fillRect(insetX, insetY, insetW, insetH);
+    gtx.strokeStyle='rgba(255,255,255,0.45)'; gtx.lineWidth=1;
+    gtx.strokeRect(insetX, insetY, insetW, insetH);
+
+    // タイトル
+    gtx.font='9px sans-serif'; gtx.fillStyle='rgba(255,255,255,0.9)';
+    gtx.textAlign='left'; gtx.textBaseline='top';
+    gtx.fillText('ケガキ図', insetX + 5, insetY + 2);
+
+    // ピース矩形領域（コンパクト・左に幅寸法スペースを確保）
+    const padL=28, padR=10, padT=12, padB=24;
+    const pX = insetX + padL;
+    const pY = insetY + padT;
+    const pW = insetW - padL - padR;
+    const pH = insetH - padT - padB; // 64-12-24 = 28
+    const cutDispPx = Math.min(pH * (cutLenMm / productWidthMm), pW - 4);
+
+    // 本体（コンクリート）
+    gtx.fillStyle='rgba(200,200,200,0.7)';
+    gtx.fillRect(pX, pY, pW, pH);
+    // チャネル
+    gtx.fillStyle='rgba(40,40,40,0.55)';
+    gtx.fillRect(pX, pY + pH*0.225, pW, pH*0.55);
+    // 外縁
+    gtx.strokeStyle='rgba(0,0,0,0.95)'; gtx.lineWidth=1;
+    gtx.strokeRect(pX, pY, pW, pH);
+
+    // 幅寸法（左側に縦のディメンションライン＋数値）
+    const WIDTH_COLOR='rgba(180,220,255,1.0)';
+    const wDimX = pX - 5;
+    gtx.strokeStyle=WIDTH_COLOR; gtx.lineWidth=1.2;
+    gtx.beginPath(); gtx.moveTo(wDimX, pY); gtx.lineTo(wDimX, pY + pH); gtx.stroke();
+    // 上下の塗りつぶし三角矢印
+    gtx.fillStyle=WIDTH_COLOR;
+    const wa=3;
+    gtx.beginPath(); gtx.moveTo(wDimX, pY); gtx.lineTo(wDimX-2, pY+wa); gtx.lineTo(wDimX+2, pY+wa); gtx.closePath(); gtx.fill();
+    gtx.beginPath(); gtx.moveTo(wDimX, pY+pH); gtx.lineTo(wDimX-2, pY+pH-wa); gtx.lineTo(wDimX+2, pY+pH-wa); gtx.closePath(); gtx.fill();
+    // 数値（寸法線の左に右寄せで表示）
+    gtx.font='bold 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    gtx.textAlign='right'; gtx.textBaseline='middle';
+    gtx.fillStyle=WIDTH_COLOR;
+    gtx.fillText(Math.round(productWidthMm), wDimX - 3, pY + pH/2);
+
+    // 切除ウェッジ（右端）
+    const cutOuterX = pX + pW;
+    const wedgeTipX = pX + pW - cutDispPx;
+    if(cutDispPx > 2){
+      gtx.fillStyle='rgba(220,80,80,0.35)';
+      gtx.beginPath();
+      gtx.moveTo(cutOuterX, pY);
+      gtx.lineTo(cutOuterX, pY + pH);
+      gtx.lineTo(wedgeTipX, pY + pH);
+      gtx.closePath(); gtx.fill();
+    }
+    // カット線
+    gtx.strokeStyle='rgba(80,255,80,1.0)'; gtx.lineWidth=2;
+    gtx.beginPath(); gtx.moveTo(cutOuterX, pY); gtx.lineTo(wedgeTipX, pY + pH); gtx.stroke();
+
+    // 寸法線＋矢印（オレンジで目立たせる）
+    const dimY = pY + pH + 4;
+    const ARROW_COLOR='rgba(255,165,0,1.0)';
+    if(cutDispPx > 10){
+      gtx.strokeStyle=ARROW_COLOR; gtx.lineWidth=1.4;
+      gtx.beginPath(); gtx.moveTo(cutOuterX, dimY); gtx.lineTo(wedgeTipX, dimY); gtx.stroke();
+      // 矢印（中向き、塗りつぶし三角）
+      const ah=4, aw=3;
+      gtx.fillStyle=ARROW_COLOR;
+      // 右側（cutOuterX）の矢印は ←向き
+      gtx.beginPath();
+      gtx.moveTo(cutOuterX, dimY);
+      gtx.lineTo(cutOuterX - ah, dimY - aw);
+      gtx.lineTo(cutOuterX - ah, dimY + aw);
+      gtx.closePath(); gtx.fill();
+      // 左側（wedgeTipX）の矢印は →向き
+      gtx.beginPath();
+      gtx.moveTo(wedgeTipX, dimY);
+      gtx.lineTo(wedgeTipX + ah, dimY - aw);
+      gtx.lineTo(wedgeTipX + ah, dimY + aw);
+      gtx.closePath(); gtx.fill();
+    }
+
+    // 数値（寸法線の下に中央寄せ、矢印と被らない位置）
+    gtx.font='bold 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    gtx.textAlign='center'; gtx.textBaseline='top';
+    const txt = Math.round(cutLenMm) + ' mm';
+    const m = gtx.measureText(txt);
+    let labelX;
+    if(cutDispPx > 10){
+      const midX = (cutOuterX + wedgeTipX) / 2;
+      const minX = insetX + m.width/2 + 4;
+      const maxX = insetX + insetW - m.width/2 - 4;
+      labelX = Math.max(minX, Math.min(maxX, midX));
+    }else{
+      labelX = insetX + insetW - m.width/2 - 6; // 右寄せ
+    }
+    const labelY = dimY + 4;
+    gtx.fillStyle='rgba(0,0,0,0.7)';
+    gtx.fillRect(labelX - m.width/2 - 3, labelY - 1, m.width + 6, 12);
+    gtx.fillStyle='rgba(255,235,90,1.0)';
+    gtx.fillText(txt, labelX, labelY);
+  }
+
+  // ===== 側溝帯（ミタージョイント・カメラ重畳用） =====
+  // apex(cx,cy) から angleDeg 方向へ伸びる帯。外側エッジは apex から body 方向へ直線（=元の位置合わせ線）。
+  // 内側エッジは body 方向に disp だけ進んだ位置から始まり、留め継ぎ形状になる。
+  function drawGutterStrip(cx, cy, angleDeg, innerSign, halfW, disp){
+    const W=guide.width, H=guide.height;
+    const rad=angleDeg*Math.PI/180;
+    const dx=Math.cos(rad), dy=Math.sin(rad);
+    const nx = dy * innerSign;
+    const ny = -dx * innerSign;
+    const fullW = halfW*2;
+
+    const eOuter = edgePoint(cx, cy, angleDeg, 0, 0, W, H);
+    const innerApexX = cx + nx*fullW, innerApexY = cy + ny*fullW;
+    const eInner = edgePoint(innerApexX, innerApexY, angleDeg, 0, 0, W, H);
+    const lenOuter = Math.hypot(eOuter.x - cx, eOuter.y - cy);
+    const lenInner = Math.hypot(eInner.x - innerApexX, eInner.y - innerApexY);
+    const L = Math.min(lenOuter, lenInner);
+    const effDisp = Math.min(disp, L);
+
+    const cON = {x: cx,                                   y: cy};
+    const cIN = {x: cx + nx*fullW + dx*effDisp,           y: cy + ny*fullW + dy*effDisp};
+    const cIF = {x: cx + nx*fullW + dx*L,                 y: cy + ny*fullW + dy*L};
+    const cOF = {x: cx + dx*L,                             y: cy + dy*L};
+
+    // チャネル開口
+    const tOut=0.225, tIn=0.775;
+    const chON={x:cx+nx*tOut*fullW+dx*tOut*effDisp,y:cy+ny*tOut*fullW+dy*tOut*effDisp};
+    const chIN={x:cx+nx*tIn*fullW +dx*tIn*effDisp, y:cy+ny*tIn*fullW +dy*tIn*effDisp};
+    const chIF={x:cx+nx*tIn*fullW +dx*L,            y:cy+ny*tIn*fullW +dy*L};
+    const chOF={x:cx+nx*tOut*fullW+dx*L,            y:cy+ny*tOut*fullW+dy*L};
+
+    // コンクリート本体（薄め、カメラが透けるよう低透明度）
+    gtx.fillStyle='rgba(225,225,225,0.30)';
+    gtx.beginPath(); gtx.moveTo(cON.x,cON.y); gtx.lineTo(cIN.x,cIN.y); gtx.lineTo(cIF.x,cIF.y); gtx.lineTo(cOF.x,cOF.y); gtx.closePath(); gtx.fill();
+    // チャネル
+    gtx.fillStyle='rgba(60,60,60,0.30)';
+    gtx.beginPath(); gtx.moveTo(chON.x,chON.y); gtx.lineTo(chIN.x,chIN.y); gtx.lineTo(chIF.x,chIF.y); gtx.lineTo(chOF.x,chOF.y); gtx.closePath(); gtx.fill();
+    // 遠端（背中）— 黒の薄線
+    gtx.strokeStyle='rgba(0,0,0,0.75)'; gtx.lineWidth=1.2;
+    gtx.beginPath(); gtx.moveTo(cIF.x, cIF.y); gtx.lineTo(cOF.x, cOF.y); gtx.stroke();
+    // チャネル輪郭
+    gtx.strokeStyle='rgba(0,0,0,0.45)'; gtx.lineWidth=1;
+    gtx.beginPath(); gtx.moveTo(chON.x,chON.y); gtx.lineTo(chIN.x,chIN.y); gtx.lineTo(chIF.x,chIF.y); gtx.lineTo(chOF.x,chOF.y); gtx.closePath(); gtx.stroke();
+    // 切断面（apex→内側終点）— 薄黒の細線
+    gtx.strokeStyle='rgba(0,0,0,0.85)'; gtx.lineWidth=1.4;
+    gtx.beginPath(); gtx.moveTo(cON.x, cON.y); gtx.lineTo(cIN.x, cIN.y); gtx.stroke();
+    // 外側エッジ＋内側エッジ（両方とも位置合わせ用の蛍光黄緑）
+    gtx.strokeStyle='rgba(210,255,130,0.95)'; gtx.lineWidth=2;
+    gtx.beginPath();
+    gtx.moveTo(cON.x, cON.y); gtx.lineTo(cOF.x, cOF.y); // 外側
+    gtx.moveTo(cIN.x, cIN.y); gtx.lineTo(cIF.x, cIF.y); // 内側
+    gtx.stroke();
+  }
+
+  // ===== apex 位置（flip 連動／片側時はケガキ図の下まで上げる） =====
+  function getApex(){
+    const W=guide.width, H=guide.height;
+    let cx, cy;
+    if(mode==='single'){
+      cx = flipped ? W*0.30 : W*0.70;
+      // インセット高さ縮小 (64) で apex を上に配置可能に
+      const insetBottomAbs = 34 + 64; // = 98
+      cy = Math.max(H*0.35, insetBottomAbs + 6);
+    }else{
+      cx = W*0.5; cy = H*0.30;
+    }
+    return { cx, cy };
+  }
+  // 片側時：内部角度を反転状態で描画用に変換（x軸ミラー）
+  function renderAngle(a){
+    if(flipped && mode==='single') return ((180 - a) % 360 + 360) % 360;
+    return a;
+  }
+
+  // ===== ガイド描画（カメラ重畳：側溝帯＋∧線＋ケガキ小窓） =====
   function drawGuide(){
-    const W=guide.width,H=guide.height;
-    const cx=(mode==='single')? W*0.70 : W*0.5; // 片側は右寄せ
-    const cy = (mode==='single') ? H*0.50 : H*0.30;  // 垂直中央
+    const W=guide.width, H=guide.height;
+    const {cx, cy} = getApex();
 
     if(mode==='single'){
-      // 基準の縦点線（90°）
-      gtx.setLineDash([5,5]); gtx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--rightLine').trim()||'#ffcc33'; gtx.lineWidth=3;
-      gtx.beginPath(); gtx.moveTo(cx,0); gtx.lineTo(cx,H); gtx.stroke(); gtx.setLineDash([]);
+      gtx.setLineDash([5,5]);
+      gtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--rightLine').trim() || '#ffcc33';
+      gtx.lineWidth = 3;
+      gtx.beginPath(); gtx.moveTo(cx, 0); gtx.lineTo(cx, H); gtx.stroke();
+      gtx.setLineDash([]);
     }
 
-    // 左線
-    const L=edgePoint(cx,cy,leftAngle,0,0,W,H);
-    gtx.strokeStyle='rgba(210,255,130,.95)'; gtx.lineWidth=2;
-    gtx.beginPath(); gtx.moveTo(cx,cy); gtx.lineTo(L.x,L.y); gtx.stroke();
+    const halfW = Math.min(W,H)*0.078;
+    const fullW = halfW*2;
+    const open  = openAngleFromGuide();
+    const productWidthMm = getWidth();
+    const clampMax = Math.max(W,H)*3;
 
-    // 右線（両側のみ）
+    function calcDispPx(miterHalfDeg){
+      if(miterHalfDeg >= 89.5) return 0;
+      if(miterHalfDeg <= 0.5)  return clampMax;
+      return Math.min(fullW / Math.tan(miterHalfDeg*Math.PI/180), clampMax);
+    }
+
     if(mode==='dual'){
-      const R=edgePoint(cx,cy,rightAngle,0,0,W,H);
-      gtx.beginPath(); gtx.moveTo(cx,cy); gtx.lineTo(R.x,R.y); gtx.stroke();
+      const disp = calcDispPx(open/2);
+      drawGutterStrip(cx, cy, leftAngle,  +1, halfW, disp);
+      drawGutterStrip(cx, cy, rightAngle, -1, halfW, disp);
+    }else{
+      const disp = calcDispPx(Math.abs(open - 90));
+      const eff = renderAngle(leftAngle);
+      // 帯が apex から下方向に伸びるように perp を選ぶ（カット線は apex 真下＝ダッシュ線沿い）
+      const innerSign = flipped ? -1 : +1;
+      drawGutterStrip(cx, cy, eff, innerSign, halfW, disp);
     }
 
-    drawTopInfo(openAngleFromGuide(), getWidth());
+    // 上部情報バー
+    drawTopInfo(open, productWidthMm);
+
+    // ケガキ図インセット（flip 連動で左下↔右下）
+    const angDeg  = (mode==='dual') ? open/2 : Math.abs(open - 90);
+    const cutLenMm = calcCutLenMm(angDeg, productWidthMm);
+    drawCutMarkingInset(W, H, cutLenMm, productWidthMm);
   }
 
   function renderAll(){ drawBackground(); drawGuide(); }
@@ -247,7 +479,7 @@
       rightAngle = lerp(rv, 90, 0); // 右: 90→0
     }else{
       rightAngle = 90;              // 片側は右固定
-      leftAngle  = lerp(lv,270,90); // 左:270→90（180°可動）
+      leftAngle  = lerp(lv,180,90); // 左:180→90（90°可動・水平以下）
     }
     const ang=openAngleFromGuide();
     if(mode==='single'){
@@ -266,15 +498,15 @@
       video.srcObject=stream; await video.play();
       startLiveLoop();
       showStatus('カメラ起動','success');
-      document.getElementById('startCameraBtn').disabled=true;
-      document.getElementById('stopBtn').disabled=false;
+      document.getElementById('cameraToggleBtn').textContent='カメラ停止';
       document.getElementById('captureBtn').disabled=false;
       isCaptured=false; fitCanvas();
     }catch(e){ showStatus('カメラ起動失敗: '+e.message,'error'); }
   }
   function startLiveLoop(){ if(liveRAF) return; const loop=()=>{ if(!stream){ liveRAF=null; return; } renderAll(); liveRAF=requestAnimationFrame(loop); }; liveRAF=requestAnimationFrame(loop); }
   function stopLiveLoop(){ if(liveRAF){ cancelAnimationFrame(liveRAF); liveRAF=null; } }
-  function stopCamera(){ stopLiveLoop(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.removeAttribute('srcObject'); document.getElementById('startCameraBtn').disabled=false; document.getElementById('stopBtn').disabled=true; document.getElementById('captureBtn').disabled=true; isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus('カメラ停止','info'); }
+  function stopCamera(){ stopLiveLoop(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.removeAttribute('srcObject'); document.getElementById('cameraToggleBtn').textContent='カメラ起動'; document.getElementById('captureBtn').disabled=true; isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus('カメラ停止','info'); }
+  function toggleCamera(){ if(stream) stopCamera(); else startCamera(); }
   function capturePhoto(){ if(!(video.videoWidth>0)) return showStatus('映像がありません','error'); photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const vw=video.videoWidth, vh=video.videoHeight, cw=photo.width, ch=photo.height; const vr=vw/vh, cr=cw/ch; let dw,dh,dx,dy; if(vr>cr){ dh=ch; dw=dh*vr; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/vr; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(video,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus('撮影完了','success'); }
   function handleImageLoad(ev){ const f=ev.target.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const iw=img.width,ih=img.height,cw=photo.width,ch=photo.height; const ir=iw/ih,cr=cw/ch; let dw,dh,dx,dy; if(ir>cr){ dh=ch; dw=dh*ir; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/ir; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(img,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus('画像読込完了','success'); }; img.onerror=()=>showStatus('画像読込失敗','error'); img.src=URL.createObjectURL(f); }
 
@@ -359,18 +591,189 @@
     document.getElementById('manualAngle').addEventListener('input',requestRender);
     document.getElementById('calcBtn').addEventListener('click',calcDirect);
     // カメラのイベント
-    document.getElementById('startCameraBtn').addEventListener('click',startCamera);
-    document.getElementById('stopBtn').addEventListener('click',stopCamera);
+    document.getElementById('cameraToggleBtn').addEventListener('click',toggleCamera);
     document.getElementById('captureBtn').addEventListener('click',capturePhoto);
     document.getElementById('imageInput').addEventListener('change',handleImageLoad);
     const toggle=document.getElementById('modeToggle');
     toggle.addEventListener('change',()=>{ mode=toggle.checked?'single':'dual'; applyModeUI(); });
+    const flipBtn=document.getElementById('flipBtn');
+    if(flipBtn) flipBtn.addEventListener('click',()=>{ flipped=!flipped; flipBtn.style.background = flipped ? '#cfc' : '#fff'; requestRender(); });
     // 起動時は必ず両側モード＆トグル未チェックに同期
     mode='dual'; if(toggle) toggle.checked=false; applyModeUI(); requestRender();
+    // 直接ドラッグで角度調整
+    setupCanvasDrag();
     try{ runTests(); }catch(e){ console.warn('Tests failed:', e); }
   }
 
-  document.addEventListener('DOMContentLoaded',setup);
+  // ===== キャンバス直接ドラッグで角度調整 =====
+  let dragTarget=null; // 'left' | 'right' | null
+  function getCanvasPoint(ev){
+    const rect = guide.getBoundingClientRect();
+    const cx = (ev.touches && ev.touches[0]) ? ev.touches[0].clientX : ev.clientX;
+    const cy = (ev.touches && ev.touches[0]) ? ev.touches[0].clientY : ev.clientY;
+    return { x:(cx - rect.left) * (guide.width / rect.width), y:(cy - rect.top) * (guide.height / rect.height) };
+  }
+  function isInInset(p){
+    const W=guide.width, H=guide.height;
+    const insetW = Math.min(160, W * 0.42);
+    const insetH = 64;
+    const ix = flipped ? (W - insetW - 8) : 8;
+    const iy = (mode==='single') ? 34 : (H - insetH - 8);
+    return p.x >= ix && p.x <= ix+insetW && p.y >= iy && p.y <= iy+insetH;
+  }
+  function pointerAngleDeg(p){
+    const a = getApex();
+    let deg = Math.atan2(p.y - a.cy, p.x - a.cx) * 180 / Math.PI; // -180..180
+    if(deg < 0) deg += 360;
+    // 片側で反転中は内部座標系に戻す（x軸ミラー: a' = 180 - a）
+    if(flipped && mode==='single') deg = ((180 - deg) % 360 + 360) % 360;
+    return deg; // 0..360 (内部角度)
+  }
+  function angleDist(a, b){ let d=Math.abs(a-b)%360; if(d>180) d=360-d; return d; }
+  function updateSliderFromAngle(){
+    if(mode==='dual'){
+      const lv = Math.max(0, Math.min(100, (180 - leftAngle)/0.9));
+      const rv = Math.max(0, Math.min(100, (90  - rightAngle)/0.9));
+      document.getElementById('leftSlider').value  = Math.round(lv);
+      document.getElementById('rightSlider').value = Math.round(rv);
+      document.getElementById('manualAngle').value = Math.round(Math.abs(leftAngle - rightAngle));
+    }else{
+      // 片側: leftAngle = 180 - 0.9*lv  → lv = (180 - leftAngle)/0.9
+      const lv = Math.max(0, Math.min(100, (180 - leftAngle)/0.9));
+      document.getElementById('leftSlider').value = Math.round(lv);
+      const open = openAngleFromGuide();
+      document.getElementById('manualAngle').value = Math.round(Math.abs(open - 90));
+    }
+  }
+  function applyDragAngle(p){
+    const a = pointerAngleDeg(p);
+    if(mode==='dual'){
+      if(dragTarget==='left'){
+        leftAngle = Math.max(90, Math.min(180, a));
+      }else{
+        let r = a;
+        if(r > 270) r = 0;
+        else if(r > 90 && r <= 270) r = 90;
+        rightAngle = Math.max(0, Math.min(90, r));
+      }
+    }else{
+      // 片側: 90..180（水平以下のみ）
+      let s = a;
+      if(s < 90) s = 90;
+      if(s > 180) s = 180;
+      leftAngle = s;
+    }
+    updateSliderFromAngle();
+    requestRender();
+  }
+  function pointerDown(ev){
+    const p = getCanvasPoint(ev);
+    if(isInInset(p)) return; // ケガキ図領域は無視
+    ev.preventDefault();
+    if(mode==='dual'){
+      const a = pointerAngleDeg(p);
+      dragTarget = (angleDist(a, leftAngle) <= angleDist(a, rightAngle)) ? 'left' : 'right';
+    }else{
+      dragTarget = 'left';
+    }
+    guide.classList.add('dragging');
+    applyDragAngle(p);
+  }
+  function pointerMove(ev){
+    if(!dragTarget) return;
+    ev.preventDefault();
+    applyDragAngle(getCanvasPoint(ev));
+  }
+  function pointerEnd(ev){
+    if(!dragTarget) return;
+    dragTarget = null;
+    guide.classList.remove('dragging');
+  }
+  function setupCanvasDrag(){
+    // pointerdown は canvas に、move/up は window に張る（指が canvas 外へ出ても継続）
+    guide.addEventListener('pointerdown', pointerDown);
+    window.addEventListener('pointermove',   pointerMove,   {passive:false});
+    window.addEventListener('pointerup',     pointerEnd);
+    window.addEventListener('pointercancel', pointerEnd);
+    // pointerleave/touchcancel ではドラッグ終了しない
+  }
+
+  // 旧 DOMContentLoaded は下方の新リスナーに統合済み
+
+  // ===== 計測ログ =====
+  const LOG_KEY='cutcalc_log_v1';
+  function loadLog(){ try{ return JSON.parse(localStorage.getItem(LOG_KEY)||'[]'); }catch(e){ return []; } }
+  function saveLogToStorage(log){ localStorage.setItem(LOG_KEY, JSON.stringify(log)); }
+  function getCurrentMeasurement(){
+    const open=openAngleFromGuide(); const width=getWidth();
+    let displayAngle, cutLen;
+    if(mode==='single'){ displayAngle=Math.abs(open-90); cutLen=calcCutLenMm(displayAngle, width); }
+    else               { displayAngle=open;             cutLen=calcCutLenMm(open/2,        width); }
+    return { timestamp:new Date().toISOString(), mode, angle:Math.round(displayAngle), width:Math.round(width), cutLen:Math.round(cutLen) };
+  }
+  function formatLogEntry(e){
+    const d=new Date(e.timestamp);
+    const time=`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const m=(e.mode==='single')?'片側':'両側';
+    return `${time}  ${m} 角${e.angle}° 幅${e.width} 切${e.cutLen}mm`;
+  }
+  function renderLogModal(){
+    const cur=getCurrentMeasurement();
+    document.getElementById('logCurrentVals').textContent =
+      `${cur.mode==='single'?'片側':'両側'} ・ 角度 ${cur.angle}° ・ 幅 ${cur.width}mm ・ 切断 ${cur.cutLen}mm`;
+    const list=loadLog();
+    const listEl=document.getElementById('logList');
+    listEl.innerHTML='';
+    if(list.length===0){ listEl.innerHTML='<div class="log-empty">記録なし</div>'; return; }
+    list.slice().reverse().forEach((entry, revIdx)=>{
+      const idx=list.length-1-revIdx;
+      const row=document.createElement('div'); row.className='log-entry';
+      const info=document.createElement('div'); info.className='log-entry-info';
+      info.textContent=formatLogEntry(entry);
+      if(entry.note){ const n=document.createElement('div'); n.className='log-entry-note'; n.textContent='📝 '+entry.note; info.appendChild(n); }
+      const del=document.createElement('button'); del.className='log-entry-del'; del.textContent='削除';
+      del.addEventListener('click', ()=>{ const lg=loadLog(); lg.splice(idx,1); saveLogToStorage(lg); renderLogModal(); });
+      row.appendChild(info); row.appendChild(del);
+      listEl.appendChild(row);
+    });
+  }
+  function openLogModal(){ renderLogModal(); document.getElementById('logModal').classList.add('show'); }
+  function closeLogModal(){ document.getElementById('logModal').classList.remove('show'); }
+  function saveCurrentLog(){
+    const note=(document.getElementById('logNoteInput').value||'').trim();
+    const entry=getCurrentMeasurement();
+    if(note) entry.note=note;
+    const log=loadLog(); log.push(entry); saveLogToStorage(log);
+    document.getElementById('logNoteInput').value='';
+    renderLogModal();
+    showStatus('ログ保存','success');
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    setup();
+    document.getElementById('logBtn').addEventListener('click', openLogModal);
+    document.getElementById('logCloseBtn').addEventListener('click', closeLogModal);
+    document.getElementById('logSaveBtn').addEventListener('click', saveCurrentLog);
+    document.getElementById('logModal').addEventListener('click', (e)=>{ if(e.target.id==='logModal') closeLogModal(); });
+  });
 </script>
+
+<!-- 計測ログ モーダル -->
+<div id="logModal" class="modal-overlay">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <span>📋 計測ログ</span>
+      <button class="modal-close" id="logCloseBtn" aria-label="閉じる">×</button>
+    </div>
+    <div class="modal-current">
+      <div class="modal-current-vals" id="logCurrentVals">―</div>
+      <div class="modal-row">
+        <input type="text" id="logNoteInput" placeholder="メモ（例: 〇〇現場 北東角）" maxlength="40" />
+        <button class="btn primary" id="logSaveBtn">保存</button>
+      </div>
+    </div>
+    <div class="modal-list" id="logList"></div>
+  </div>
+</div>
 </body>
 </html>
