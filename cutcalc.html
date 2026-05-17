@@ -5,37 +5,49 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>側溝切断角度計算（安定版）</title>
   <style>
-    :root { --bg1:#667eea; --bg2:#764ba2; --panel:rgba(255,255,255,.10); --txt:#fff; --accent:#4CAF50; --rightLine:#ffcc33 }
+    :root {
+      --bg1:#f5f7fa; --bg2:#e8edf3;
+      --panel:#ffffff; --panel-soft:#f7f9fc;
+      --txt:#1f2937; --txt-muted:#6b7280;
+      --accent:#1976D2; --accent-dark:#1565C0; --accent-soft:#e3f2fd;
+      --secondary:#FF5722;
+      --rightLine:#FF9800;
+      --border:#e0e3e8;
+    }
     *{ box-sizing:border-box }
     body{ margin:0; padding:12px; min-height:100vh; color:var(--txt); background:linear-gradient(135deg,var(--bg1),var(--bg2)); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif }
-    .container{ max-width:460px; margin:0 auto; background:var(--panel); backdrop-filter:blur(10px); border-radius:16px; padding:12px; box-shadow:0 10px 24px rgba(0,0,0,.2) }
-    h1{ font-size:16px; margin:0 0 8px; text-align:center }
-    .panel{ background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25); border-radius:14px; padding:10px; margin-top:12px }
-    #angleGuide{ width:100%; aspect-ratio:4/3; background:rgba(0,0,0,.15); border-radius:12px; display:block; max-height:260px; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
+    .container{ max-width:460px; margin:0 auto; background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:12px; box-shadow:0 4px 18px rgba(15,23,42,0.08) }
+    h1{ font-size:16px; margin:0 0 8px; text-align:center; color:var(--accent) }
+    .panel{ background:var(--panel-soft); border:1px solid var(--border); border-radius:14px; padding:10px; margin-top:12px }
+    #angleGuide{ width:100%; aspect-ratio:4/3; background:#1f2937; border-radius:12px; display:block; max-height:260px; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
     #angleGuide.dragging{ cursor:grabbing; }
     .canvasBlock{ margin-bottom:16px }
     .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap}
-    .muted{ opacity:.85; font-size:12px }
+    .muted{ color:var(--txt-muted); font-size:12px }
     input[type="range"]{ flex:1; min-width:140px; height:32px; background:transparent; -webkit-appearance:none }
-    input[type="range"]::-webkit-slider-runnable-track{ height:6px; background:#fff; border-radius:7px }
-    input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--accent); margin-top:-6px }
-    input[type="range"]::-moz-range-track{ height:6px; background:#fff; border-radius:7px }
+    input[type="range"]::-webkit-slider-runnable-track{ height:6px; background:#cbd5e1; border-radius:7px }
+    input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--accent); margin-top:-6px; box-shadow:0 1px 4px rgba(25,118,210,0.4) }
+    input[type="range"]::-moz-range-track{ height:6px; background:#cbd5e1; border-radius:7px }
     input[type="range"]::-moz-range-thumb{ width:18px; height:18px; border:none; border-radius:50%; background:var(--accent) }
     .disabledWrap{ opacity:.55 }
     .disabledWrap input[type="range"]{ pointer-events:none; filter:grayscale(100%) }
-    input[type="number"]{ width:90px; padding:6px; border-radius:8px; border:1px solid rgba(255,255,255,.35); background:#fff; color:#111; font-size:12px }
-    .btn{ appearance:none; border:none; border-radius:10px; padding:8px 10px; font-weight:700; cursor:pointer; background:#fff; color:#333; box-shadow:0 1px 6px rgba(0,0,0,.15); font-size:11px }
-    .primary{ background:var(--accent); color:#fff }
+    input[type="number"]{ width:90px; padding:6px; border-radius:8px; border:1px solid var(--border); background:#fff; color:var(--txt); font-size:12px }
+    input[type="number"]:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft) }
+    .btn{ appearance:none; border:1px solid var(--border); border-radius:10px; padding:8px 10px; font-weight:600; cursor:pointer; background:#fff; color:var(--txt); box-shadow:0 1px 2px rgba(15,23,42,0.05); font-size:11px; transition:background .15s, border-color .15s }
+    .btn:hover{ background:#f3f4f6; border-color:var(--accent) }
+    .btn:disabled{ opacity:.5; cursor:not-allowed }
+    .primary{ background:var(--accent); color:#fff; border-color:var(--accent) }
+    .primary:hover{ background:var(--accent-dark); border-color:var(--accent-dark) }
     .grid-1{ display:flex; gap:8px; flex-wrap:nowrap }
     .grid-1 .btn{ flex:1; min-width:0 }
-    .status{ margin-top:8px; padding:6px; border-radius:8px; text-align:center; font-size:11px; background:rgba(255,255,255,.15) }
-    .error{ background:rgba(255,87,87,.85); color:#fff }
+    .status{ margin-top:8px; padding:6px; border-radius:8px; text-align:center; font-size:11px; background:var(--accent-soft); color:var(--accent-dark) }
+    .error{ background:#fee2e2; color:#b91c1c }
     .toggle{ display:inline-flex; align-items:center; gap:8px }
-    .toggle input{ appearance:none; width:46px; height:26px; border-radius:999px; background:#bbb; position:relative; outline:none; cursor:pointer; transition:.2s; margin:0 6px }
+    .toggle input{ appearance:none; width:46px; height:26px; border-radius:999px; background:#cbd5e1; position:relative; outline:none; cursor:pointer; transition:.2s; margin:0 6px }
     .toggle input:checked{ background:var(--accent) }
-    .toggle input::after{ content:""; position:absolute; top:4px; left:4px; width:18px; height:18px; border-radius:50%; background:#fff; transition:.2s }
+    .toggle input::after{ content:""; position:absolute; top:4px; left:4px; width:18px; height:18px; border-radius:50%; background:#fff; transition:.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2) }
     .toggle input:checked::after{ transform:translateX(20px) }
-    .pill-sm{ display:inline-flex; align-items:center; gap:6px; background:#fff; color:#111; border-radius:999px; padding:4px 8px; font-weight:700; font-size:12px; box-shadow:0 1px 6px rgba(0,0,0,.15); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .pill-sm{ display:inline-flex; align-items:center; gap:6px; background:#fff; color:var(--txt); border:1px solid var(--border); border-radius:999px; padding:4px 8px; font-weight:700; font-size:12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
     canvas, span, input, button { font-variant-numeric: tabular-nums; }
     .pill-sm .num { display:inline-block; width:4ch; text-align:right; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
     .pill-sm .unit { display:inline-block; }
@@ -69,8 +81,8 @@
     .log-entry-note{ font-family: -apple-system, sans-serif; color:#666; font-size:11px; }
     .log-entry-del{ background:#fee; border:1px solid #fcc; color:#c00; padding:3px 9px; border-radius:5px; cursor:pointer; font-size:11px; }
     .log-empty{ text-align:center; color:#999; padding:18px; font-size:12px; }
-    .help-icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.7); background:rgba(255,255,255,0.12); color:#fff; cursor:pointer; font-size:13px; font-weight:700; padding:0; vertical-align:middle; margin-left:8px; transition:background 0.15s; }
-    .help-icon-btn:hover{ background:rgba(255,255,255,0.28); }
+    .help-icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; border:1.5px solid var(--accent); background:var(--accent-soft); color:var(--accent); cursor:pointer; font-size:13px; font-weight:700; padding:0; vertical-align:middle; margin-left:8px; transition:background 0.15s; }
+    .help-icon-btn:hover{ background:var(--accent); color:#fff; }
     /* ヘルプモーダル */
     .help-tabs{ display:flex; gap:4px; margin-bottom:10px; border-bottom:1px solid #ddd; }
     .help-tab{ flex:1; padding:6px 4px; background:none; border:none; cursor:pointer; font-size:12px; font-weight:600; color:#555; border-bottom:2px solid transparent; }
