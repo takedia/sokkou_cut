@@ -808,7 +808,6 @@
     <div class="help-tabs">
       <button class="help-tab active" data-tab="use">使い方</button>
       <button class="help-tab" data-tab="cross">横断/縦断</button>
-      <button class="help-tab" data-tab="calc">計算式</button>
       <button class="help-tab" data-tab="cutmethod">切断方法</button>
     </div>
 
@@ -845,21 +844,6 @@
       </figure>
       <h4>片側モード</h4>
       <p>集水桝など、片側だけ構造物に接続する場合に使用。</p>
-    </div>
-
-    <div class="help-section" data-section="calc">
-      <h4>切断長の式</h4>
-      <p>製品幅 W、コーナー開き角 θ のとき：</p>
-      <p style="font-family:ui-monospace,monospace; background:#f3f4f6; padding:8px; border-radius:6px;">
-        切断長 = W ÷ tan(θ / 2)
-      </p>
-      <ul>
-        <li>θ = 180°（直線）: 切断長 = 0mm（カット不要）</li>
-        <li>θ = 135°（やや曲げ）: W=520 → 215mm</li>
-        <li>θ = 90°（直角）: W=520 → 520mm</li>
-      </ul>
-      <p>片側モードでは θ の代わりに |角度-90°| を使います。</p>
-      <a class="help-link" href="https://pooloyolo.blog/construction-management/gutter-cutting/" target="_blank" rel="noopener">参考: 計算ガイド (外部)</a>
     </div>
 
     <div class="help-section" data-section="cutmethod">
@@ -907,7 +891,7 @@
 
       <!-- 側面ケガキの方法（インライン・切断長動的） -->
       <figure>
-        <svg viewBox="0 0 360 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;font-size:11px">
+        <svg viewBox="0 0 360 268" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;font-size:11px">
           <defs>
             <marker id="ssa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 z" fill="#d67a2a"/>
@@ -915,39 +899,39 @@
           </defs>
           <text x="180" y="14" text-anchor="middle" font-weight="700" font-size="12" fill="#222">側面のケガキ — 上面の印を真下に降ろす</text>
 
-          <!-- TOP VIEW -->
+          <!-- TOP VIEW (height matches side view) -->
           <text x="20" y="36" font-size="9" fill="#666">上から見た図</text>
-          <rect x="40" y="40" width="280" height="26" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1"/>
-          <rect x="40" y="46" width="280" height="14" fill="#3a3a3a" opacity="0.55"/>
-          <line x1="280" y1="40" x2="240" y2="66" stroke="#2c8c2c" stroke-width="2.2"/>
-          <polygon points="280,40 320,40 320,66 240,66" fill="#cc2c2c" opacity="0.25"/>
+          <rect x="40" y="40" width="280" height="58" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1"/>
+          <rect x="40" y="56" width="280" height="26" fill="#3a3a3a" opacity="0.55"/>
+          <line x1="280" y1="40" x2="240" y2="98" stroke="#2c8c2c" stroke-width="2.2"/>
+          <polygon points="280,40 320,40 320,98 240,98" fill="#cc2c2c" opacity="0.25"/>
           <circle cx="280" cy="40" r="3" fill="#2c8c2c"/>
-          <circle cx="240" cy="66" r="3" fill="#2c8c2c"/>
+          <circle cx="240" cy="98" r="3" fill="#2c8c2c"/>
 
           <!-- Drop arrows -->
           <g stroke="#888" stroke-width="0.8" stroke-dasharray="3,2">
-            <line x1="280" y1="68" x2="280" y2="118"/>
-            <line x1="240" y1="68" x2="240" y2="118"/>
+            <line x1="280" y1="100" x2="280" y2="132"/>
+            <line x1="240" y1="100" x2="240" y2="132"/>
           </g>
-          <text x="260" y="94" text-anchor="middle" font-size="9" fill="#888">↓ 90°で真下</text>
+          <text x="260" y="120" text-anchor="middle" font-size="9" fill="#888">↓ 90°で真下</text>
 
           <!-- SIDE VIEW -->
-          <text x="20" y="130" font-size="9" fill="#666">側面から見た図</text>
-          <rect x="40" y="134" width="280" height="58" fill="#cdcdcd" stroke="#1a1a1a" stroke-width="1"/>
-          <line x1="40" y1="134" x2="320" y2="134" stroke="#1a1a1a" stroke-width="1.5"/>
-          <line x1="280" y1="134" x2="280" y2="192" stroke="#2c8c2c" stroke-width="2.2"/>
-          <line x1="240" y1="134" x2="240" y2="192" stroke="#2c8c2c" stroke-width="2.2"/>
-          <polygon points="280,134 320,134 320,192 240,192" fill="#cc2c2c" opacity="0.2"/>
-          <circle cx="280" cy="134" r="3" fill="#2c8c2c"/>
-          <circle cx="240" cy="134" r="3" fill="#2c8c2c"/>
+          <text x="20" y="148" font-size="9" fill="#666">側面から見た図</text>
+          <rect x="40" y="152" width="280" height="58" fill="#cdcdcd" stroke="#1a1a1a" stroke-width="1"/>
+          <line x1="40" y1="152" x2="320" y2="152" stroke="#1a1a1a" stroke-width="1.5"/>
+          <line x1="280" y1="152" x2="280" y2="210" stroke="#2c8c2c" stroke-width="2.2"/>
+          <line x1="240" y1="152" x2="240" y2="210" stroke="#2c8c2c" stroke-width="2.2"/>
+          <polygon points="280,152 320,152 320,210 240,210" fill="#cc2c2c" opacity="0.2"/>
+          <circle cx="280" cy="152" r="3" fill="#2c8c2c"/>
+          <circle cx="240" cy="152" r="3" fill="#2c8c2c"/>
           <!-- 90° markers -->
-          <path d="M283,137 L283,144 L290,144" fill="none" stroke="#cc2c2c" stroke-width="0.8"/>
-          <path d="M243,137 L243,144 L250,144" fill="none" stroke="#cc2c2c" stroke-width="0.8"/>
+          <path d="M283,155 L283,162 L290,162" fill="none" stroke="#cc2c2c" stroke-width="0.8"/>
+          <path d="M243,155 L243,162 L250,162" fill="none" stroke="#cc2c2c" stroke-width="0.8"/>
 
-          <!-- Cut length dimension (between the 2 vertical scribes) -->
-          <line x1="240" y1="208" x2="280" y2="208" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#ssa)" marker-end="url(#ssa)"/>
-          <rect x="200" y="216" width="120" height="18" fill="#fff7ed" stroke="#d67a2a" stroke-width="0.6" rx="3"/>
-          <text id="sideScribeCutLenText" x="260" y="229" text-anchor="middle" fill="#cc2c2c" font-weight="700" font-size="12">— mm + 数mm</text>
+          <!-- Cut length dimension between the 2 vertical scribes -->
+          <line x1="240" y1="226" x2="280" y2="226" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#ssa)" marker-end="url(#ssa)"/>
+          <rect x="200" y="234" width="120" height="18" fill="#fff7ed" stroke="#d67a2a" stroke-width="0.6" rx="3"/>
+          <text id="sideScribeCutLenText" x="260" y="247" text-anchor="middle" fill="#cc2c2c" font-weight="700" font-size="12">— mm + 数mm</text>
         </svg>
         <figcaption>上面の切断線の両端から 90° 真下にケガキを降ろす</figcaption>
       </figure>
