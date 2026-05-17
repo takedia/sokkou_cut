@@ -69,6 +69,8 @@
     .log-entry-note{ font-family: -apple-system, sans-serif; color:#666; font-size:11px; }
     .log-entry-del{ background:#fee; border:1px solid #fcc; color:#c00; padding:3px 9px; border-radius:5px; cursor:pointer; font-size:11px; }
     .log-empty{ text-align:center; color:#999; padding:18px; font-size:12px; }
+    .help-icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.7); background:rgba(255,255,255,0.12); color:#fff; cursor:pointer; font-size:13px; font-weight:700; padding:0; vertical-align:middle; margin-left:8px; transition:background 0.15s; }
+    .help-icon-btn:hover{ background:rgba(255,255,255,0.28); }
     /* ヘルプモーダル */
     .help-tabs{ display:flex; gap:4px; margin-bottom:10px; border-bottom:1px solid #ddd; }
     .help-tab{ flex:1; padding:6px 4px; background:none; border:none; cursor:pointer; font-size:12px; font-weight:600; color:#555; border-bottom:2px solid transparent; }
@@ -88,7 +90,7 @@
 </head>
 <body>
 <div class="container">
-  <h1>側溝カットガイド</h1>
+  <h1>側溝カットガイド <button class="help-icon-btn" id="helpUseBtn" title="使い方を表示" aria-label="使い方を表示">?</button></h1>
   <div class="panel canvasBlock">
     <div class="muted" style="margin-bottom:6px; font-size:12px; line-height:1.5">
       ●ガイドのラインと水糸/構造物を合わせ、角度・切断長を読み取り<br>
@@ -763,10 +765,10 @@
   }
 
   // ===== 使い方モーダル =====
-  function openHelpModal(){
+  function openHelpModal(tab){
     document.getElementById('helpModal').classList.add('show');
-    switchHelpTab('cutmethod');   // ケガキ図タップ時は「切断方法」タブから開く
-    updateHelpCutLen();           // 切断長の動的反映
+    switchHelpTab(tab || 'cutmethod'); // ケガキ図=切断方法, ?ボタン=使い方
+    updateHelpCutLen();
   }
   function closeHelpModal(){ document.getElementById('helpModal').classList.remove('show'); }
   function switchHelpTab(name){
@@ -795,6 +797,7 @@
     document.getElementById('helpCloseBtn').addEventListener('click', closeHelpModal);
     document.getElementById('helpModal').addEventListener('click', (e)=>{ if(e.target.id==='helpModal') closeHelpModal(); });
     document.querySelectorAll('.help-tab').forEach(b => b.addEventListener('click', ()=>switchHelpTab(b.dataset.tab)));
+    document.getElementById('helpUseBtn').addEventListener('click', ()=> openHelpModal('use'));
   });
 </script>
 
