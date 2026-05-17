@@ -68,23 +68,30 @@
     .log-entry-note{ font-family: -apple-system, sans-serif; color:#666; font-size:11px; }
     .log-entry-del{ background:#fee; border:1px solid #fcc; color:#c00; padding:3px 9px; border-radius:5px; cursor:pointer; font-size:11px; }
     .log-empty{ text-align:center; color:#999; padding:18px; font-size:12px; }
+    /* ヘルプモーダル */
+    .help-tabs{ display:flex; gap:4px; margin-bottom:10px; border-bottom:1px solid #ddd; }
+    .help-tab{ flex:1; padding:6px 4px; background:none; border:none; cursor:pointer; font-size:12px; font-weight:600; color:#555; border-bottom:2px solid transparent; }
+    .help-tab.active{ color:#333; border-bottom-color:var(--accent); }
+    .help-section{ display:none; font-size:12.5px; color:#222; line-height:1.6; }
+    .help-section.active{ display:block; }
+    .help-section h4{ margin:10px 0 6px; font-size:13px; color:#444; }
+    .help-section ol, .help-section ul{ padding-left:18px; margin:6px 0; }
+    .help-section li{ margin-bottom:4px; }
+    .help-section figure{ margin:8px 0; text-align:center; }
+    .help-section figure img{ max-width:100%; height:auto; border:1px solid #eee; border-radius:6px; background:#fafafa; }
+    .help-section figcaption{ font-size:11px; color:#666; margin-top:4px; }
+    .help-img-placeholder{ display:flex; align-items:center; justify-content:center; min-height:120px; background:#f3f4f6; border:1px dashed #bbb; border-radius:8px; color:#999; font-size:11px; padding:12px; text-align:center; }
+    .help-note{ background:#fff7ed; border-left:3px solid #f59e0b; padding:8px 10px; border-radius:4px; font-size:12px; margin:8px 0; color:#7c2d12; }
+    .help-link{ display:inline-block; margin-top:8px; font-size:11px; color:#2563eb; text-decoration:underline; }
   </style>
 </head>
 <body>
 <div class="container">
   <h1>側溝カットガイド</h1>
   <div class="panel canvasBlock">
-    <div class="muted" style="margin-bottom:6px">
-      <p>
-        ●カメラを起動・スライダーを動かし、ガイドバーのラインと水糸や構造物のラインを合わせ、角度を読み取ってください。<br>
-        ●横断方向でも縦断方向でも、基本的な測定方法は同じです。<br>
-        ●片側モードは、集水桝・その他構造物に接続する場合に利用してください。<br>
-        ⚠️出来るだけ横断方向は真上・縦断方向は真横方向から撮影してください。<br>
-        ⚠️ケガキ線は、数ミリ～1㎝ほど余裕を持ち、切断後に目地で調整してください。<br>
-        ⚠️底面・反対側には、面がある事が殆どなので、さしがね（曲尺）等で90度にケガキます。(次バージョン対応予定)<br>
-
-      </p>
-
+    <div class="muted" style="margin-bottom:6px; font-size:12px; line-height:1.5">
+      ●ガイドのラインと水糸/構造物を合わせ、角度・切断長を読み取り<br>
+      ●詳しい使い方・注意点 → 左下の「<b>ケガキ図</b>」をタップ
     </div>
     <canvas id="angleGuide"></canvas>
     <!--<div class="muted" style="text-align:center; margin-top:6px">スライダーでガイド角度を調整</div>-->
@@ -668,7 +675,11 @@
   }
   function pointerDown(ev){
     const p = getCanvasPoint(ev);
-    if(isInInset(p)) return; // ケガキ図領域は無視
+    if(isInInset(p)){ // ケガキ図タップ → 使い方モーダル
+      ev.preventDefault();
+      openHelpModal();
+      return;
+    }
     ev.preventDefault();
     if(mode==='dual'){
       const a = pointerAngleDeg(p);
@@ -749,14 +760,102 @@
     showStatus('ログ保存','success');
   }
 
+  // ===== 使い方モーダル =====
+  function openHelpModal(){ document.getElementById('helpModal').classList.add('show'); }
+  function closeHelpModal(){ document.getElementById('helpModal').classList.remove('show'); }
+  function switchHelpTab(name){
+    document.querySelectorAll('.help-tab').forEach(b => b.classList.toggle('active', b.dataset.tab===name));
+    document.querySelectorAll('.help-section').forEach(s => s.classList.toggle('active', s.dataset.section===name));
+  }
+
   document.addEventListener('DOMContentLoaded',()=>{
     setup();
     document.getElementById('logBtn').addEventListener('click', openLogModal);
     document.getElementById('logCloseBtn').addEventListener('click', closeLogModal);
     document.getElementById('logSaveBtn').addEventListener('click', saveCurrentLog);
     document.getElementById('logModal').addEventListener('click', (e)=>{ if(e.target.id==='logModal') closeLogModal(); });
+    document.getElementById('helpCloseBtn').addEventListener('click', closeHelpModal);
+    document.getElementById('helpModal').addEventListener('click', (e)=>{ if(e.target.id==='helpModal') closeHelpModal(); });
+    document.querySelectorAll('.help-tab').forEach(b => b.addEventListener('click', ()=>switchHelpTab(b.dataset.tab)));
   });
 </script>
+
+<!-- 使い方モーダル -->
+<div id="helpModal" class="modal-overlay">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <span>📘 使い方・解説</span>
+      <button class="modal-close" id="helpCloseBtn" aria-label="閉じる">×</button>
+    </div>
+    <div class="help-tabs">
+      <button class="help-tab active" data-tab="use">使い方</button>
+      <button class="help-tab" data-tab="cross">横断/縦断</button>
+      <button class="help-tab" data-tab="calc">計算式</button>
+      <button class="help-tab" data-tab="caution">注意点</button>
+    </div>
+
+    <div class="help-section active" data-section="use">
+      <h4>基本の流れ</h4>
+      <ol>
+        <li><b>カメラ起動</b> または <b>画像読込</b> で対象（水糸/側溝/構造物）を表示</li>
+        <li><b>両側/片側</b> モードを選択。コーナーは両側、桝接続は片側</li>
+        <li><b>スライダー</b> または <b>図を直接ドラッグ</b> でガイドを実物のラインに合わせる</li>
+        <li>左下の <b>ケガキ図</b> で切断長を確認、必要なら <b>ログ</b> に保存</li>
+      </ol>
+      <figure>
+        <div class="help-img-placeholder">画像: 基本操作のスクリーンショット<br>(images/usage-basic.png)</div>
+      </figure>
+    </div>
+
+    <div class="help-section" data-section="cross">
+      <h4>横断方向（コーナー）</h4>
+      <p>2本の側溝を曲げて接続する場合。両側モードで2片同じ角度に切ります。</p>
+      <figure>
+        <div class="help-img-placeholder">画像: 横断方向の接続例<br>(images/cross-section.png)</div>
+      </figure>
+      <h4>縦断方向（勾配/方向）</h4>
+      <p>側溝の長手方向で角度を変える場合。基本的な測定方法は横断と同じ。</p>
+      <figure>
+        <div class="help-img-placeholder">画像: 縦断方向の説明<br>(images/longitudinal.png)</div>
+      </figure>
+      <h4>片側モード</h4>
+      <p>集水桝など、片側だけ構造物に接続する場合に使用。</p>
+    </div>
+
+    <div class="help-section" data-section="calc">
+      <h4>切断長の式</h4>
+      <p>製品幅 W、コーナー開き角 θ のとき：</p>
+      <p style="font-family:ui-monospace,monospace; background:#f3f4f6; padding:8px; border-radius:6px;">
+        切断長 = W ÷ tan(θ / 2)
+      </p>
+      <ul>
+        <li>θ = 180°（直線）: 切断長 = 0mm（カット不要）</li>
+        <li>θ = 135°（やや曲げ）: W=520 → 215mm</li>
+        <li>θ = 90°（直角）: W=520 → 520mm</li>
+      </ul>
+      <p>片側モードでは θ の代わりに |角度-90°| を使います。</p>
+      <a class="help-link" href="https://pooloyolo.blog/construction-management/gutter-cutting/" target="_blank" rel="noopener">参考: 計算ガイド (外部)</a>
+    </div>
+
+    <div class="help-section" data-section="caution">
+      <h4>撮影のコツ</h4>
+      <ul>
+        <li>横断方向は <b>真上から</b>、縦断方向は <b>真横から</b> 撮影すると正確</li>
+        <li>水糸や直線の構造物を画面に入れ、ガイド線と重ねる</li>
+      </ul>
+      <h4>ケガキの注意</h4>
+      <div class="help-note">
+        ⚠️ ケガキ線は数mm〜1cm 余裕を持って描き、切断後に目地で微調整してください
+      </div>
+      <div class="help-note">
+        ⚠️ 底面・反対側はさしがね（曲尺）等で 90° にケガキます（次バージョンでアプリ対応予定）
+      </div>
+      <figure>
+        <div class="help-img-placeholder">画像: ケガキの実例<br>(images/marking-example.png)</div>
+      </figure>
+    </div>
+  </div>
+</div>
 
 <!-- 計測ログ モーダル -->
 <div id="logModal" class="modal-overlay">
