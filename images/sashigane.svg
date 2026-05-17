@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 200" font-family="-apple-system, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif" font-size="11">
+  <text x="180" y="14" text-anchor="middle" font-weight="700" font-size="12" fill="#222">さしがね（曲尺）で90°に転写</text>
+
+  <!-- Side view of gutter (one side wall visible) -->
+  <rect x="40" y="70" width="280" height="80" fill="#cdcdcd" stroke="#1a1a1a" stroke-width="1.2"/>
+  <!-- Top edge highlight -->
+  <line x1="40" y1="70" x2="320" y2="70" stroke="#1a1a1a" stroke-width="1.6"/>
+
+  <!-- Mark on top edge from previous scribe -->
+  <circle cx="240" cy="70" r="3.2" fill="#2c8c2c"/>
+
+  <!-- Carpenter's square (sashigane / 曲尺): L-shape -->
+  <g fill="#d4a574" stroke="#7a5a3a" stroke-width="0.9">
+    <!-- Long horizontal arm (sits on top edge of gutter) -->
+    <rect x="160" y="62" width="160" height="8"/>
+    <!-- Short vertical arm (goes down on the side from the mark) -->
+    <rect x="232" y="70" width="8" height="80"/>
+  </g>
+  <!-- Scale tick marks on long arm -->
+  <g stroke="#5e4530" stroke-width="0.5">
+    <line x1="170" y1="65" x2="170" y2="68"/>
+    <line x1="190" y1="65" x2="190" y2="68"/>
+    <line x1="210" y1="65" x2="210" y2="68"/>
+    <line x1="230" y1="65" x2="230" y2="68"/>
+    <line x1="250" y1="65" x2="250" y2="68"/>
+    <line x1="270" y1="65" x2="270" y2="68"/>
+    <line x1="290" y1="65" x2="290" y2="68"/>
+    <line x1="310" y1="65" x2="310" y2="68"/>
+  </g>
+  <text x="240" y="60" text-anchor="middle" font-size="9" fill="#5e4530" font-weight="700">さしがね</text>
+
+  <!-- Scribe line on side (guided by the square's vertical arm) -->
+  <line x1="240" y1="70" x2="240" y2="150" stroke="#2c8c2c" stroke-width="2.4"/>
+
+  <!-- 90° angle marker -->
+  <path d="M232,76 L232,82 L240,82" fill="none" stroke="#cc2c2c" stroke-width="1"/>
+  <text x="218" y="92" fill="#cc2c2c" font-size="10" font-weight="700">90°</text>
+
+  <!-- Annotation -->
+  <text x="180" y="173" text-anchor="middle" font-size="11" fill="#222" font-weight="700">上面の印にさしがねを当て、垂直方向に直線をケガく</text>
+  <text x="180" y="189" text-anchor="middle" font-size="10" fill="#666">底面・反対側も同じ要領で 90° に転写</text>
+</svg>
