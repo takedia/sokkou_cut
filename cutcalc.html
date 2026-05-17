@@ -49,9 +49,10 @@
        white-space: nowrap;       /* 折返し禁止 */
     }
     .row-nowrap input[type="number"] {
-       flex-shrink: 1;            /* 幅が足りないときに縮む */
-       width: 50px;           /* 最小幅を確保（調整可） */
-       font-size: 15px; /* ← ラベル文字（製品幅…角度）も小さく */}
+       flex-shrink: 0;            /* 縮ませない（数字見切れ防止） */
+       width: 64px;               /* 3〜4桁が PC でも収まるサイズ */
+       font-size: 15px;
+    }
     /* 計測ログ モーダル */
     .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:100; padding:14px; }
     .modal-overlay.show{ display:flex; }
@@ -220,7 +221,8 @@
     const mW = Math.round(guide.width * 0.96); // 常に同じ幅
     const x  = (guide.width - mW) / 2, y=8;
     gtx.fillStyle='rgba(0,0,0,0.3)'; gtx.fillRect(x,y,mW,22);
-    gtx.fillStyle='#fff'; gtx.textAlign='center'; gtx.fillText(label, guide.width/2, y+16);
+    gtx.fillStyle='#fff'; gtx.textAlign='center'; gtx.textBaseline='middle';
+    gtx.fillText(label, guide.width/2, y+11);
 
     const inline=document.getElementById('inlineCutLenNum');
     if(inline){ inline.textContent=padNum(cutLen,4); }
