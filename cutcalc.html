@@ -326,7 +326,7 @@
 
     // ===== 文字（正立のまま、位置だけミラー） =====
     // 幅数値
-    gtx.font='bold 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    gtx.font='bold 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
     gtx.textAlign = flipped ? 'left' : 'right'; gtx.textBaseline='middle';
     gtx.fillStyle=WIDTH_COLOR;
     gtx.fillText(Math.round(productWidthMm), mirX(wDimX - 3), pY + pH/2);
@@ -346,10 +346,8 @@
     }
     const sLabelX = mirX(labelX);
     const labelY = dimY + 4;
-    gtx.fillStyle='rgba(0,0,0,0.7)';
-    gtx.fillRect(sLabelX - m.width/2 - 3, labelY - 1, m.width + 6, 12);
-    gtx.fillStyle='rgba(255,235,90,1.0)';
-    gtx.fillText(txt, sLabelX, labelY);
+    gtx.lineJoin='round'; gtx.lineWidth=2.2; gtx.strokeStyle='rgba(0,0,0,0.85)'; gtx.strokeText(txt, sLabelX, labelY);
+    gtx.fillStyle='rgba(255,235,90,1.0)'; gtx.fillText(txt, sLabelX, labelY);
   }
 
   // ===== 内角アーク（apex に角度の弧＋数値を表示） =====
