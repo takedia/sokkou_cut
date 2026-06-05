@@ -99,9 +99,7 @@
   <div class="subtitle">角度カット計算ツール</div>
   <div class="panel canvasBlock">
     <div class="muted" style="margin-bottom:6px; font-size:12px; line-height:1.5">
-      ①「カメラ起動」で対象を写す（写真は「画像読込」／「静止」で画面固定）<br>
-      ②ガイド線を水糸・構造物に合わせ、角度・切断長を読み取り<br>
-      ●図内の「<b>ケガキ図</b>」を長押し → 詳しい使い方
+      カメラ起動 → ガイド線を実物（水糸・構造物）に合わせ、角度・切断長を読取り。詳しい使い方は右上の <b>?</b>
     </div>
     <canvas id="angleGuide"></canvas>
     <!--<div class="muted" style="text-align:center; margin-top:6px">スライダーでガイド角度を調整</div>-->
@@ -354,6 +352,49 @@
     gtx.fillText(txt, sLabelX, labelY);
   }
 
+  // ===== 下部 半円分度器（現在角度を針で表示） =====
+  function drawProtractor(W, H, angleDeg){
+    const cx = flipped ? W*0.30 : W*0.70;   // ケガキ図(反対側)を避けて下部に配置
+    const r  = Math.min(W*0.25, H*0.27);
+    const by = H - 8;
+    gtx.save();
+    gtx.lineCap='butt';
+    // 外周アーク＋底辺
+    gtx.strokeStyle='rgba(255,255,255,0.85)'; gtx.lineWidth=1.4;
+    gtx.beginPath(); gtx.arc(cx, by, r, Math.PI, 2*Math.PI); gtx.stroke();
+    gtx.beginPath(); gtx.moveTo(cx-r, by); gtx.lineTo(cx+r, by); gtx.stroke();
+    // 目盛り（10°毎・30°毎は長く＋数値）
+    for(let d=0; d<=180; d+=10){
+      const th=d*Math.PI/180, c=Math.cos(th), s=Math.sin(th);
+      const major=(d%30===0), tl=major?9:5;
+      gtx.lineWidth=major?1.3:0.7; gtx.strokeStyle='rgba(255,255,255,0.8)';
+      gtx.beginPath(); gtx.moveTo(cx+(r-tl)*c, by-(r-tl)*s); gtx.lineTo(cx+r*c, by-r*s); gtx.stroke();
+      if(major){
+        gtx.font='8px sans-serif'; gtx.fillStyle='rgba(255,255,255,0.9)';
+        gtx.textAlign='center'; gtx.textBaseline='middle';
+        gtx.fillText(d, cx+(r-tl-7)*c, by-(r-tl-7)*s);
+      }
+    }
+    // 針（現在角度）— 黒縁取り＋赤
+    const A=Math.max(0,Math.min(180,angleDeg)), ath=A*Math.PI/180;
+    const nx=cx+r*Math.cos(ath), ny=by-r*Math.sin(ath);
+    gtx.lineCap='round';
+    gtx.beginPath(); gtx.moveTo(cx,by); gtx.lineTo(nx,ny);
+    gtx.strokeStyle='rgba(0,0,0,0.8)'; gtx.lineWidth=4; gtx.stroke();
+    gtx.strokeStyle='rgba(255,70,70,1)'; gtx.lineWidth=2; gtx.stroke();
+    gtx.lineCap='butt';
+    // 中心点
+    gtx.beginPath(); gtx.arc(cx,by,3,0,2*Math.PI); gtx.fillStyle='#fff'; gtx.fill();
+    // 角度値（中央上に小プレート）
+    const vt=Math.round(A)+'°';
+    gtx.font='bold 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    const vm=gtx.measureText(vt), vy=by - r*0.42;
+    gtx.fillStyle='rgba(0,0,0,0.55)'; gtx.fillRect(cx-vm.width/2-4, vy-8, vm.width+8, 16);
+    gtx.fillStyle='rgba(255,235,90,1)'; gtx.textAlign='center'; gtx.textBaseline='middle';
+    gtx.fillText(vt, cx, vy);
+    gtx.restore();
+  }
+
   // ===== 側溝帯（ミタージョイント・カメラ重畳用） =====
   // apex(cx,cy) から angleDeg 方向へ伸びる帯。外側エッジは apex から body 方向へ直線（=元の位置合わせ線）。
   // 内側エッジは body 方向に disp だけ進んだ位置から始まり、留め継ぎ形状になる。
@@ -471,6 +512,10 @@
 
     // 上部情報バー
     drawTopInfo(open, productWidthMm);
+
+    // 下部の半円分度器（両側=開き角 / 片側=|角度-90|）
+    const protAngle = (mode==='dual') ? open : Math.abs(open - 90);
+    drawProtractor(W, H, protAngle);
 
     // ケガキ図インセット（flip 連動で左下↔右下）
     const angDeg  = (mode==='dual') ? open/2 : Math.abs(open - 90);
