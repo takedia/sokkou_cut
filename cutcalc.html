@@ -354,7 +354,8 @@
 
   // ===== 内角アーク（apex に角度の弧＋数値を表示） =====
   function drawAngleArc(W, H){
-    const {cx, cy} = getApex();
+    const cx = flipped ? W*0.42 : W*0.58;   // ガイド実体の下の空白（ケガキ図の反対寄り）
+    const cy = H*0.72;
     let a, b, label;
     if(mode==='dual'){
       a = rightAngle; b = leftAngle;                 // 2本の腕の間（開き角）
@@ -364,12 +365,13 @@
       label = Math.round(Math.abs(openAngleFromGuide() - 90));
     }
     const lo = Math.min(a,b), hi = Math.max(a,b);
-    const rr = Math.min(W, H) * 0.16;
+    const rr = Math.min(W, H) * 0.11;
     gtx.save();
-    // 内角の弧（黒縁取り＋白。角度で半円が変化）
+    // 内角の弧（細い点線・控えめ。角度で半円が変化）
+    gtx.setLineDash([4,4]);
     gtx.beginPath(); gtx.arc(cx, cy, rr, lo*Math.PI/180, hi*Math.PI/180);
-    gtx.strokeStyle='rgba(0,0,0,0.7)'; gtx.lineWidth=4; gtx.stroke();
-    gtx.strokeStyle='rgba(255,255,255,0.95)'; gtx.lineWidth=2; gtx.stroke();
+    gtx.strokeStyle='rgba(255,255,255,0.7)'; gtx.lineWidth=1.2; gtx.stroke();
+    gtx.setLineDash([]);
     // 数値（弧の内側・中角方向）
     const mid = (lo+hi)/2 * Math.PI/180;
     const tx = cx + rr*0.62*Math.cos(mid), ty = cy + rr*0.62*Math.sin(mid);
