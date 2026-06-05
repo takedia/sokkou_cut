@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>側溝切断角度計算（安定版）</title>
+  <title>側溝カットガイド</title>
   <style>
     :root { --bg1:#667eea; --bg2:#764ba2; --panel:rgba(255,255,255,.10); --txt:#fff; --accent:#4CAF50; --rightLine:#ffcc33 }
     *{ box-sizing:border-box }
@@ -23,11 +23,11 @@
     input[type="range"]::-moz-range-thumb{ width:18px; height:18px; border:none; border-radius:50%; background:var(--accent) }
     .disabledWrap{ opacity:.55 }
     .disabledWrap input[type="range"]{ pointer-events:none; filter:grayscale(100%) }
-    input[type="number"]{ width:90px; padding:6px; border-radius:8px; border:1px solid rgba(255,255,255,.35); background:#fff; color:#111; font-size:12px }
+    .numfield{ width:90px; padding:6px; border-radius:8px; border:1px solid rgba(255,255,255,.35); background:#fff; color:#111; font-size:12px }
     .btn{ appearance:none; border:none; border-radius:10px; padding:8px 10px; font-weight:700; cursor:pointer; background:#fff; color:#333; box-shadow:0 1px 6px rgba(0,0,0,.15); font-size:11px }
     .primary{ background:var(--accent); color:#fff }
-    .grid-1{ display:flex; gap:8px; flex-wrap:nowrap }
-    .grid-1 .btn{ flex:1; min-width:0 }
+    .grid-1{ display:flex; gap:8px; flex-wrap:nowrap; align-items:stretch }
+    .grid-1 .btn{ flex:1; min-width:0; white-space:nowrap; font-size:10px; padding:9px 5px; display:flex; align-items:center; justify-content:center }
     .status{ margin-top:8px; padding:6px; border-radius:8px; text-align:center; font-size:11px; background:rgba(255,255,255,.15) }
     .error{ background:rgba(255,87,87,.85); color:#fff }
     .toggle{ display:inline-flex; align-items:center; gap:8px }
@@ -39,16 +39,20 @@
     canvas, span, input, button { font-variant-numeric: tabular-nums; }
     .pill-sm .num { display:inline-block; width:4ch; text-align:right; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
     .pill-sm .unit { display:inline-block; }
-    #calcBtn { display: none; }
     .row-nowrap {
        display: flex;
        flex-wrap: wrap;           /* 入らない時は折返し（スマホ縦対応） */
        align-items: center;
-       gap: 6px 10px;
+       gap: 6px 14px;
        font-size: 13px;
+    }
+    .row-nowrap .field {        /* ラベル＋入力を1組として扱い、組ごとに折返す */
+       display: inline-flex;
+       align-items: center;
+       gap: 6px;
        white-space: nowrap;
     }
-    .row-nowrap input[type="number"] {
+    .row-nowrap .numfield {
        flex-shrink: 0;
        width: 64px;
        font-size: 14px;
@@ -94,7 +98,7 @@
   <div class="panel canvasBlock">
     <div class="muted" style="margin-bottom:6px; font-size:12px; line-height:1.5">
       ●ガイドのラインと水糸/構造物を合わせ、角度・切断長を読み取り<br>
-      ●詳しい使い方・注意点 → 左下の「<b>ケガキ図</b>」をタップ
+      ●詳しい使い方・注意点 → 図内の「<b>ケガキ図</b>」を長押し
     </div>
     <canvas id="angleGuide"></canvas>
     <!--<div class="muted" style="text-align:center; margin-top:6px">スライダーでガイド角度を調整</div>-->
@@ -123,12 +127,8 @@
   <div class="panel">
     <div class="row" style="flex-direction:column; align-items:flex-start; gap:8px">
       <div class="row-nowrap">
-        幅/高さ(mm): <input id="productWidth" type="number" step="1" value="520" />
-        角度(°): <input id="manualAngle" type="number" step="1" placeholder="例90" />
-      </div>
-
-      <div style="align-self:flex-end">
-        <button class="btn primary" id="calcBtn">計算</button>
+        <span class="field">幅/高さ(mm): <input id="productWidth" class="numfield" type="text" inputmode="numeric" maxlength="5" value="520" /></span>
+        <span class="field">角度(°): <input id="manualAngle" class="numfield" type="text" inputmode="numeric" maxlength="3" placeholder="例90" /></span>
       </div>
     </div>
 
@@ -139,7 +139,7 @@
       <button class="btn" id="cameraToggleBtn">カメラ起動</button>
       <button class="btn" id="captureBtn" disabled>静止画像</button>
       <label class="btn" style="text-align:center; cursor:pointer">画像読込<input id="imageInput" type="file" accept="image/*" style="display:none" /></label>
-      <button class="btn" id="logBtn">📋 ログ</button>
+      <button class="btn" id="logBtn">記録</button>
     </div>
     <video id="video" playsinline style="display:none"></video>
     <canvas id="photoCanvas" style="display:none"></canvas>
@@ -148,6 +148,10 @@
 <script>
   // ===== 状態 =====
   let leftAngle=135.0,rightAngle=45.0,mode='dual',flipped=false;
+  let lastValidWidth=520;
+  // 全角数字・記号を半角へ正規化／数値文字列の判定
+  const zen2han = s => String(s).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[．。]/g,'.').replace(/[－ー―−]/g,'-').replace(/\s+/g,'');
+  const isNumericStr = s => /^-?\d+(\.\d+)?$/.test(s);
   const guide=document.getElementById('angleGuide');
   const gtx=guide.getContext('2d');
   // カメラ関連の参照と状態
@@ -219,9 +223,13 @@
     if(cutLen!==null){ cutLen=Math.min(cutLen, width*2); }
 
     const label=`製品幅(高さ):${padNum(width,4)} mm  ${angleLabel}  切断長:${padNum(cutLen,4)} mm`;
-    gtx.font='bold 10px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace';
     const mW = Math.round(guide.width * 0.96); // 常に同じ幅
     const x  = (guide.width - mW) / 2, y=8;
+    // 帯幅に収まるようフォントを自動縮小（狭い画面で端が切れないように）
+    const fontFor = px => `bold ${px}px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace`;
+    let fontPx = 10; gtx.font = fontFor(fontPx);
+    const avail = mW - 10, tw = gtx.measureText(label).width;
+    if (tw > avail){ fontPx = Math.max(7, fontPx * avail / tw); gtx.font = fontFor(fontPx); }
     gtx.fillStyle='rgba(0,0,0,0.3)'; gtx.fillRect(x,y,mW,22);
     gtx.fillStyle='#fff'; gtx.textAlign='center'; gtx.textBaseline='middle';
     gtx.fillText(label, guide.width/2, y+11);
@@ -230,7 +238,7 @@
     if(inline){ inline.textContent=padNum(cutLen,4); }
   }
 
-  function getWidth(){ const v=parseFloat(document.getElementById('productWidth').value); return (v>0)?v:520; }
+  function getWidth(){ const v=parseFloat(zen2han(document.getElementById('productWidth').value)); return (v>0)?v:520; }
   function openAngleFromGuide(){
     if(mode==='dual') return Math.abs(leftAngle-rightAngle);
     const a=((leftAngle%360)+360)%360; // 0..360 正規化
@@ -521,15 +529,50 @@
   function capturePhoto(){ if(!(video.videoWidth>0)) return showStatus('映像がありません','error'); photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const vw=video.videoWidth, vh=video.videoHeight, cw=photo.width, ch=photo.height; const vr=vw/vh, cr=cw/ch; let dw,dh,dx,dy; if(vr>cr){ dh=ch; dw=dh*vr; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/vr; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(video,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus('撮影完了','success'); }
   function handleImageLoad(ev){ const f=ev.target.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const iw=img.width,ih=img.height,cw=photo.width,ch=photo.height; const ir=iw/ih,cr=cw/ch; let dw,dh,dx,dy; if(ir>cr){ dh=ch; dw=dh*ir; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/ir; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(img,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus('画像読込完了','success'); }; img.onerror=()=>showStatus('画像読込失敗','error'); img.src=URL.createObjectURL(f); }
 
-  // ===== 入力→計算 =====
-  function calcDirect(){
-    const width=getWidth();
-    const val=parseFloat(document.getElementById('manualAngle').value);
-    if(!(width>0)) return showStatus('幅(mm)を入力してください','error');
-    if(!(val>=0))   return showStatus('角度を入力してください','error');
-    const open=val; // 0..180 を想定
-    if(!(open>=0 && open<=180)) return showStatus('角度は0～180°で入力','error');
-    requestRender(); showStatus('計算完了','success');
+  // ===== 角度の手入力でガイドを駆動（カメラ無しでも使える） =====
+  // スライダー位置のみ同期（入力欄は書き換えない＝入力中も打ち続けられる）
+  function syncSliderPositions(){
+    const lv=Math.max(0,Math.min(100,(180-leftAngle)/0.6));
+    document.getElementById('leftSlider').value=Math.round(lv);
+    if(mode==='dual'){
+      const rv=Math.max(0,Math.min(100,(60-rightAngle)/0.6));
+      document.getElementById('rightSlider').value=Math.round(rv);
+    }
+  }
+  // commit=false:入力中（リアルタイム反映・欄は触らない） / true:確定（補正値を欄へ書戻し）
+  function applyManualAngle(commit){
+    const el=document.getElementById('manualAngle');
+    const norm=zen2han(el.value).trim();
+    if(norm===''){ if(commit) updateFromSliders(); return; }           // 空欄（確定時のみ現在値へ戻す）
+    if(!isNumericStr(norm)){                                           // 数字以外 → 反応させない（確定時のみ警告）
+      if(commit){ showStatus('角度は半角数字で入力してください','error'); updateFromSliders(); }
+      return;
+    }
+    const raw=parseFloat(norm);
+    let v=raw, lo, hi;
+    if(mode==='dual'){ lo=60; hi=180; v=Math.max(lo,Math.min(hi,v)); leftAngle=90+v/2; rightAngle=90-v/2; }
+    else            { lo=0;  hi=90;  v=Math.max(lo,Math.min(hi,v)); leftAngle=Math.max(120,Math.min(180,90+v)); rightAngle=90; }
+    syncSliderPositions();
+    if(commit){
+      const open=openAngleFromGuide();
+      el.value=(mode==='single')?Math.round(Math.abs(open-90)):Math.round(open);
+      if(raw<lo||raw>hi) showStatus((mode==='dual'?'両側':'片側')+'の角度は '+lo+'〜'+hi+'° に補正しました','info');
+    }
+    requestRender();
+  }
+  // ===== 幅/高さの妥当性チェック（全角→半角・不当な数値を補正/警告） =====
+  function sanitizeWidth(){
+    const el=document.getElementById('productWidth');
+    const norm=zen2han(el.value).trim();
+    if(norm===''){ el.value=lastValidWidth; showStatus('幅/高さが空です。前の値に戻しました','info'); requestRender(); return; }
+    if(!isNumericStr(norm)){                                   // 数字以外 → 警告し前の値へ
+      el.value=lastValidWidth; showStatus('幅/高さは半角数字で入力してください','error'); requestRender(); return;
+    }
+    let v=Math.round(parseFloat(norm));
+    if(v<=0){ v=520; showStatus('幅/高さを既定値 520mm に補正しました','info'); }
+    else if(v<10){ v=10; showStatus('幅/高さの最小は 10mm です','info'); }
+    else if(v>9999){ v=9999; showStatus('幅/高さの最大は 9999mm です','info'); }
+    el.value=v; lastValidWidth=v; requestRender();
   }
 
   // ===== UI補助 =====
@@ -599,8 +642,9 @@
     document.getElementById('leftSlider').addEventListener('input',updateFromSliders);
     document.getElementById('rightSlider').addEventListener('input',updateFromSliders);
     document.getElementById('productWidth').addEventListener('input',requestRender);
-    document.getElementById('manualAngle').addEventListener('input',requestRender);
-    document.getElementById('calcBtn').addEventListener('click',calcDirect);
+    document.getElementById('productWidth').addEventListener('change',sanitizeWidth);
+    document.getElementById('manualAngle').addEventListener('input', ()=>applyManualAngle(false));
+    document.getElementById('manualAngle').addEventListener('change', ()=>applyManualAngle(true));
     // カメラのイベント
     document.getElementById('cameraToggleBtn').addEventListener('click',toggleCamera);
     document.getElementById('captureBtn').addEventListener('click',capturePhoto);
@@ -618,6 +662,7 @@
 
   // ===== キャンバス直接ドラッグで角度調整 =====
   let dragTarget=null; // 'left' | 'right' | null
+  let insetPress=null; // ケガキ図の長押し判定 {x,y,fired,t}
   function getCanvasPoint(ev){
     const rect = guide.getBoundingClientRect();
     const cx = (ev.touches && ev.touches[0]) ? ev.touches[0].clientX : ev.clientX;
@@ -679,9 +724,10 @@
   }
   function pointerDown(ev){
     const p = getCanvasPoint(ev);
-    if(isInInset(p)){ // ケガキ図タップ → 使い方モーダル
+    if(isInInset(p)){ // ケガキ図：長押し(500ms)で切断方法を表示（誤タップ防止）
       ev.preventDefault();
-      openHelpModal();
+      insetPress = { x:p.x, y:p.y, fired:false };
+      insetPress.t = setTimeout(()=>{ if(insetPress){ insetPress.fired=true; openHelpModal(); } }, 500);
       return;
     }
     ev.preventDefault();
@@ -695,11 +741,17 @@
     applyDragAngle(p);
   }
   function pointerMove(ev){
+    if(insetPress){ // 長押し中に動いたら中断（スクロール/ドラッグ扱い）
+      const p=getCanvasPoint(ev);
+      if(!insetPress.fired && Math.hypot(p.x-insetPress.x, p.y-insetPress.y) > 12){ clearTimeout(insetPress.t); insetPress=null; }
+      return;
+    }
     if(!dragTarget) return;
     ev.preventDefault();
     applyDragAngle(getCanvasPoint(ev));
   }
   function pointerEnd(ev){
+    if(insetPress){ clearTimeout(insetPress.t); insetPress=null; return; } // 短タップ→何もしない
     if(!dragTarget) return;
     dragTarget = null;
     guide.classList.remove('dragging');
@@ -761,7 +813,7 @@
     const log=loadLog(); log.push(entry); saveLogToStorage(log);
     document.getElementById('logNoteInput').value='';
     renderLogModal();
-    showStatus('ログ保存','success');
+    showStatus('記録を保存しました','success');
   }
 
   // ===== 使い方モーダル =====
@@ -820,7 +872,7 @@
         <li><b>カメラ起動</b> または <b>画像読込</b> で対象（水糸/側溝/構造物）を表示</li>
         <li><b>両側/片側</b> モードを選択。コーナーは両側、桝接続は片側</li>
         <li><b>スライダー</b> または <b>図を直接ドラッグ</b> でガイドを実物のラインに合わせる</li>
-        <li>左下の <b>ケガキ図</b> で切断長を確認、必要なら <b>ログ</b> に保存</li>
+        <li>図内の <b>ケガキ図</b> を長押しで切断方法、必要なら <b>記録</b> に保存</li>
       </ol>
       <figure>
         <img src="images/usage-basic.svg" alt="基本操作の流れ" />
@@ -957,7 +1009,7 @@
 <div id="logModal" class="modal-overlay">
   <div class="modal-panel">
     <div class="modal-header">
-      <span>📋 計測ログ</span>
+      <span>📋 計測記録</span>
       <button class="modal-close" id="logCloseBtn" aria-label="閉じる">×</button>
     </div>
     <div class="modal-current">
