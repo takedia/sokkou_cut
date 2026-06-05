@@ -283,71 +283,56 @@
     const pH = insetH - padT - padB; // 64-12-24 = 28
     const cutDispPx = Math.min(pH * (cutLenMm / productWidthMm), pW - 4);
 
-    // 本体（コンクリート）
-    gtx.fillStyle='rgba(200,200,200,0.7)';
-    gtx.fillRect(pX, pY, pW, pH);
-    // チャネル
-    gtx.fillStyle='rgba(40,40,40,0.55)';
-    gtx.fillRect(pX, pY + pH*0.225, pW, pH*0.55);
-    // 外縁
-    gtx.strokeStyle='rgba(0,0,0,0.95)'; gtx.lineWidth=1;
-    gtx.strokeRect(pX, pY, pW, pH);
-
-    // 幅寸法（左側に縦のディメンションライン＋数値）
+    // 反転(flip)時は図全体を左右ミラー。切断側がガイドのapex方向（中央側）を向く
+    const K = 2*insetX + insetW;
+    const mirX = x => flipped ? (K - x) : x;
     const WIDTH_COLOR='rgba(180,220,255,1.0)';
+    const ARROW_COLOR='rgba(255,165,0,1.0)';
     const wDimX = pX - 5;
-    gtx.strokeStyle=WIDTH_COLOR; gtx.lineWidth=1.2;
-    gtx.beginPath(); gtx.moveTo(wDimX, pY); gtx.lineTo(wDimX, pY + pH); gtx.stroke();
-    // 上下の塗りつぶし三角矢印
-    gtx.fillStyle=WIDTH_COLOR;
-    const wa=3;
-    gtx.beginPath(); gtx.moveTo(wDimX, pY); gtx.lineTo(wDimX-2, pY+wa); gtx.lineTo(wDimX+2, pY+wa); gtx.closePath(); gtx.fill();
-    gtx.beginPath(); gtx.moveTo(wDimX, pY+pH); gtx.lineTo(wDimX-2, pY+pH-wa); gtx.lineTo(wDimX+2, pY+pH-wa); gtx.closePath(); gtx.fill();
-    // 数値（寸法線の左に右寄せで表示）
-    gtx.font='bold 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
-    gtx.textAlign='right'; gtx.textBaseline='middle';
-    gtx.fillStyle=WIDTH_COLOR;
-    gtx.fillText(Math.round(productWidthMm), wDimX - 3, pY + pH/2);
-
-    // 切除ウェッジ（右端）
     const cutOuterX = pX + pW;
     const wedgeTipX = pX + pW - cutDispPx;
+    const dimY = pY + pH + 4;
+
+    // ===== 幾何（flip時は座標系を左右ミラー） =====
+    gtx.save();
+    if(flipped){ gtx.translate(K, 0); gtx.scale(-1, 1); }
+    // 本体（コンクリート）
+    gtx.fillStyle='rgba(200,200,200,0.7)'; gtx.fillRect(pX, pY, pW, pH);
+    // チャネル
+    gtx.fillStyle='rgba(40,40,40,0.55)'; gtx.fillRect(pX, pY + pH*0.225, pW, pH*0.55);
+    // 外縁
+    gtx.strokeStyle='rgba(0,0,0,0.95)'; gtx.lineWidth=1; gtx.strokeRect(pX, pY, pW, pH);
+    // 幅寸法線＋三角矢印
+    gtx.strokeStyle=WIDTH_COLOR; gtx.lineWidth=1.2;
+    gtx.beginPath(); gtx.moveTo(wDimX, pY); gtx.lineTo(wDimX, pY + pH); gtx.stroke();
+    gtx.fillStyle=WIDTH_COLOR; const wa=3;
+    gtx.beginPath(); gtx.moveTo(wDimX, pY); gtx.lineTo(wDimX-2, pY+wa); gtx.lineTo(wDimX+2, pY+wa); gtx.closePath(); gtx.fill();
+    gtx.beginPath(); gtx.moveTo(wDimX, pY+pH); gtx.lineTo(wDimX-2, pY+pH-wa); gtx.lineTo(wDimX+2, pY+pH-wa); gtx.closePath(); gtx.fill();
+    // 切除ウェッジ
     if(cutDispPx > 2){
       gtx.fillStyle='rgba(220,80,80,0.35)';
-      gtx.beginPath();
-      gtx.moveTo(cutOuterX, pY);
-      gtx.lineTo(cutOuterX, pY + pH);
-      gtx.lineTo(wedgeTipX, pY + pH);
-      gtx.closePath(); gtx.fill();
+      gtx.beginPath(); gtx.moveTo(cutOuterX, pY); gtx.lineTo(cutOuterX, pY + pH); gtx.lineTo(wedgeTipX, pY + pH); gtx.closePath(); gtx.fill();
     }
     // カット線
     gtx.strokeStyle='rgba(80,255,80,1.0)'; gtx.lineWidth=2;
     gtx.beginPath(); gtx.moveTo(cutOuterX, pY); gtx.lineTo(wedgeTipX, pY + pH); gtx.stroke();
-
-    // 寸法線＋矢印（オレンジで目立たせる）
-    const dimY = pY + pH + 4;
-    const ARROW_COLOR='rgba(255,165,0,1.0)';
+    // 寸法線＋矢印
     if(cutDispPx > 10){
       gtx.strokeStyle=ARROW_COLOR; gtx.lineWidth=1.4;
       gtx.beginPath(); gtx.moveTo(cutOuterX, dimY); gtx.lineTo(wedgeTipX, dimY); gtx.stroke();
-      // 矢印（中向き、塗りつぶし三角）
-      const ah=4, aw=3;
-      gtx.fillStyle=ARROW_COLOR;
-      // 右側（cutOuterX）の矢印は ←向き
-      gtx.beginPath();
-      gtx.moveTo(cutOuterX, dimY);
-      gtx.lineTo(cutOuterX - ah, dimY - aw);
-      gtx.lineTo(cutOuterX - ah, dimY + aw);
-      gtx.closePath(); gtx.fill();
-      // 左側（wedgeTipX）の矢印は →向き
-      gtx.beginPath();
-      gtx.moveTo(wedgeTipX, dimY);
-      gtx.lineTo(wedgeTipX + ah, dimY - aw);
-      gtx.lineTo(wedgeTipX + ah, dimY + aw);
-      gtx.closePath(); gtx.fill();
+      const ah=4, aw=3; gtx.fillStyle=ARROW_COLOR;
+      gtx.beginPath(); gtx.moveTo(cutOuterX, dimY); gtx.lineTo(cutOuterX - ah, dimY - aw); gtx.lineTo(cutOuterX - ah, dimY + aw); gtx.closePath(); gtx.fill();
+      gtx.beginPath(); gtx.moveTo(wedgeTipX, dimY); gtx.lineTo(wedgeTipX + ah, dimY - aw); gtx.lineTo(wedgeTipX + ah, dimY + aw); gtx.closePath(); gtx.fill();
     }
+    gtx.restore();
 
-    // 数値（寸法線の下に中央寄せ、矢印と被らない位置）
+    // ===== 文字（正立のまま、位置だけミラー） =====
+    // 幅数値
+    gtx.font='bold 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    gtx.textAlign = flipped ? 'left' : 'right'; gtx.textBaseline='middle';
+    gtx.fillStyle=WIDTH_COLOR;
+    gtx.fillText(Math.round(productWidthMm), mirX(wDimX - 3), pY + pH/2);
+    // 切断長数値
     gtx.font='bold 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
     gtx.textAlign='center'; gtx.textBaseline='top';
     const txt = Math.round(cutLenMm) + ' mm';
@@ -359,13 +344,14 @@
       const maxX = insetX + insetW - m.width/2 - 4;
       labelX = Math.max(minX, Math.min(maxX, midX));
     }else{
-      labelX = insetX + insetW - m.width/2 - 6; // 右寄せ
+      labelX = insetX + insetW - m.width/2 - 6;
     }
+    const sLabelX = mirX(labelX);
     const labelY = dimY + 4;
     gtx.fillStyle='rgba(0,0,0,0.7)';
-    gtx.fillRect(labelX - m.width/2 - 3, labelY - 1, m.width + 6, 12);
+    gtx.fillRect(sLabelX - m.width/2 - 3, labelY - 1, m.width + 6, 12);
     gtx.fillStyle='rgba(255,235,90,1.0)';
-    gtx.fillText(txt, labelX, labelY);
+    gtx.fillText(txt, sLabelX, labelY);
   }
 
   // ===== 側溝帯（ミタージョイント・カメラ重畳用） =====
@@ -737,7 +723,7 @@
     if(isInInset(p)){ // ケガキ図：長押し(500ms)で切断方法を表示（誤タップ防止）
       ev.preventDefault();
       insetPress = { x:p.x, y:p.y, fired:false };
-      insetPress.t = setTimeout(()=>{ if(insetPress){ insetPress.fired=true; openHelpModal(); } }, 500);
+      insetPress.t = setTimeout(()=>{ if(insetPress){ insetPress.fired=true; openHelpModal(); } }, 350);
       return;
     }
     ev.preventDefault();
