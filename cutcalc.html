@@ -354,8 +354,10 @@
 
   // ===== 内角アーク（apex に角度の弧＋数値を表示） =====
   function drawAngleArc(W, H){
-    const cx = flipped ? W*0.42 : W*0.58;   // ガイド実体の下の空白（ケガキ図の反対寄り）
-    const cy = H*0.72;
+    // 内角の空きに配置（両側=V字内側の中央 / 片側=腕の反対側の空き）
+    const isDual = (mode==='dual');
+    const cx = isDual ? W*0.50 : (flipped ? W*0.18 : W*0.82);
+    const cy = isDual ? H*0.46 : H*0.72;
     let a, b, label;
     if(mode==='dual'){
       a = rightAngle; b = leftAngle;                 // 2本の腕の間（開き角）
@@ -372,15 +374,13 @@
     gtx.beginPath(); gtx.arc(cx, cy, rr, lo*Math.PI/180, hi*Math.PI/180);
     gtx.strokeStyle='rgba(255,255,255,0.7)'; gtx.lineWidth=1.2; gtx.stroke();
     gtx.setLineDash([]);
-    // 数値（弧の内側・中角方向）
-    const mid = (lo+hi)/2 * Math.PI/180;
-    const tx = cx + rr*0.62*Math.cos(mid), ty = cy + rr*0.62*Math.sin(mid);
+    // 数値（弧の下・黒抜き無し＝文字のみ＋黒フチで可読性）
     const vt = label + '°';
+    const tx = cx, ty = cy + rr + 11;
     gtx.font='bold 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
-    const vm = gtx.measureText(vt);
-    gtx.fillStyle='rgba(0,0,0,0.6)'; gtx.fillRect(tx-vm.width/2-4, ty-8, vm.width+8, 16);
-    gtx.fillStyle='rgba(255,235,90,1)'; gtx.textAlign='center'; gtx.textBaseline='middle';
-    gtx.fillText(vt, tx, ty);
+    gtx.textAlign='center'; gtx.textBaseline='middle';
+    gtx.lineJoin='round'; gtx.lineWidth=3; gtx.strokeStyle='rgba(0,0,0,0.85)'; gtx.strokeText(vt, tx, ty);
+    gtx.fillStyle='rgba(255,235,90,1)'; gtx.fillText(vt, tx, ty);
     gtx.restore();
   }
 
