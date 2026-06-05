@@ -331,7 +331,7 @@
     gtx.fillStyle=WIDTH_COLOR;
     gtx.fillText(Math.round(productWidthMm), mirX(wDimX - 3), pY + pH/2);
     // 切断長数値
-    gtx.font='bold 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    gtx.font='bold 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
     gtx.textAlign='center'; gtx.textBaseline='top';
     const txt = Math.round(cutLenMm) + ' mm';
     const m = gtx.measureText(txt);
@@ -372,9 +372,9 @@
     gtx.setLineDash([]);
     // 数値（弧の下・黒抜き無し＝文字のみ＋黒フチで可読性）
     const vt = label + '°';
-    // 片側は中心線(黄破線)と重ならないよう、文字を開いた側へ少し寄せる
+    // 両側=頂点(交点)を避け弧より少し下へ / 片側=中心線を避け開いた側へ
     const tx = cx + (mode==='dual' ? 0 : (flipped ? -rr*0.7 : rr*0.7));
-    const ty = cy + rr + 11;
+    const ty = cy + rr + (mode==='dual' ? 24 : 11);
     gtx.font='bold 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
     gtx.textAlign='center'; gtx.textBaseline='middle';
     gtx.lineJoin='round'; gtx.lineWidth=1.2; gtx.strokeStyle='rgba(0,0,0,0.55)'; gtx.strokeText(vt, tx, ty);
