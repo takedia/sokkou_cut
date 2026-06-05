@@ -97,8 +97,9 @@
   <h1>側溝カットガイド <button class="help-icon-btn" id="helpUseBtn" title="使い方を表示" aria-label="使い方を表示">?</button></h1>
   <div class="panel canvasBlock">
     <div class="muted" style="margin-bottom:6px; font-size:12px; line-height:1.5">
-      ●ガイドのラインと水糸/構造物を合わせ、角度・切断長を読み取り<br>
-      ●詳しい使い方・注意点 → 図内の「<b>ケガキ図</b>」を長押し
+      ①「カメラ起動」で対象を写す（写真は「画像読込」／「静止」で画面固定）<br>
+      ②ガイド線を水糸・構造物に合わせ、角度・切断長を読み取り<br>
+      ●図内の「<b>ケガキ図</b>」を長押し → 詳しい使い方
     </div>
     <canvas id="angleGuide"></canvas>
     <!--<div class="muted" style="text-align:center; margin-top:6px">スライダーでガイド角度を調整</div>-->
@@ -137,7 +138,7 @@
   <div class="panel">
     <div class="grid-1">
       <button class="btn" id="cameraToggleBtn">カメラ起動</button>
-      <button class="btn" id="captureBtn" disabled>静止画像</button>
+      <button class="btn" id="captureBtn" title="カメラ映像を止めて合わせやすくする（もう一度でライブに戻る）" disabled>静止</button>
       <label class="btn" style="text-align:center; cursor:pointer">画像読込<input id="imageInput" type="file" accept="image/*" style="display:none" /></label>
       <button class="btn" id="logBtn">記録</button>
     </div>
@@ -518,15 +519,21 @@
       startLiveLoop();
       showStatus('カメラ起動','success');
       document.getElementById('cameraToggleBtn').textContent='カメラ停止';
-      document.getElementById('captureBtn').disabled=false;
+      { const cb=document.getElementById('captureBtn'); cb.disabled=false; cb.textContent='静止'; }
       isCaptured=false; fitCanvas();
     }catch(e){ showStatus('カメラ起動失敗: '+e.message,'error'); }
   }
   function startLiveLoop(){ if(liveRAF) return; const loop=()=>{ if(!stream){ liveRAF=null; return; } renderAll(); liveRAF=requestAnimationFrame(loop); }; liveRAF=requestAnimationFrame(loop); }
   function stopLiveLoop(){ if(liveRAF){ cancelAnimationFrame(liveRAF); liveRAF=null; } }
-  function stopCamera(){ stopLiveLoop(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.removeAttribute('srcObject'); document.getElementById('cameraToggleBtn').textContent='カメラ起動'; document.getElementById('captureBtn').disabled=true; isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus('カメラ停止','info'); }
+  function stopCamera(){ stopLiveLoop(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.removeAttribute('srcObject'); document.getElementById('cameraToggleBtn').textContent='カメラ起動'; { const cb=document.getElementById('captureBtn'); cb.disabled=true; cb.textContent='静止'; } isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus('カメラ停止','info'); }
   function toggleCamera(){ if(stream) stopCamera(); else startCamera(); }
-  function capturePhoto(){ if(!(video.videoWidth>0)) return showStatus('映像がありません','error'); photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const vw=video.videoWidth, vh=video.videoHeight, cw=photo.width, ch=photo.height; const vr=vw/vh, cr=cw/ch; let dw,dh,dx,dy; if(vr>cr){ dh=ch; dw=dh*vr; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/vr; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(video,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus('撮影完了','success'); }
+  function capturePhoto(){ if(!(video.videoWidth>0)) return showStatus('映像がありません','error'); photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const vw=video.videoWidth, vh=video.videoHeight, cw=photo.width, ch=photo.height; const vr=vw/vh, cr=cw/ch; let dw,dh,dx,dy; if(vr>cr){ dh=ch; dw=dh*vr; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/vr; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(video,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus('静止しました','success'); }
+  function toggleFreeze(){
+    if(!stream) return showStatus('先にカメラを起動してください','error');
+    const cb=document.getElementById('captureBtn');
+    if(isCaptured){ isCaptured=false; photo.width=photo.height=0; startLiveLoop(); cb.textContent='静止'; showStatus('ライブに戻しました','info'); }
+    else{ capturePhoto(); cb.textContent='解除'; }
+  }
   function handleImageLoad(ev){ const f=ev.target.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const iw=img.width,ih=img.height,cw=photo.width,ch=photo.height; const ir=iw/ih,cr=cw/ch; let dw,dh,dx,dy; if(ir>cr){ dh=ch; dw=dh*ir; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/ir; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(img,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus('画像読込完了','success'); }; img.onerror=()=>showStatus('画像読込失敗','error'); img.src=URL.createObjectURL(f); }
 
   // ===== 角度の手入力でガイドを駆動（カメラ無しでも使える） =====
@@ -647,7 +654,7 @@
     document.getElementById('manualAngle').addEventListener('change', ()=>applyManualAngle(true));
     // カメラのイベント
     document.getElementById('cameraToggleBtn').addEventListener('click',toggleCamera);
-    document.getElementById('captureBtn').addEventListener('click',capturePhoto);
+    document.getElementById('captureBtn').addEventListener('click',toggleFreeze);
     document.getElementById('imageInput').addEventListener('change',handleImageLoad);
     const toggle=document.getElementById('modeToggle');
     toggle.addEventListener('change',()=>{ mode=toggle.checked?'single':'dual'; applyModeUI(); });
