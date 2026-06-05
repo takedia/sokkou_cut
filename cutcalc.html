@@ -352,46 +352,33 @@
     gtx.fillText(txt, sLabelX, labelY);
   }
 
-  // ===== 下部 半円分度器（現在角度を針で表示） =====
-  function drawProtractor(W, H, angleDeg){
-    const cx = flipped ? W*0.30 : W*0.70;   // ケガキ図(反対側)を避けて下部に配置
-    const r  = Math.min(W*0.25, H*0.27);
-    const by = H - 8;
-    gtx.save();
-    gtx.lineCap='butt';
-    // 外周アーク＋底辺
-    gtx.strokeStyle='rgba(255,255,255,0.85)'; gtx.lineWidth=1.4;
-    gtx.beginPath(); gtx.arc(cx, by, r, Math.PI, 2*Math.PI); gtx.stroke();
-    gtx.beginPath(); gtx.moveTo(cx-r, by); gtx.lineTo(cx+r, by); gtx.stroke();
-    // 目盛り（10°毎・30°毎は長く＋数値）
-    for(let d=0; d<=180; d+=10){
-      const th=d*Math.PI/180, c=Math.cos(th), s=Math.sin(th);
-      const major=(d%30===0), tl=major?9:5;
-      gtx.lineWidth=major?1.3:0.7; gtx.strokeStyle='rgba(255,255,255,0.8)';
-      gtx.beginPath(); gtx.moveTo(cx+(r-tl)*c, by-(r-tl)*s); gtx.lineTo(cx+r*c, by-r*s); gtx.stroke();
-      if(major){
-        gtx.font='8px sans-serif'; gtx.fillStyle='rgba(255,255,255,0.9)';
-        gtx.textAlign='center'; gtx.textBaseline='middle';
-        gtx.fillText(d, cx+(r-tl-7)*c, by-(r-tl-7)*s);
-      }
+  // ===== 内角アーク（apex に角度の弧＋数値を表示） =====
+  function drawAngleArc(W, H){
+    const {cx, cy} = getApex();
+    let a, b, label;
+    if(mode==='dual'){
+      a = rightAngle; b = leftAngle;                 // 2本の腕の間（開き角）
+      label = Math.round(Math.abs(leftAngle - rightAngle));
+    }else{
+      a = 90; b = renderAngle(leftAngle);            // 縦の基準線 と ガイド腕 の間
+      label = Math.round(Math.abs(openAngleFromGuide() - 90));
     }
-    // 針（現在角度）— 黒縁取り＋赤
-    const A=Math.max(0,Math.min(180,angleDeg)), ath=A*Math.PI/180;
-    const nx=cx+r*Math.cos(ath), ny=by-r*Math.sin(ath);
-    gtx.lineCap='round';
-    gtx.beginPath(); gtx.moveTo(cx,by); gtx.lineTo(nx,ny);
-    gtx.strokeStyle='rgba(0,0,0,0.8)'; gtx.lineWidth=4; gtx.stroke();
-    gtx.strokeStyle='rgba(255,70,70,1)'; gtx.lineWidth=2; gtx.stroke();
-    gtx.lineCap='butt';
-    // 中心点
-    gtx.beginPath(); gtx.arc(cx,by,3,0,2*Math.PI); gtx.fillStyle='#fff'; gtx.fill();
-    // 角度値（中央上に小プレート）
-    const vt=Math.round(A)+'°';
-    gtx.font='bold 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
-    const vm=gtx.measureText(vt), vy=by - r*0.42;
-    gtx.fillStyle='rgba(0,0,0,0.55)'; gtx.fillRect(cx-vm.width/2-4, vy-8, vm.width+8, 16);
+    const lo = Math.min(a,b), hi = Math.max(a,b);
+    const rr = Math.min(W, H) * 0.16;
+    gtx.save();
+    // 内角の弧（黒縁取り＋白。角度で半円が変化）
+    gtx.beginPath(); gtx.arc(cx, cy, rr, lo*Math.PI/180, hi*Math.PI/180);
+    gtx.strokeStyle='rgba(0,0,0,0.7)'; gtx.lineWidth=4; gtx.stroke();
+    gtx.strokeStyle='rgba(255,255,255,0.95)'; gtx.lineWidth=2; gtx.stroke();
+    // 数値（弧の内側・中角方向）
+    const mid = (lo+hi)/2 * Math.PI/180;
+    const tx = cx + rr*0.62*Math.cos(mid), ty = cy + rr*0.62*Math.sin(mid);
+    const vt = label + '°';
+    gtx.font='bold 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    const vm = gtx.measureText(vt);
+    gtx.fillStyle='rgba(0,0,0,0.6)'; gtx.fillRect(tx-vm.width/2-4, ty-8, vm.width+8, 16);
     gtx.fillStyle='rgba(255,235,90,1)'; gtx.textAlign='center'; gtx.textBaseline='middle';
-    gtx.fillText(vt, cx, vy);
+    gtx.fillText(vt, tx, ty);
     gtx.restore();
   }
 
@@ -513,9 +500,8 @@
     // 上部情報バー
     drawTopInfo(open, productWidthMm);
 
-    // 下部の半円分度器（両側=開き角 / 片側=|角度-90|）
-    const protAngle = (mode==='dual') ? open : Math.abs(open - 90);
-    drawProtractor(W, H, protAngle);
+    // 内角アーク（apex に角度の弧＋数値を表示）
+    drawAngleArc(W, H);
 
     // ケガキ図インセット（flip 連動で左下↔右下）
     const angDeg  = (mode==='dual') ? open/2 : Math.abs(open - 90);
