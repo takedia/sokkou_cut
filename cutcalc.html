@@ -354,10 +354,8 @@
 
   // ===== 内角アーク（apex に角度の弧＋数値を表示） =====
   function drawAngleArc(W, H){
-    // 内角の空きに配置（両側=V字内側の中央 / 片側=腕の反対側の空き）
-    const isDual = (mode==='dual');
-    const cx = isDual ? W*0.50 : (flipped ? W*0.18 : W*0.82);
-    const cy = isDual ? H*0.46 : H*0.72;
+    // apex(頂点)に内角の弧を描く（弧端が腕に沿うので食い込まない）
+    const {cx, cy} = getApex();
     let a, b, label;
     if(mode==='dual'){
       a = rightAngle; b = leftAngle;                 // 2本の腕の間（開き角）
@@ -367,7 +365,7 @@
       label = Math.round(Math.abs(openAngleFromGuide() - 90));
     }
     const lo = Math.min(a,b), hi = Math.max(a,b);
-    const rr = Math.min(W, H) * 0.11;
+    const rr = Math.min(W, H) * 0.15;
     gtx.save();
     // 内角の弧（細い点線・控えめ。角度で半円が変化）
     gtx.setLineDash([4,4]);
@@ -376,7 +374,9 @@
     gtx.setLineDash([]);
     // 数値（弧の下・黒抜き無し＝文字のみ＋黒フチで可読性）
     const vt = label + '°';
-    const tx = cx, ty = cy + rr + 11;
+    // 片側は中心線(黄破線)と重ならないよう、文字を開いた側へ少し寄せる
+    const tx = cx + (mode==='dual' ? 0 : (flipped ? -rr*0.7 : rr*0.7));
+    const ty = cy + rr + 11;
     gtx.font='bold 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
     gtx.textAlign='center'; gtx.textBaseline='middle';
     gtx.lineJoin='round'; gtx.lineWidth=1.2; gtx.strokeStyle='rgba(0,0,0,0.55)'; gtx.strokeText(vt, tx, ty);
