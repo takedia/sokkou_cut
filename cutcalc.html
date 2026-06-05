@@ -401,12 +401,14 @@
     // 切断面（apex→内側終点）— 薄黒の細線
     gtx.strokeStyle='rgba(0,0,0,0.85)'; gtx.lineWidth=1.4;
     gtx.beginPath(); gtx.moveTo(cON.x, cON.y); gtx.lineTo(cIN.x, cIN.y); gtx.stroke();
-    // 外側エッジ＋内側エッジ（両方とも位置合わせ用の蛍光黄緑）
-    gtx.strokeStyle='rgba(210,255,130,0.95)'; gtx.lineWidth=2;
+    // 外側＋内側エッジ（位置合わせ用）— 黒い縁取り＋細い蛍光線で屋外でも視認性確保＆精度UP
+    gtx.lineCap='round';
     gtx.beginPath();
     gtx.moveTo(cON.x, cON.y); gtx.lineTo(cOF.x, cOF.y); // 外側
     gtx.moveTo(cIN.x, cIN.y); gtx.lineTo(cIF.x, cIF.y); // 内側
-    gtx.stroke();
+    gtx.strokeStyle='rgba(0,0,0,0.85)'; gtx.lineWidth=4.5; gtx.stroke();    // 黒い縁取り
+    gtx.strokeStyle='rgba(200,255,90,1.0)'; gtx.lineWidth=1.6; gtx.stroke(); // 細い蛍光線
+    gtx.lineCap='butt';
   }
 
   // ===== apex 位置（flip 連動／片側時はケガキ図の下まで上げる） =====
@@ -435,10 +437,11 @@
     const {cx, cy} = getApex();
 
     if(mode==='single'){
-      gtx.setLineDash([5,5]);
-      gtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--rightLine').trim() || '#ffcc33';
-      gtx.lineWidth = 3;
-      gtx.beginPath(); gtx.moveTo(cx, 0); gtx.lineTo(cx, H); gtx.stroke();
+      const clColor = getComputedStyle(document.documentElement).getPropertyValue('--rightLine').trim() || '#ffcc33';
+      gtx.setLineDash([6,5]);
+      gtx.beginPath(); gtx.moveTo(cx, 0); gtx.lineTo(cx, H);
+      gtx.strokeStyle='rgba(0,0,0,0.8)'; gtx.lineWidth=4.5; gtx.stroke();   // 黒い縁取り
+      gtx.strokeStyle=clColor; gtx.lineWidth=2; gtx.stroke();               // 細めの中心線
       gtx.setLineDash([]);
     }
 
