@@ -227,11 +227,11 @@
     const mW = Math.round(guide.width * 0.96); // 常に同じ幅
     const x  = (guide.width - mW) / 2, y=8;
     // 帯幅に収まるようフォントを自動縮小（狭い画面で端が切れないように）
-    const fontFor = px => `bold ${px}px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace`;
+    const fontFor = px => `${px}px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace`;
     let fontPx = 10; gtx.font = fontFor(fontPx);
     const avail = mW - 10, tw = gtx.measureText(label).width;
     if (tw > avail){ fontPx = Math.max(7, fontPx * avail / tw); gtx.font = fontFor(fontPx); }
-    gtx.fillStyle='rgba(0,0,0,0.3)'; gtx.fillRect(x,y,mW,22);
+    gtx.fillStyle='rgba(0,0,0,0.55)'; gtx.fillRect(x,y,mW,22);   // 背景を濃くしてコントラスト確保
     gtx.fillStyle='#fff'; gtx.textAlign='center'; gtx.textBaseline='middle';
     gtx.fillText(label, guide.width/2, y+11);
 
@@ -382,7 +382,8 @@
     const eInner = edgePoint(innerApexX, innerApexY, angleDeg, 0, 0, W, H);
     const lenOuter = Math.hypot(eOuter.x - cx, eOuter.y - cy);
     const lenInner = Math.hypot(eInner.x - innerApexX, eInner.y - innerApexY);
-    const L = Math.min(lenOuter, lenInner);
+    const maxLen = Math.max(W,H)*0.52;            // 帯の長さに上限（鋭角で伸びすぎ防止）
+    const L = Math.min(lenOuter, lenInner, maxLen);
     const effDisp = Math.min(disp, L);
 
     const cON = {x: cx,                                   y: cy};
