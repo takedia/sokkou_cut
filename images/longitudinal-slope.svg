@@ -21,7 +21,6 @@
 
   <!-- Horizontal gutter (top, sitting on flat ground) -->
   <polygon points="20,65 140,65 140,79 20,79" fill="#bcbcbc" stroke="#1a1a1a" stroke-width="0.8"/>
-  <rect x="22" y="68" width="115" height="8" fill="#3a3a3a" opacity="0.55"/>
 
   <!--
     Sloped gutter sitting on slope surface (bottom edge on slope).
@@ -32,8 +31,6 @@
     TR=(268.55+14*0.514, 156.10+14*-0.857) = (275.75, 144.10)
   -->
   <polygon points="140,79 268.55,156.10 275.75,144.10 147.20,67.00" fill="#bcbcbc" stroke="#1a1a1a" stroke-width="0.8"/>
-  <!-- channel (perp 3..11 of 14) -->
-  <polygon points="141.54,76.43 270.09,153.53 274.20,146.67 145.65,69.57" fill="#3a3a3a" opacity="0.55"/>
 
   <!-- Miter cut at the joint (between top piece's right end and slope piece's top-left) -->
   <line x1="140" y1="65" x2="147.20" y2="67.00" stroke="#2c8c2c" stroke-width="2"/>

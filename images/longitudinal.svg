@@ -16,8 +16,7 @@
   <polygon points="40,80 360,80 360,140 40,140" fill="#eee" stroke="#888" stroke-width="0.6" stroke-dasharray="3,2"/>
   <!-- Actual remaining piece after cut -->
   <polygon points="40,80 360,80 290,140 40,140" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1.4"/>
-  <!-- Channel area (extends to original right edge; wedge will overlay on the cut side) -->
-  <rect x="40" y="100" width="320" height="22" fill="#444" opacity="0.45"/>
+  <!-- (側面図では溝の濃い帯は表示しない) -->
 
   <!-- Cut line (highlighted) -->
   <line x1="360" y1="80" x2="290" y2="140" stroke="#2c8c2c" stroke-width="2.6"/>
