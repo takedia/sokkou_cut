@@ -100,7 +100,7 @@
   <div class="subtitle">角度カット計算ツール</div>
   <div class="panel canvasBlock">
     <div class="muted" style="margin-bottom:6px; font-size:12px; line-height:1.5">
-      カメラ起動 → ガイド線を実物（水糸・構造物）に合わせ、角度・切断長を読取り。詳しい使い方は右上の <b>?</b>
+      カメラ起動 → <b>ガイド線を画面でドラッグ</b>して実物（水糸・構造物）に合わせ、角度・切断長を読取り。詳しい使い方は右上の <b>?</b>
     </div>
     <canvas id="angleGuide"></canvas>
     <!--<div class="muted" style="text-align:center; margin-top:6px">スライダーでガイド角度を調整</div>-->
@@ -115,7 +115,8 @@
       <button class="btn" id="flipBtn" title="左右反転" style="padding:5px 10px; font-size:14px">⇄</button>
       <span class="pill-sm">切断長: <span id="inlineCutLenNum" class="num">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="unit"> mm</span></span>
     </div>
-    <div class="row" style="margin-top:18px">
+    <!-- L/Rスライダーは非表示（角度は画面ドラッグ／角度手入力で調整）。要素はJS用にDOMへ残す -->
+    <div class="row" style="margin-top:18px; display:none">
       <div class="row" id="leftWrap" style="flex:1">
         <span class="muted">L</span>
         <input type="range" id="leftSlider" min="0" max="100" value="25" aria-label="左バー" />
