@@ -29,7 +29,7 @@
     .btn{ appearance:none; border:none; border-radius:10px; padding:8px 10px; font-weight:700; cursor:pointer; background:#fff; color:#333; box-shadow:0 1px 6px rgba(0,0,0,.15); font-size:11px }
     .primary{ background:var(--accent); color:#fff }
     .grid-1{ display:flex; gap:8px; flex-wrap:nowrap; align-items:stretch }
-    .grid-1 .btn{ flex:1; min-width:0; white-space:nowrap; font-size:10px; padding:9px 5px; display:flex; align-items:center; justify-content:center }
+    .grid-1 .btn{ flex:1; min-width:0; white-space:normal; line-height:1.15; text-align:center; word-break:break-word; font-size:10px; padding:9px 5px; display:flex; align-items:center; justify-content:center }
     .status{ margin-top:8px; padding:6px; border-radius:8px; text-align:center; font-size:11px; background:rgba(255,255,255,.15) }
     .error{ background:rgba(255,87,87,.85); color:#fff }
     .toggle{ display:inline-flex; align-items:center; gap:8px }
@@ -642,21 +642,21 @@
       video.srcObject=stream; await video.play();
       startLiveLoop();
       showStatus(t('st_cam_on'),'success');
-      document.getElementById('cameraToggleBtn').textContent='カメラ停止';
-      { const cb=document.getElementById('captureBtn'); cb.disabled=false; cb.textContent='静止'; }
+      document.getElementById('cameraToggleBtn').textContent=t('btn_camera_stop');
+      { const cb=document.getElementById('captureBtn'); cb.disabled=false; cb.textContent=t('btn_freeze'); }
       isCaptured=false; fitCanvas();
     }catch(e){ showStatus(t('st_cam_fail')+e.message,'error'); }
   }
   function startLiveLoop(){ if(liveRAF) return; const loop=()=>{ if(!stream){ liveRAF=null; return; } renderAll(); liveRAF=requestAnimationFrame(loop); }; liveRAF=requestAnimationFrame(loop); }
   function stopLiveLoop(){ if(liveRAF){ cancelAnimationFrame(liveRAF); liveRAF=null; } }
-  function stopCamera(){ stopLiveLoop(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.removeAttribute('srcObject'); document.getElementById('cameraToggleBtn').textContent='カメラ起動'; { const cb=document.getElementById('captureBtn'); cb.disabled=true; cb.textContent='静止'; } isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus(t('st_cam_off'),'info'); }
+  function stopCamera(){ stopLiveLoop(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.removeAttribute('srcObject'); document.getElementById('cameraToggleBtn').textContent=t('btn_camera'); { const cb=document.getElementById('captureBtn'); cb.disabled=true; cb.textContent=t('btn_freeze'); } isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus(t('st_cam_off'),'info'); }
   function toggleCamera(){ if(stream) stopCamera(); else startCamera(); }
   function capturePhoto(){ if(!(video.videoWidth>0)) return showStatus(t('st_no_video'),'error'); photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const vw=video.videoWidth, vh=video.videoHeight, cw=photo.width, ch=photo.height; const vr=vw/vh, cr=cw/ch; let dw,dh,dx,dy; if(vr>cr){ dh=ch; dw=dh*vr; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/vr; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(video,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus(t('st_frozen'),'success'); }
   function toggleFreeze(){
     if(!stream) return showStatus(t('st_start_cam'),'error');
     const cb=document.getElementById('captureBtn');
-    if(isCaptured){ isCaptured=false; photo.width=photo.height=0; startLiveLoop(); cb.textContent='静止'; showStatus(t('st_live'),'info'); }
-    else{ capturePhoto(); cb.textContent='解除'; }
+    if(isCaptured){ isCaptured=false; photo.width=photo.height=0; startLiveLoop(); cb.textContent=t('btn_freeze'); showStatus(t('st_live'),'info'); }
+    else{ capturePhoto(); cb.textContent=t('btn_unfreeze'); }
   }
   function handleImageLoad(ev){ const f=ev.target.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const iw=img.width,ih=img.height,cw=photo.width,ch=photo.height; const ir=iw/ih,cr=cw/ch; let dw,dh,dx,dy; if(ir>cr){ dh=ch; dw=dh*ir; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/ir; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(img,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus(t('st_img_ok'),'success'); }; img.onerror=()=>showStatus(t('st_img_fail'),'error'); img.src=URL.createObjectURL(f); }
 
@@ -945,9 +945,9 @@
       const info=document.createElement('div'); info.className='log-entry-info';
       info.textContent=formatLogEntry(entry);
       if(entry.note){ const n=document.createElement('div'); n.className='log-entry-note'; n.textContent='📝 '+entry.note; info.appendChild(n); }
-      const load=document.createElement('button'); load.className='log-entry-load'; load.textContent='読込';
+      const load=document.createElement('button'); load.className='log-entry-load'; load.textContent=t('log_load');
       load.addEventListener('click', ()=>restoreEntry(entry));
-      const del=document.createElement('button'); del.className='log-entry-del'; del.textContent='削除';
+      const del=document.createElement('button'); del.className='log-entry-del'; del.textContent=t('log_del');
       del.addEventListener('click', ()=>{ const lg=loadLog(); lg.splice(idx,1); saveLogToStorage(lg); renderLogModal(); });
       row.appendChild(info); row.appendChild(load); row.appendChild(del);
       listEl.appendChild(row);
@@ -1050,6 +1050,7 @@
     document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph'))); });
     document.querySelectorAll('[data-i18n-title]').forEach(el=>{ el.setAttribute('title', t(el.getAttribute('data-i18n-title'))); });
     document.querySelectorAll('[data-i18n-aria]').forEach(el=>{ el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
+    document.querySelectorAll('[data-i18n-alt]').forEach(el=>{ el.setAttribute('alt', t(el.getAttribute('data-i18n-alt'))); });
     // 折りたたみボタンのラベル（▸/▾は維持）
     const ot=document.getElementById('offsetToggle'); if(ot){ const tri=ot.querySelector('.tri'); const open=tri&&tri.textContent==='▾'; ot.innerHTML='<span class="tri">'+(open?'▾':'▸')+'</span> '+t('offset_toggle'); }
     // カメラボタンの状態別ラベル
@@ -1074,7 +1075,7 @@
     function py(mm){ return Y_TOP + mm*sx(); }
     function ratio(){ return st.W>0 ? st.L/st.W : 0; }
     function cumsOf(faces){ var c=[],s=0; faces.forEach(function(w){s+=w;c.push(s);}); return c; }
-    function fmt(n,dec){ return Number(n.toFixed(dec===undefined?1:dec)).toLocaleString('ja-JP',{maximumFractionDigits:dec===undefined?1:dec}); }
+    function fmt(n,dec){ var d=(dec===undefined?1:dec); var x=Number(n.toFixed(d)); try{ return x.toLocaleString(curLang,{maximumFractionDigits:d}); }catch(e){ return x.toLocaleString(undefined,{maximumFractionDigits:d}); } }
 
     function buildSection(){
       var nAll=st.faces.length, n=Math.min(nAll,MAX_FACES), faces=st.faces.slice(0,n);
@@ -1250,7 +1251,7 @@
         <li data-i18n="h_use_li5">（任意）<b>厳密に面部（底面・面取り）も考慮してケガキ線を引く</b>場合は、<b>面を考慮したずらし値（厳密時）</b> に面の横幅を入れ、表示される<b>ずらし値</b>だけ各面でずらしてケガく</li>
       </ol>
       <figure>
-        <img src="images/usage-basic.svg" alt="基本操作の流れ" />
+        <img src="images/usage-basic.svg" data-i18n-alt="h_use_cap" alt="基本操作の流れ" />
         <figcaption data-i18n="h_use_cap">基本操作の流れ</figcaption>
       </figure>
       <p data-i18n="h_use_other" style="font-size:12px; color:#555; margin-top:8px">縁石・ブロック・幅木・タイル・額縁などの角度カットも、同様の手順で行えます。</p>
@@ -1260,17 +1261,17 @@
       <h4 data-i18n="h_cross_h">横断方向（コーナー）</h4>
       <p data-i18n="h_cross_p">2本の側溝を角度をつけて接続する場合。両側モードで2本とも同じ角度に斜めカットします。</p>
       <figure>
-        <img src="images/cross-section.svg" alt="横断方向（コーナー）上から見た図" />
+        <img src="images/cross-section.svg" data-i18n-alt="h_cross_cap" alt="横断方向（コーナー）上から見た図" />
         <figcaption data-i18n="h_cross_cap">2本を斜めカットで接続（コーナー）</figcaption>
       </figure>
       <h4 data-i18n="h_long_h">縦断方向（勾配/方向）</h4>
       <p data-i18n="h_long_p">側溝の長手方向で角度を変える場合。基本的な測定方法は横断と同じ。</p>
       <figure>
-        <img src="images/longitudinal.svg" alt="縦断方向：横から見た図" />
+        <img src="images/longitudinal.svg" data-i18n-alt="h_long_cap" alt="縦断方向：横から見た図" />
         <figcaption data-i18n="h_long_cap">勾配/方向調整のための端部カット</figcaption>
       </figure>
       <figure style="text-align:center">
-        <img src="images/longitudinal-slope.svg" alt="縦断方向：法面/勾配での設置例" style="max-width:78%" />
+        <img src="images/longitudinal-slope.svg" data-i18n-alt="h_long_cap2" alt="縦断方向：法面/勾配での設置例" style="max-width:78%" />
         <figcaption data-i18n="h_long_cap2">法面・勾配での施工例（天端→法面の変化点でカット）</figcaption>
       </figure>
       <h4 data-i18n="h_oneside_h">片側モード</h4>
@@ -1373,7 +1374,7 @@
 
       <!-- さしがね使用例 -->
       <figure>
-        <img src="images/sashigane.svg" alt="さしがね（曲尺）等で90°に転写" />
+        <img src="images/sashigane.svg" data-i18n-alt="h_sashigane_cap" alt="さしがね（曲尺）等で90°に転写" />
         <figcaption data-i18n="h_sashigane_cap" style="font-size:10px">さしがね（曲尺）を上面に当てて垂直方向にケガく（鉛直な面はこれでOK）</figcaption>
       </figure>
 
