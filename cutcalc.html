@@ -1058,6 +1058,7 @@
     if(typeof requestRender==='function') requestRender();          // 上部バー等を再描画
     if(typeof updateHelpCutLen==='function') updateHelpCutLen();    // ＋数mm 等
     if(typeof renderLogModal==='function' && document.getElementById('logModal') && document.getElementById('logModal').classList.contains('show')) renderLogModal();
+    if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render();  // 厳密ケガキ図の動的文字列
   }
   function setLang(l){ if(!I18N[l]) return; curLang=l; try{ localStorage.setItem('cutcalc_lang', l); }catch(e){} const sel=document.getElementById('langSel'); if(sel) sel.value=l; applyI18n(); }
 
@@ -1079,7 +1080,7 @@
       var nAll=st.faces.length, n=Math.min(nAll,MAX_FACES), faces=st.faces.slice(0,n);
       var C=cumsOf(faces), s='', F=function(v){ return (+v).toFixed(1); };
       s+='<defs><marker id="figDD" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker></defs>';
-      s+='<text x="180" y="16" text-anchor="middle" font-weight="700" font-size="12" fill="#222">断面図（'+(n===0?'面なし・直角':((n===1?'面一':'面二')+(st.taper?'・テーパー壁':'')))+'）</text>';
+      s+='<text x="180" y="16" text-anchor="middle" font-weight="700" font-size="12" fill="#222">'+t('fig_sec_title')+'（'+(n===0?t('fig_sec_none'):((n===1?t('fig_sec_one'):t('fig_sec_two'))+(st.taper?'・'+t('fig_sec_taper'):'')))+'）</text>';
       var yBot=py(H_TOTAL), d, startYs;
       if(n===2){
         var ySh=py(SHOULDER_V), yF1=py(SHOULDER_V+F1_V), yPl=yBot-F2_V*sx();
@@ -1132,7 +1133,7 @@
       }
       s+='<line x1="'+X0+'" y1="288" x2="'+X1+'" y2="288" stroke="#333" stroke-width="0.8" marker-start="url(#figDD)" marker-end="url(#figDD)"/>';
       s+='<text x="180" y="284" text-anchor="middle" font-size="10" fill="#333">'+fmt(st.W,0)+'</text>';
-      if(nAll>MAX_FACES){ s+='<text x="180" y="306" text-anchor="middle" font-size="9.5" fill="#b3261e">3面目以降は図では省略（下の表・底面図に反映）</text>'; }
+      if(nAll>MAX_FACES){ s+='<text x="180" y="306" text-anchor="middle" font-size="9.5" fill="#b3261e">'+t('fig_sec_omit')+'</text>'; }
       $('figSecSvg').innerHTML=s;
     }
 
@@ -1143,7 +1144,7 @@
         +'<marker id="figOB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3a7fc0"/></marker>'
         +'<linearGradient id="figFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcdcdc" stop-opacity="1"/><stop offset="0.55" stop-color="#dcdcdc" stop-opacity="0.78"/><stop offset="1" stop-color="#dcdcdc" stop-opacity="0"/></linearGradient>'
         +'</defs>';
-      s+='<text x="180" y="17" text-anchor="middle" font-weight="700" font-size="13" fill="#222">底面図</text>';
+      s+='<text x="180" y="17" text-anchor="middle" font-weight="700" font-size="13" fill="#222">'+t('fig_bot_title')+'</text>';
       s+='<line x1="'+X0+'" y1="44" x2="'+X1+'" y2="44" stroke="#3a7fc0" stroke-width="1" marker-start="url(#figOB)" marker-end="url(#figOB)"/>';
       s+='<text x="180" y="40" text-anchor="middle" font-size="10" fill="#3a7fc0" font-weight="700">'+fmt(st.W,0)+'</text>';
       s+='<rect x="'+X0+'" y="'+y0+'" width="'+(X1-X0)+'" height="342" fill="url(#figFade)"/>';
@@ -1172,7 +1173,7 @@
     function buildTable(){
       var r=ratio(), C=cumsOf(st.faces);
       var depths=[0].concat(C, C.slice().reverse().map(function(c){ return st.W-c; }), [st.W]);
-      var html='<tr><th>累計（mm）</th><th>計算</th><th>ずらし値(mm)</th></tr>';
+      var html='<tr><th>'+t('tbl_cum')+'</th><th>'+t('tbl_calc')+'</th><th>'+t('tbl_offset')+'</th></tr>';
       depths.forEach(function(dp){ var v=dp*r; html+='<tr><td>'+fmt(dp,0)+'</td><td class="f">'+fmt(dp,0)+' × '+r.toFixed(4)+' = '+fmt(v,1)+'</td><td><b>'+Math.round(v)+'</b></td></tr>'; });
       $('figCalcTable').innerHTML=html;
     }
@@ -1240,51 +1241,51 @@
     </div>
 
     <div class="help-section active" data-section="use">
-      <h4>基本の流れ</h4>
+      <h4 data-i18n="h_use_flow">基本の流れ</h4>
       <ol>
-        <li><b>カメラ起動</b> または <b>画像読込</b> で対象（水糸/側溝/構造物）を表示</li>
-        <li><b>両側/片側</b> モードを選択。コーナーは両側、桝接続は片側</li>
-        <li><b>スライダー</b> または <b>図を直接ドラッグ</b> でガイドを実物のラインに合わせる</li>
-        <li>図内の <b>ケガキ図</b> を長押しで切断方法、必要なら <b>記録</b> に保存</li>
-        <li>（任意）<b>厳密に面部（底面・面取り）も考慮してケガキ線を引く</b>場合は、<b>面を考慮したずらし値（厳密時）</b> に面の横幅を入れ、表示される<b>ずらし値</b>だけ各面でずらしてケガく</li>
+        <li data-i18n="h_use_li1"><b>カメラ起動</b> または <b>画像読込</b> で対象（水糸/側溝/構造物）を表示</li>
+        <li data-i18n="h_use_li2"><b>両側/片側</b> モードを選択。コーナーは両側、桝接続は片側</li>
+        <li data-i18n="h_use_li3"><b>スライダー</b> または <b>図を直接ドラッグ</b> でガイドを実物のラインに合わせる</li>
+        <li data-i18n="h_use_li4">図内の <b>ケガキ図</b> を長押しで切断方法、必要なら <b>記録</b> に保存</li>
+        <li data-i18n="h_use_li5">（任意）<b>厳密に面部（底面・面取り）も考慮してケガキ線を引く</b>場合は、<b>面を考慮したずらし値（厳密時）</b> に面の横幅を入れ、表示される<b>ずらし値</b>だけ各面でずらしてケガく</li>
       </ol>
       <figure>
         <img src="images/usage-basic.svg" alt="基本操作の流れ" />
-        <figcaption>基本操作の流れ</figcaption>
+        <figcaption data-i18n="h_use_cap">基本操作の流れ</figcaption>
       </figure>
-      <p style="font-size:12px; color:#555; margin-top:8px">縁石・ブロック・幅木・タイル・額縁などの角度カットも、同様の手順で行えます。</p>
+      <p data-i18n="h_use_other" style="font-size:12px; color:#555; margin-top:8px">縁石・ブロック・幅木・タイル・額縁などの角度カットも、同様の手順で行えます。</p>
     </div>
 
     <div class="help-section" data-section="cross">
-      <h4>横断方向（コーナー）</h4>
-      <p>2本の側溝を角度をつけて接続する場合。両側モードで2本とも同じ角度に斜めカットします。</p>
+      <h4 data-i18n="h_cross_h">横断方向（コーナー）</h4>
+      <p data-i18n="h_cross_p">2本の側溝を角度をつけて接続する場合。両側モードで2本とも同じ角度に斜めカットします。</p>
       <figure>
         <img src="images/cross-section.svg" alt="横断方向（コーナー）上から見た図" />
-        <figcaption>2本を斜めカットで接続（コーナー）</figcaption>
+        <figcaption data-i18n="h_cross_cap">2本を斜めカットで接続（コーナー）</figcaption>
       </figure>
-      <h4>縦断方向（勾配/方向）</h4>
-      <p>側溝の長手方向で角度を変える場合。基本的な測定方法は横断と同じ。</p>
+      <h4 data-i18n="h_long_h">縦断方向（勾配/方向）</h4>
+      <p data-i18n="h_long_p">側溝の長手方向で角度を変える場合。基本的な測定方法は横断と同じ。</p>
       <figure>
         <img src="images/longitudinal.svg" alt="縦断方向：横から見た図" />
-        <figcaption>勾配/方向調整のための端部カット</figcaption>
+        <figcaption data-i18n="h_long_cap">勾配/方向調整のための端部カット</figcaption>
       </figure>
       <figure style="text-align:center">
         <img src="images/longitudinal-slope.svg" alt="縦断方向：法面/勾配での設置例" style="max-width:78%" />
-        <figcaption>法面・勾配での施工例（天端→法面の変化点でカット）</figcaption>
+        <figcaption data-i18n="h_long_cap2">法面・勾配での施工例（天端→法面の変化点でカット）</figcaption>
       </figure>
-      <h4>片側モード</h4>
-      <p>集水桝など、片側だけ構造物に接続する場合に使用。</p>
+      <h4 data-i18n="h_oneside_h">片側モード</h4>
+      <p data-i18n="h_oneside_p">集水桝など、片側だけ構造物に接続する場合に使用。</p>
     </div>
 
     <div class="help-section" data-section="cutmethod">
-      <h4>撮影のコツ</h4>
+      <h4 data-i18n="h_shoot_h">撮影のコツ</h4>
       <ul>
-        <li>横断方向は <b>真上から</b>、縦断方向は <b>真横から</b> 撮影すると正確</li>
-        <li>水糸や直線の構造物を画面に入れ、ガイド線と重ねる</li>
+        <li data-i18n="h_shoot_li1">横断方向は <b>真上から</b>、縦断方向は <b>真横から</b> 撮影すると正確</li>
+        <li data-i18n="h_shoot_li2">水糸や直線の構造物を画面に入れ、ガイド線と重ねる</li>
       </ul>
 
-      <h4>ケガキの注意</h4>
-      <div class="help-note">
+      <h4 data-i18n="h_scribe_h">ケガキの注意</h4>
+      <div class="help-note" data-i18n="h_scribe_note">
         ⚠️ ケガキ線は数mm〜1cm 余裕を持って描き、切断後に目地で微調整してください
       </div>
 
@@ -1316,7 +1317,7 @@
           <line x1="25" y1="50" x2="25" y2="140" stroke="#3a7fc0" stroke-width="1.2" marker-start="url(#axInline)" marker-end="url(#axInline)"/>
           <text x="14" y="98" fill="#3a7fc0" font-weight="700">幅 W</text>
         </svg>
-        <figcaption>切断長 = アプリ算出値 ＋ 数mm余裕</figcaption>
+        <figcaption data-i18n="h_marking_cap">切断長 = アプリ算出値 ＋ 数mm余裕</figcaption>
       </figure>
 
       <!-- 側面ケガキの方法（インライン・切断長動的） -->
@@ -1366,32 +1367,32 @@
       </figure>
 
       <!-- 側面ケガキの注意 -->
-      <div class="help-note">
+      <div class="help-note" data-i18n="h_side_note">
         ⚠️ 側面へのケガキは、切断長を下図のように同じ寸法でおろせば、ほとんどの場合（後述）は大丈夫です。目地などで調整できるからです。<b>面を厳密に考慮する</b>場合は、各面で「<b>ずらし値</b>」（面の横幅 × 比率）だけずらしてケガきます。<b>→ 下の「面がある場合の厳密なケガキ方法」を参照</b>
       </div>
 
       <!-- さしがね使用例 -->
       <figure>
         <img src="images/sashigane.svg" alt="さしがね（曲尺）等で90°に転写" />
-        <figcaption style="font-size:10px">さしがね（曲尺）を上面に当てて垂直方向にケガく（鉛直な面はこれでOK）</figcaption>
+        <figcaption data-i18n="h_sashigane_cap" style="font-size:10px">さしがね（曲尺）を上面に当てて垂直方向にケガく（鉛直な面はこれでOK）</figcaption>
       </figure>
 
-      <h4>面がある場合の厳密なケガキ方法</h4>
-      <label class="fig-taper"><input type="checkbox" id="figTaper"> テーパー壁（斜め壁）として描く</label>
+      <h4 data-i18n="h_strict_h">面がある場合の厳密なケガキ方法</h4>
+      <label class="fig-taper"><input type="checkbox" id="figTaper"> <span data-i18n="h_taper_label">テーパー壁（斜め壁）として描く</span></label>
       <figure>
         <svg id="figSecSvg" viewBox="0 0 360 312" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"></svg>
       </figure>
       <figure>
         <svg id="figBotSvg" viewBox="0 0 360 412" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"></svg>
-        <figcaption>赤がずらし値（累計 × 比率）、緑が切断線</figcaption>
+        <figcaption data-i18n="h_bottom_cap">赤がずらし値（累計 × 比率）、緑が切断線</figcaption>
       </figure>
-      <h4>ずらし値の計算（自動）</h4>
+      <h4 data-i18n="h_calc_h">ずらし値の計算（自動）</h4>
       <table class="calc" id="figCalcTable"></table>
-      <div class="help-note" style="background:#eef5fc; border-left-color:#3a7fc0; color:#15436e">
+      <div class="help-note" data-i18n="h_taper_note" style="background:#eef5fc; border-left-color:#3a7fc0; color:#15436e">
         📐 斜め壁（テーパー）も「面」と同じ扱い。横への倒れ幅を面の横幅として入力すればOK（上のチェックで図も切替）。
       </div>
-      <p style="font-size:11px; color:#666; margin-top:8px">※ 実用上は、数mm〜1cmの余裕と切断後の目地での微調整で吸収できるため、垂直に降ろすだけでも問題ありません。</p>
-      <div class="help-note">
+      <p data-i18n="h_practical" style="font-size:11px; color:#666; margin-top:8px">※ 実用上は、数mm〜1cmの余裕と切断後の目地での微調整で吸収できるため、垂直に降ろすだけでも問題ありません。</p>
+      <div class="help-note" data-i18n="h_both_note">
         ⚠️ <b>＜後述＞水平・垂直の両方に曲がる場合</b>：コーナー（水平方向の振れ）と勾配（縦方向の振れ）が<b>同時に起きる</b>箇所もあります。その場合は1方向だけでは合いません。<b>水平の角度は「両側モード」</b>、<b>縦の勾配は「片側モード」</b>で別々に測り、両方のケガキ線を合わせて切ってください。
       </div>
     </div>
