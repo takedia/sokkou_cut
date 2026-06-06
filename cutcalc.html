@@ -66,7 +66,7 @@
     .faceRow .offWrap{ white-space:nowrap; font-size:14px }
     .faceRow .offOut{ font-size:15px }
     .faceW::placeholder{ color:#c7ccd6; opacity:1 }
-    .addFace,.delFace{ appearance:none; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff; width:26px; height:26px; border-radius:8px; font-size:16px; font-weight:700; line-height:1; padding:0; cursor:pointer }
+    .addFace,.delFace{ appearance:none; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff; width:20px; height:20px; border-radius:6px; font-size:13px; font-weight:700; line-height:1; padding:0; cursor:pointer }
     .addFace:hover,.delFace:hover{ background:rgba(255,255,255,.28) }
     .disclosure .tri{ color:#ffd24a }
     /* 計測ログ モーダル */
@@ -169,7 +169,6 @@
         </div>
       </div>
       <div class="muted" style="font-size:11px; margin-top:6px; line-height:1.5">
-        ずらし値 ＝ 面の横幅（累計）× 比率（切断長÷幅 = <span id="ratioOut">—</span>）<br>
         <b>＋</b>で面を追加（最大3）。底面・面取りの各点の横幅を順に入れると、各点の累計ずらし値が出ます。
       </div>
     </div>
@@ -1155,14 +1154,14 @@
           <line x1="82" y1="40" x2="82" y2="120" stroke="#3a7fc0" stroke-width="1.2" marker-start="url(#zlB)" marker-end="url(#zlB)"/>
           <text x="14" y="84" font-size="10" fill="#3a7fc0" font-weight="700">面の横幅</text>
           <line x1="130" y1="134" x2="185" y2="134" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#zlO)" marker-end="url(#zlO)"/>
-          <text x="157" y="148" text-anchor="middle" font-size="10" fill="#9a4a10" font-weight="700">ずらし量</text>
-          <text x="180" y="170" text-anchor="middle" font-size="11" fill="#222">ずらし量 ＝ 面の横幅 × 比率（切断長÷幅）</text>
+          <text x="157" y="148" text-anchor="middle" font-size="10" fill="#9a4a10" font-weight="700">ずらし値</text>
+          <text x="180" y="170" text-anchor="middle" font-size="11" fill="#222">ずらし値 ＝ 面の横幅（累計）× 比率（切断長÷幅）</text>
           <text x="180" y="184" text-anchor="middle" font-size="9.5" fill="#666">例: 横幅30mm × 比率0.26 ≒ 8mm</text>
         </svg>
         <figcaption>面の横幅ぶん、切断線が長手方向へずれる</figcaption>
       </figure>
       <div class="help-note" style="background:#eef6ff; border-left-color:#2563eb; color:#1e3a5f">
-        🧮 メイン画面の「<b>ずらし量計算</b>」（折りたたみ）に<b>面の横幅</b>を入れると、ずらし量を自動表示します。底面・面取りの各点で繰り返せば、ブログのような寸法（13/21/114mm…）が出せます。
+        🧮 メイン画面の「<b>面を考慮したずらし値（厳密時）</b>」（折りたたみ）に<b>面の横幅</b>を入れると、<b>ずらし値 ＝ 面の横幅（累計）× 比率（切断長÷幅）</b> を自動表示します。＋で面を足して各点で繰り返せば、ブログのような寸法（13/21/114mm…）が出せます。
       </div>
       <p style="font-size:11px; color:#666; margin-top:8px">※ 実用上は、数mm〜1cmの余裕と切断後の目地での微調整で吸収できるため、垂直に降ろすだけでも問題ありません。</p>
     </div>
