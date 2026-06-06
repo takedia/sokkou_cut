@@ -265,8 +265,15 @@
     // パネル背景
     gtx.fillStyle='rgba(0,0,0,0.62)';
     gtx.fillRect(insetX, insetY, insetW, insetH);
-    gtx.strokeStyle='rgba(255,255,255,0.45)'; gtx.lineWidth=1;
-    gtx.strokeRect(insetX, insetY, insetW, insetH);
+    { // 角ブラケット（フォーカス枠風）
+      const bl=10, bx0=insetX, by0=insetY, bx1=insetX+insetW, by1=insetY+insetH;
+      gtx.strokeStyle='rgba(255,255,255,0.92)'; gtx.lineWidth=1.2; gtx.lineCap='round'; gtx.beginPath();
+      gtx.moveTo(bx0,by0+bl); gtx.lineTo(bx0,by0); gtx.lineTo(bx0+bl,by0);
+      gtx.moveTo(bx1-bl,by0); gtx.lineTo(bx1,by0); gtx.lineTo(bx1,by0+bl);
+      gtx.moveTo(bx0,by1-bl); gtx.lineTo(bx0,by1); gtx.lineTo(bx0+bl,by1);
+      gtx.moveTo(bx1-bl,by1); gtx.lineTo(bx1,by1); gtx.lineTo(bx1,by1-bl);
+      gtx.stroke(); gtx.lineCap='butt';
+    }
 
     // タイトル
     gtx.font='9px sans-serif'; gtx.fillStyle='rgba(255,255,255,0.9)';
@@ -311,8 +318,8 @@
       gtx.fillStyle='rgba(220,80,80,0.35)';
       gtx.beginPath(); gtx.moveTo(cutOuterX, pY); gtx.lineTo(cutOuterX, pY + pH); gtx.lineTo(wedgeTipX, pY + pH); gtx.closePath(); gtx.fill();
     }
-    // カット線
-    gtx.strokeStyle='rgba(80,255,80,1.0)'; gtx.lineWidth=2;
+    // カット線（少し細く）
+    gtx.strokeStyle='rgba(80,255,80,1.0)'; gtx.lineWidth=1.5;
     gtx.beginPath(); gtx.moveTo(cutOuterX, pY); gtx.lineTo(wedgeTipX, pY + pH); gtx.stroke();
     // 寸法線＋矢印
     if(cutDispPx > 10){
