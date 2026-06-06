@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 180" font-family="-apple-system, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif" font-size="11">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 166" font-family="-apple-system, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif" font-size="11">
   <text x="180" y="14" text-anchor="middle" font-weight="700" font-size="12" fill="#222">さしがね（曲尺）等で90°に転写</text>
 
   <!-- Side view of gutter (height matches side view of side-scribe SVG = 58) -->
@@ -39,5 +39,4 @@
 
   <!-- Annotation -->
   <text x="180" y="155" text-anchor="middle" font-size="11" fill="#222" font-weight="700">上面の印にさしがねを当て、垂直方向に直線をケガく</text>
-  <text x="180" y="171" text-anchor="middle" font-size="10" fill="#666">底面・反対側も同じ要領で 90° に転写</text>
 </svg>

@@ -84,6 +84,7 @@
     .log-entry-info{ flex:1; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     .log-entry-note{ font-family: -apple-system, sans-serif; color:#666; font-size:11px; }
     .log-entry-del{ background:#fee; border:1px solid #fcc; color:#c00; padding:3px 9px; border-radius:5px; cursor:pointer; font-size:11px; }
+    .log-entry-load{ background:#e8f5e9; border:1px solid #a5d6a7; color:#1b5e20; padding:3px 9px; border-radius:5px; cursor:pointer; font-size:11px; margin-right:4px; }
     .log-empty{ text-align:center; color:#999; padding:18px; font-size:12px; }
     .help-icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.7); background:rgba(255,255,255,0.12); color:#fff; cursor:pointer; font-size:13px; font-weight:700; padding:0; vertical-align:middle; margin-left:8px; transition:background 0.15s; }
     .help-icon-btn:hover{ background:rgba(255,255,255,0.28); }
@@ -102,6 +103,12 @@
     .help-img-placeholder{ display:flex; align-items:center; justify-content:center; min-height:120px; background:#f3f4f6; border:1px dashed #bbb; border-radius:8px; color:#999; font-size:11px; padding:12px; text-align:center; }
     .help-note{ background:#fff7ed; border-left:3px solid #f59e0b; padding:8px 10px; border-radius:4px; font-size:12px; margin:8px 0; color:#7c2d12; }
     .help-link{ display:inline-block; margin-top:8px; font-size:11px; color:#2563eb; text-decoration:underline; }
+    /* 厳密ケガキ図（面がある場合） */
+    .fig-taper{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:#334; margin:2px 0 8px; cursor:pointer; }
+    table.calc{ border-collapse:collapse; width:100%; font-size:12px; margin:6px 0 14px; }
+    table.calc th, table.calc td{ border:1px solid #d7dde3; padding:4px 6px; text-align:center; color:#222; }
+    table.calc th{ background:#eef2f6; font-weight:700; }
+    table.calc td.f{ font-family:ui-monospace,Consolas,monospace; }
   </style>
 </head>
 <body>
@@ -890,23 +897,39 @@
   const LOG_KEY='cutcalc_log_v1';
   function loadLog(){ try{ return JSON.parse(localStorage.getItem(LOG_KEY)||'[]'); }catch(e){ return []; } }
   function saveLogToStorage(log){ localStorage.setItem(LOG_KEY, JSON.stringify(log)); }
+  function readFaceWidths(){
+    const arr=[];
+    document.querySelectorAll('#faceRows .faceRow').forEach(r=>{
+      if(r.style.display==='none') return;
+      const inp=r.querySelector('.faceW');
+      const v=inp?parseFloat(zen2han(inp.value)):NaN;
+      if(isFinite(v)&&v>0) arr.push(Math.round(v));
+    });
+    return arr;
+  }
   function getCurrentMeasurement(){
     const open=openAngleFromGuide(); const width=getWidth();
     let displayAngle, cutLen;
     if(mode==='single'){ displayAngle=Math.abs(open-90); cutLen=calcCutLenMm(displayAngle, width); }
     else               { displayAngle=open;             cutLen=calcCutLenMm(open/2,        width); }
-    return { timestamp:new Date().toISOString(), mode, angle:Math.round(displayAngle), width:Math.round(width), cutLen:Math.round(cutLen) };
+    const faces=readFaceWidths();
+    const ratioVal = width>0 ? cutLen/width : 0;
+    let cum=0; const offsets=faces.map(f=>{ cum+=f; return Math.round(cum*ratioVal); });
+    return { timestamp:new Date().toISOString(), mode, angle:Math.round(displayAngle), width:Math.round(width), cutLen:Math.round(cutLen), faces, offsets };
   }
   function formatLogEntry(e){
     const d=new Date(e.timestamp);
     const time=`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
     const m=(e.mode==='single')?'片側':'両側';
-    return `${time}  ${m} 角${e.angle}° 幅${e.width} 切${e.cutLen}mm`;
+    let base=`${time}  ${m} 角${e.angle}° 幅${e.width} 切${e.cutLen}mm`;
+    if(e.faces && e.faces.length) base+=`  面[${e.faces.join('/')}] ずらし[${(e.offsets||[]).join('/')}]`;
+    return base;
   }
   function renderLogModal(){
     const cur=getCurrentMeasurement();
-    document.getElementById('logCurrentVals').textContent =
-      `${cur.mode==='single'?'片側':'両側'} ・ 角度 ${cur.angle}° ・ 幅 ${cur.width}mm ・ 切断 ${cur.cutLen}mm`;
+    let curStr=`${cur.mode==='single'?'片側':'両側'} ・ 角度 ${cur.angle}° ・ 幅 ${cur.width}mm ・ 切断 ${cur.cutLen}mm`;
+    if(cur.faces && cur.faces.length) curStr+=` ・ 面[${cur.faces.join('/')}]`;
+    document.getElementById('logCurrentVals').textContent = curStr;
     const list=loadLog();
     const listEl=document.getElementById('logList');
     listEl.innerHTML='';
@@ -917,9 +940,11 @@
       const info=document.createElement('div'); info.className='log-entry-info';
       info.textContent=formatLogEntry(entry);
       if(entry.note){ const n=document.createElement('div'); n.className='log-entry-note'; n.textContent='📝 '+entry.note; info.appendChild(n); }
+      const load=document.createElement('button'); load.className='log-entry-load'; load.textContent='読込';
+      load.addEventListener('click', ()=>restoreEntry(entry));
       const del=document.createElement('button'); del.className='log-entry-del'; del.textContent='削除';
       del.addEventListener('click', ()=>{ const lg=loadLog(); lg.splice(idx,1); saveLogToStorage(lg); renderLogModal(); });
-      row.appendChild(info); row.appendChild(del);
+      row.appendChild(info); row.appendChild(load); row.appendChild(del);
       listEl.appendChild(row);
     });
   }
@@ -934,6 +959,35 @@
     renderLogModal();
     showStatus('記録を保存しました','success');
   }
+  // 記録の復元（読込）：モード・幅・角度・面を再現
+  function restoreFaces(arr){
+    arr = Array.isArray(arr) ? arr : [];
+    const rows=[].slice.call(document.querySelectorAll('#faceRows .faceRow'));
+    rows.forEach((r,i)=>{
+      const inp=r.querySelector('.faceW');
+      const show=(i===0)||(i<arr.length);
+      r.style.display = show ? '' : 'none';
+      if(inp) inp.value = (i<arr.length) ? arr[i] : '';
+    });
+    if(typeof refreshAddBtns==='function') refreshAddBtns();
+    if(typeof updateOffset==='function') updateOffset();
+    if(arr.length){
+      const b=document.getElementById('offsetBody'), t=document.getElementById('offsetToggle');
+      if(b && b.style.display==='none' && t) t.click();
+    }
+  }
+  function restoreEntry(e){
+    if(!e) return;
+    mode = (e.mode==='single') ? 'single' : 'dual';
+    applyModeUI();
+    const pw=document.getElementById('productWidth'); if(pw && e.width) pw.value=e.width;
+    const ma=document.getElementById('manualAngle'); if(ma && (e.angle||e.angle===0)) ma.value=e.angle;
+    applyManualAngle(true);          // 角度をガイドへ反映
+    restoreFaces(e.faces);           // 面を再現
+    requestRender();                 // ガイド・ずらし再計算
+    closeLogModal();
+    showStatus('記録を読込みました','success');
+  }
 
   // ===== 使い方モーダル =====
   function openHelpModal(tab){
@@ -945,6 +999,7 @@
   function switchHelpTab(name){
     document.querySelectorAll('.help-tab').forEach(b => b.classList.toggle('active', b.dataset.tab===name));
     document.querySelectorAll('.help-section').forEach(s => s.classList.toggle('active', s.dataset.section===name));
+    if(name==='cutmethod' && typeof FIG!=='undefined') FIG.render();
   }
   // 「切断方法」タブ内のSVGの切断長表示を、現在のアプリ値で書き換え
   function updateHelpCutLen(){
@@ -970,6 +1025,141 @@
     if(sEl) sEl.textContent = off>0 ? (cl + ' mm − ' + off + ' ＋ 数mm') : (cl + ' mm ＋ 数mm');
   }
 
+  // ===== 厳密ケガキ図（切断方法タブ／面の横幅×比率で動的描画・本体値に結線） =====
+  var FIG = (function(){
+    var MAX_FACES = 2;
+    var X0=70, X1=290, Y_TOP=46, H_TOTAL=360, T1=60, T_W1=60, SHOULDER_V=100, F1_V=65, F2_V=50, CH_V=75, INNER_W=300;
+    var st = { W:520, L:135, faces:[], taper:false };
+    function $(id){ return document.getElementById(id); }
+    function sx(){ return (X1-X0)/st.W; }
+    function xL(d){ return X0 + d*sx(); }
+    function xR(d){ return X1 - d*sx(); }
+    function py(mm){ return Y_TOP + mm*sx(); }
+    function ratio(){ return st.W>0 ? st.L/st.W : 0; }
+    function cumsOf(faces){ var c=[],s=0; faces.forEach(function(w){s+=w;c.push(s);}); return c; }
+    function fmt(n,dec){ return Number(n.toFixed(dec===undefined?1:dec)).toLocaleString('ja-JP',{maximumFractionDigits:dec===undefined?1:dec}); }
+
+    function buildSection(){
+      var nAll=st.faces.length, n=Math.min(nAll,MAX_FACES), faces=st.faces.slice(0,n);
+      var C=cumsOf(faces), s='', F=function(v){ return (+v).toFixed(1); };
+      s+='<defs><marker id="figDD" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker></defs>';
+      s+='<text x="180" y="16" text-anchor="middle" font-weight="700" font-size="12" fill="#222">断面図（'+(n===0?'面なし・直角':((n===1?'面一':'面二')+(st.taper?'・テーパー壁':'')))+'）</text>';
+      var yBot=py(H_TOTAL), d, startYs;
+      if(n===2){
+        var ySh=py(SHOULDER_V), yF1=py(SHOULDER_V+F1_V), yPl=yBot-F2_V*sx();
+        if(st.taper){ yF1=yPl; }
+        var yFloor=yBot-T1*sx(), r=12;
+        var xiL=180-(INNER_W/2)*sx(), xiR=180+(INNER_W/2)*sx();
+        var a1=xL(C[0]), a2=xL(C[1]), b1=xR(C[0]), b2=xR(C[1]);
+        var rate2=st.taper ? (faces[0]*sx())/(yPl-ySh) : 0, sIn2=rate2*(yFloor-r-ySh);
+        d='M'+X0+','+Y_TOP+' L'+F(xiL)+','+Y_TOP+' L'+F(xiL)+','+F(ySh)
+          +' L'+F(xiL+sIn2)+','+F(yFloor-r)+' Q'+F(xiL+sIn2)+','+F(yFloor)+' '+F(xiL+sIn2+r)+','+F(yFloor)
+          +' L'+F(xiR-sIn2-r)+','+F(yFloor)+' Q'+F(xiR-sIn2)+','+F(yFloor)+' '+F(xiR-sIn2)+','+F(yFloor-r)
+          +' L'+F(xiR)+','+F(ySh)+' L'+F(xiR)+','+Y_TOP+' L'+X1+','+Y_TOP
+          +' L'+X1+','+F(ySh)+' L'+F(b1)+','+F(yF1)+' L'+F(b1)+','+F(yPl)
+          +' L'+F(b2)+','+F(yBot)+' L'+F(a2)+','+F(yBot)
+          +' L'+F(a1)+','+F(yPl)+' L'+F(a1)+','+F(yF1)+' L'+X0+','+F(ySh)+' Z';
+        startYs=[ySh,yPl,yBot];
+      } else if(n===1){
+        var f1px=faces[0]*sx(), yCh=yBot-CH_V*sx(), yFloor1=yBot-T1*sx(), r1=14;
+        var wiL=X0+T_W1*sx(), wiR=X1-T_W1*sx();
+        var slope1=st.taper ? f1px/(yBot-Y_TOP) : 0, sIn1=slope1*(yFloor1-r1-Y_TOP);
+        var inner1='M'+X0+','+Y_TOP+' L'+F(wiL)+','+Y_TOP
+          +' L'+F(wiL+sIn1)+','+F(yFloor1-r1)+' Q'+F(wiL+sIn1)+','+F(yFloor1)+' '+F(wiL+sIn1+r1)+','+F(yFloor1)
+          +' L'+F(wiR-sIn1-r1)+','+F(yFloor1)+' Q'+F(wiR-sIn1)+','+F(yFloor1)+' '+F(wiR-sIn1)+','+F(yFloor1-r1)
+          +' L'+F(wiR)+','+Y_TOP+' L'+X1+','+Y_TOP;
+        if(st.taper){ d=inner1+' L'+F(X1-f1px)+','+F(yBot)+' L'+F(X0+f1px)+','+F(yBot)+' Z'; startYs=[Y_TOP,yBot]; }
+        else { d=inner1+' L'+X1+','+F(yCh)+' L'+F(X1-f1px)+','+F(yBot)+' L'+F(X0+f1px)+','+F(yBot)+' L'+X0+','+F(yCh)+' Z'; startYs=[yCh,yBot]; }
+      } else {
+        var yFloor0=yBot-T1*sx(), r0=14, w0L=X0+T_W1*sx(), w0R=X1-T_W1*sx();
+        d='M'+X0+','+Y_TOP+' L'+F(w0L)+','+Y_TOP
+          +' L'+F(w0L)+','+F(yFloor0-r0)+' Q'+F(w0L)+','+F(yFloor0)+' '+F(w0L+r0)+','+F(yFloor0)
+          +' L'+F(w0R-r0)+','+F(yFloor0)+' Q'+F(w0R)+','+F(yFloor0)+' '+F(w0R)+','+F(yFloor0-r0)
+          +' L'+F(w0R)+','+Y_TOP+' L'+X1+','+Y_TOP+' L'+X1+','+F(yBot)+' L'+X0+','+F(yBot)+' Z';
+        startYs=[yBot];
+      }
+      s+='<path d="'+d+'" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1.4" stroke-linejoin="round"/>';
+      var B=[0].concat(C), rowY=function(i){ return 268-i*20; }, endY=function(j){ return j===0?294:rowY(Math.max(0,j-1))+6; };
+      s+='<g stroke="#999" stroke-width="0.7" stroke-dasharray="3,2">';
+      B.forEach(function(c,j){
+        s+='<line x1="'+F(xL(c))+'" y1="'+F(startYs[j])+'" x2="'+F(xL(c))+'" y2="'+endY(j)+'"/>';
+        s+='<line x1="'+F(xR(c))+'" y1="'+F(startYs[j])+'" x2="'+F(xR(c))+'" y2="'+endY(j)+'"/>';
+      });
+      s+='</g>';
+      for(var i=0;i<n;i++){
+        var y=rowY(i), p0=B[i], p1=B[i+1];
+        var seg=[[xL(p0),xL(p1),faces[i]],[xL(p1),xR(p1),st.W-2*B[i+1]],[xR(p1),xR(p0),faces[i]]];
+        s+='<g stroke="#555" stroke-width="0.8">';
+        seg.forEach(function(g){ s+='<line x1="'+F(g[0])+'" y1="'+y+'" x2="'+F(g[1])+'" y2="'+y+'" marker-start="url(#figDD)" marker-end="url(#figDD)"/>'; });
+        s+='</g>';
+        seg.forEach(function(g){ s+='<text x="'+F((g[0]+g[1])/2)+'" y="'+(y-5)+'" text-anchor="middle" font-size="10" fill="#333">'+fmt(g[2],0)+'</text>'; });
+      }
+      s+='<line x1="'+X0+'" y1="288" x2="'+X1+'" y2="288" stroke="#333" stroke-width="0.8" marker-start="url(#figDD)" marker-end="url(#figDD)"/>';
+      s+='<text x="180" y="284" text-anchor="middle" font-size="10" fill="#333">'+fmt(st.W,0)+'</text>';
+      if(nAll>MAX_FACES){ s+='<text x="180" y="306" text-anchor="middle" font-size="9.5" fill="#b3261e">3面目以降は図では省略（下の表・底面図に反映）</text>'; }
+      $('figSecSvg').innerHTML=s;
+    }
+
+    function buildBottom(){
+      var C=cumsOf(st.faces), r=ratio(), s='', sy=st.L>0?190/st.L:0, y0=58;
+      s+='<defs>'
+        +'<marker id="figOR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#cc2c2c"/></marker>'
+        +'<marker id="figOB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3a7fc0"/></marker>'
+        +'<linearGradient id="figFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcdcdc" stop-opacity="1"/><stop offset="0.55" stop-color="#dcdcdc" stop-opacity="0.78"/><stop offset="1" stop-color="#dcdcdc" stop-opacity="0"/></linearGradient>'
+        +'</defs>';
+      s+='<text x="180" y="17" text-anchor="middle" font-weight="700" font-size="13" fill="#222">底面図</text>';
+      s+='<line x1="'+X0+'" y1="44" x2="'+X1+'" y2="44" stroke="#3a7fc0" stroke-width="1" marker-start="url(#figOB)" marker-end="url(#figOB)"/>';
+      s+='<text x="180" y="40" text-anchor="middle" font-size="10" fill="#3a7fc0" font-weight="700">'+fmt(st.W,0)+'</text>';
+      s+='<rect x="'+X0+'" y="'+y0+'" width="'+(X1-X0)+'" height="342" fill="url(#figFade)"/>';
+      s+='<line x1="'+X0+'" y1="'+y0+'" x2="'+X1+'" y2="'+y0+'" stroke="#999" stroke-width="1"/>';
+      s+='<line x1="'+X0+'" y1="'+y0+'" x2="'+X0+'" y2="362" stroke="#999" stroke-width="1"/>';
+      s+='<line x1="'+X1+'" y1="'+y0+'" x2="'+X1+'" y2="362" stroke="#999" stroke-width="1"/>';
+      var depths=C.concat(C.slice().reverse().map(function(c){ return st.W-c; }));
+      s+='<g stroke="#999" stroke-width="0.8" stroke-dasharray="4,3">';
+      depths.forEach(function(dp){ s+='<line x1="'+xL(dp).toFixed(1)+'" y1="'+y0+'" x2="'+xL(dp).toFixed(1)+'" y2="362"/>'; });
+      s+='</g>';
+      var yEnd=y0+st.L*sy;
+      s+='<line x1="'+X0+'" y1="'+y0+'" x2="'+X1+'" y2="'+yEnd.toFixed(1)+'" stroke="#2c8c2c" stroke-width="2.8"/>';
+      s+='<circle cx="'+X0+'" cy="'+y0+'" r="3.2" fill="#2c8c2c"/>';
+      s+='<text x="'+(X0-6)+'" y="'+(y0-3)+'" text-anchor="end" font-size="10" fill="#2c8c2c" font-weight="700">0</text>';
+      s+='<text x="'+(X1+6)+'" y="'+(yEnd+4).toFixed(1)+'" font-size="10" fill="#2c8c2c" font-weight="700">'+fmt(st.L,0)+'</text>';
+      depths.forEach(function(dp,k){
+        var v=dp*r, vy=y0+v*sy, x=xL(dp);
+        s+='<line x1="'+x.toFixed(1)+'" y1="'+y0+'" x2="'+x.toFixed(1)+'" y2="'+vy.toFixed(1)+'" stroke="#cc2c2c" stroke-width="1.3" marker-end="url(#figOR)"/>';
+        s+='<circle cx="'+x.toFixed(1)+'" cy="'+vy.toFixed(1)+'" r="2.6" fill="#cc2c2c"/>';
+        var left=(k%2===0);
+        s+='<text x="'+(left?x-6:x+6).toFixed(1)+'" y="'+(vy+3).toFixed(1)+'" '+(left?'text-anchor="end" ':'')+'font-size="10" fill="#cc2c2c" font-weight="700">'+Math.round(v)+'</text>';
+      });
+      $('figBotSvg').innerHTML=s;
+    }
+
+    function buildTable(){
+      var r=ratio(), C=cumsOf(st.faces);
+      var depths=[0].concat(C, C.slice().reverse().map(function(c){ return st.W-c; }), [st.W]);
+      var html='<tr><th>累計（mm）</th><th>計算</th><th>ずらし値(mm)</th></tr>';
+      depths.forEach(function(dp){ var v=dp*r; html+='<tr><td>'+fmt(dp,0)+'</td><td class="f">'+fmt(dp,0)+' × '+r.toFixed(4)+' = '+fmt(v,1)+'</td><td><b>'+Math.round(v)+'</b></td></tr>'; });
+      $('figCalcTable').innerHTML=html;
+    }
+
+    function render(){
+      if(!$('figSecSvg')) return;
+      st.W = getWidth();
+      st.L = currentCutLen();
+      var arr=[];
+      document.querySelectorAll('#faceRows .faceRow').forEach(function(row){
+        if(row.style.display==='none') return;
+        var inp=row.querySelector('.faceW');
+        var v=inp?parseFloat(zen2han(inp.value)):NaN;
+        if(isFinite(v)&&v>0) arr.push(v);
+      });
+      st.faces=arr;
+      var tp=$('figTaper');
+      if(tp){ tp.disabled=(arr.length===0); if(tp.disabled) tp.checked=false; st.taper=tp.checked; }
+      buildSection(); buildBottom(); buildTable();
+    }
+    return { render: render };
+  })();
+
   document.addEventListener('DOMContentLoaded',()=>{
     setup();
     document.getElementById('logBtn').addEventListener('click', openLogModal);
@@ -993,6 +1183,8 @@
     faceRows.addEventListener('input', (e)=>{ if(e.target.classList.contains('faceW')) updateOffset(); });
     faceRows.addEventListener('click', (e)=>{ if(e.target.classList.contains('addFace')) addFace(); else if(e.target.classList.contains('delFace')) delFace(); });
     refreshAddBtns();
+    const figTaper=document.getElementById('figTaper');
+    if(figTaper) figTaper.addEventListener('change', ()=>FIG.render());
   });
 </script>
 
@@ -1137,43 +1329,33 @@
 
       <!-- 側面ケガキの注意 -->
       <div class="help-note">
-        ⚠️ 側面へのケガキは、切断長を下図のように同じ寸法でおろせば、ほとんどの場合（後述）は大丈夫です。目地などで調整できるからです。<b>面を厳密に考慮する</b>場合は、各面で「<b>ずらし値</b>」（面の横幅 × 比率）だけずらしてケガきます。
+        ⚠️ 側面へのケガキは、切断長を下図のように同じ寸法でおろせば、ほとんどの場合（後述）は大丈夫です。目地などで調整できるからです。<b>面を厳密に考慮する</b>場合は、各面で「<b>ずらし値</b>」（面の横幅 × 比率）だけずらしてケガきます。<b>→ 下の「面がある場合の厳密なケガキ方法」を参照</b>
       </div>
 
       <!-- さしがね使用例 -->
       <figure>
         <img src="images/sashigane.svg" alt="さしがね（曲尺）等で90°に転写" />
-        <figcaption>さしがね（曲尺）を上面に当てて垂直方向にケガく</figcaption>
+        <figcaption style="font-size:10px">さしがね（曲尺）を上面に当てて垂直方向にケガく（鉛直な面はこれでOK）</figcaption>
       </figure>
 
-      <h4>底面など「横に広がる面」は少しずらす</h4>
+      <h4>面がある場合の厳密なケガキ方法</h4>
+      <label class="fig-taper"><input type="checkbox" id="figTaper"> テーパー壁（斜め壁）として描く</label>
       <figure>
-        <svg viewBox="0 0 360 188" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif">
-          <defs>
-            <marker id="zlO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d67a2a"/></marker>
-            <marker id="zlB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3a7fc0"/></marker>
-          </defs>
-          <text x="180" y="16" text-anchor="middle" font-weight="700" font-size="12" fill="#222">底面など「横に広がる面」のずらし</text>
-          <rect x="95" y="40" width="180" height="80" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1.2"/>
-          <line x1="130" y1="40" x2="130" y2="134" stroke="#888" stroke-width="1.1" stroke-dasharray="4,3"/>
-          <line x1="185" y1="120" x2="185" y2="134" stroke="#888" stroke-width="1.1" stroke-dasharray="4,3"/>
-          <line x1="130" y1="40" x2="185" y2="120" stroke="#2c8c2c" stroke-width="2.4"/>
-          <circle cx="130" cy="40" r="3" fill="#2c8c2c"/>
-          <circle cx="185" cy="120" r="3" fill="#2c8c2c"/>
-          <text x="124" y="36" text-anchor="end" font-size="8.5" fill="#888">真下</text>
-          <line x1="82" y1="40" x2="82" y2="120" stroke="#3a7fc0" stroke-width="1.2" marker-start="url(#zlB)" marker-end="url(#zlB)"/>
-          <text x="14" y="84" font-size="10" fill="#3a7fc0" font-weight="700">面の横幅</text>
-          <line x1="130" y1="134" x2="185" y2="134" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#zlO)" marker-end="url(#zlO)"/>
-          <text x="157" y="148" text-anchor="middle" font-size="10" fill="#9a4a10" font-weight="700">ずらし値</text>
-          <text x="180" y="170" text-anchor="middle" font-size="11" fill="#222">ずらし値 ＝ 面の横幅（累計）× 比率（切断長÷幅）</text>
-          <text x="180" y="184" text-anchor="middle" font-size="9.5" fill="#666">例: 横幅30mm × 比率0.26 ≒ 8mm</text>
-        </svg>
-        <figcaption>面の横幅ぶん、切断線が長手方向へずれる</figcaption>
+        <svg id="figSecSvg" viewBox="0 0 360 312" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"></svg>
       </figure>
-      <div class="help-note" style="background:#eef6ff; border-left-color:#2563eb; color:#1e3a5f">
-        🧮 メイン画面の「<b>面を考慮したずらし値（厳密時）</b>」（折りたたみ）に<b>面の横幅</b>を入れると、<b>ずらし値 ＝ 面の横幅（累計）× 比率（切断長÷幅）</b> を自動表示します。＋で面を足して各点で繰り返せば、ブログのような寸法（13/21/114mm…）が出せます。
+      <figure>
+        <svg id="figBotSvg" viewBox="0 0 360 412" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"></svg>
+        <figcaption>赤がずらし値（累計 × 比率）、緑が切断線</figcaption>
+      </figure>
+      <h4>ずらし値の計算（自動）</h4>
+      <table class="calc" id="figCalcTable"></table>
+      <div class="help-note" style="background:#eef5fc; border-left-color:#3a7fc0; color:#15436e">
+        📐 斜め壁（テーパー）も「面」と同じ扱い。横への倒れ幅を面の横幅として入力すればOK（上のチェックで図も切替）。
       </div>
       <p style="font-size:11px; color:#666; margin-top:8px">※ 実用上は、数mm〜1cmの余裕と切断後の目地での微調整で吸収できるため、垂直に降ろすだけでも問題ありません。</p>
+      <div class="help-note">
+        ⚠️ <b>＜後述＞水平・垂直の両方に曲がる場合</b>：コーナー（水平方向の振れ）と勾配（縦方向の振れ）が<b>同時に起きる</b>箇所もあります。その場合は1方向だけでは合いません。<b>水平の角度は「両側モード」</b>、<b>縦の勾配は「片側モード」</b>で別々に測り、両方のケガキ線を合わせて切ってください。
+      </div>
     </div>
   </div>
 </div>
