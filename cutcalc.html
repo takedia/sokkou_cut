@@ -570,7 +570,7 @@
     rows.forEach((r,i)=>{
       const add=r.querySelector('.addFace'), del=r.querySelector('.delFace');
       if(add) add.style.display=(i===lastVis && i<rows.length-1)?'':'none';
-      if(del) del.style.display=(i===lastVis && i>0)?'':'none';
+      if(del) del.style.display=(i===lastVis)?'':'none';
     });
   }
   function addFace(){
@@ -581,7 +581,10 @@
   function delFace(){
     const rows=faceRowEls(); let lastVis=-1;
     rows.forEach((r,i)=>{ if(r.style.display!=='none') lastVis=i; });
-    if(lastVis>0){ const r=rows[lastVis]; r.style.display='none'; const inp=r.querySelector('.faceW'); if(inp) inp.value=''; }
+    if(lastVis<0) return;
+    const r=rows[lastVis], inp=r.querySelector('.faceW');
+    if(lastVis>0){ r.style.display='none'; if(inp) inp.value=''; }   // 2行目以降は行ごと削除
+    else if(inp){ inp.value=''; inp.focus(); }                       // 1行のみ＝値をリセット
     refreshAddBtns(); updateOffset();
   }
   function updateOffset(){
