@@ -59,6 +59,16 @@
        width: 64px;
        font-size: 14px;
     }
+    /* ずらし値（厳密時）の面入力行 */
+    .faceRow{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; font-size:13px; margin-bottom:6px }
+    .faceRow .field{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap }
+    .faceRow .numfield{ width:56px; font-size:14px }
+    .faceRow .offWrap{ white-space:nowrap; font-size:14px }
+    .faceRow .offOut{ font-size:15px }
+    .faceW::placeholder{ color:#c7ccd6; opacity:1 }
+    .addFace{ appearance:none; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff; width:26px; height:26px; border-radius:8px; font-size:16px; font-weight:700; line-height:1; padding:0; cursor:pointer }
+    .addFace:hover{ background:rgba(255,255,255,.28) }
+    .disclosure .tri{ color:#ffd24a }
     /* 計測ログ モーダル */
     .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:100; padding:14px; }
     .modal-overlay.show{ display:flex; }
@@ -136,15 +146,27 @@
     <div id="statusMsg" class="status" style="display:none"></div>
   </div>
   <div class="panel">
-    <button class="disclosure" id="offsetToggle" aria-expanded="false">▸ 面を考慮したずらし値（厳密時）</button>
+    <button class="disclosure" id="offsetToggle" aria-expanded="false"><span class="tri">▸</span> 面を考慮したずらし値（厳密時）</button>
     <div id="offsetBody" style="display:none; margin-top:8px">
-      <div class="row-nowrap">
-        <span class="field">面の横幅(mm): <input id="faceWidth" class="numfield" type="text" inputmode="numeric" maxlength="4" placeholder="例30" /></span>
-        <span style="font-size:14px; white-space:nowrap">→ ずらし値 <b id="offsetOut" style="font-size:15px">—</b> mm</span>
+      <div id="faceRows">
+        <div class="faceRow">
+          <span class="field">面の横幅: <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" placeholder="例20" /> mm</span>
+          <span class="offWrap">→ ずらし値 <b class="offOut">—</b> mm</span>
+          <button class="addFace" type="button" aria-label="面を追加">＋</button>
+        </div>
+        <div class="faceRow" style="display:none">
+          <span class="field">面の横幅: <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" placeholder="例20" /> mm</span>
+          <span class="offWrap">→ ずらし値 <b class="offOut">—</b> mm</span>
+          <button class="addFace" type="button" aria-label="面を追加">＋</button>
+        </div>
+        <div class="faceRow" style="display:none">
+          <span class="field">面の横幅: <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" placeholder="例20" /> mm</span>
+          <span class="offWrap">→ ずらし値 <b class="offOut">—</b> mm</span>
+        </div>
       </div>
       <div class="muted" style="font-size:11px; margin-top:6px; line-height:1.5">
-        ずらし値 ＝ 面の横幅 × 比率（切断長÷幅 = <span id="ratioOut">—</span>）<br>
-        底面や面取り部の各点で「その横幅 × 比率」を足してケガきます。
+        ずらし値 ＝ 面の横幅（累計）× 比率（切断長÷幅 = <span id="ratioOut">—</span>）<br>
+        <b>＋</b>で面を追加（最大3）。底面・面取りの各点の横幅を順に入れると、各点の累計ずらし値が出ます。
       </div>
     </div>
   </div>
@@ -537,12 +559,30 @@
     const angDeg=(mode==='dual')? open/2 : Math.abs(open-90);
     return calcCutLenMm(angDeg, width);
   }
+  function faceRowEls(){ return [].slice.call(document.querySelectorAll('#faceRows .faceRow')); }
+  function refreshAddBtns(){
+    const rows=faceRowEls(); let lastVis=-1;
+    rows.forEach((r,i)=>{ if(r.style.display!=='none') lastVis=i; });
+    rows.forEach((r,i)=>{ const b=r.querySelector('.addFace'); if(b) b.style.display=(i===lastVis)?'':'none'; });
+  }
+  function addFace(){
+    const rows=faceRowEls();
+    for(let i=0;i<rows.length;i++){ if(rows[i].style.display==='none'){ rows[i].style.display=''; const inp=rows[i].querySelector('.faceW'); if(inp) inp.focus(); break; } }
+    refreshAddBtns(); updateOffset();
+  }
   function updateOffset(){
-    const out=document.getElementById('offsetOut'); if(!out) return;
+    const rows=faceRowEls(); if(!rows.length) return;
     const width=getWidth(); const ratio = width>0 ? currentCutLen()/width : 0;
     const rEl=document.getElementById('ratioOut'); if(rEl) rEl.textContent=ratio.toFixed(3);
-    const fw=parseFloat(zen2han(document.getElementById('faceWidth').value));
-    out.textContent = (isFinite(fw)&&fw>0) ? Math.round(fw*ratio) : '—';
+    let cum=0;
+    rows.forEach((r)=>{
+      if(r.style.display==='none') return;
+      const inp=r.querySelector('.faceW'), out=r.querySelector('.offOut');
+      if(!inp||!out) return;
+      const v=parseFloat(zen2han(inp.value));
+      if(isFinite(v)&&v>0){ cum+=v; out.textContent=Math.round(cum*ratio); }
+      else { out.textContent='—'; }
+    });
   }
 
   // ===== スライダー反映 =====
@@ -918,11 +958,14 @@
       const b=document.getElementById('offsetBody'), t=document.getElementById('offsetToggle');
       const show = (b.style.display==='none');
       b.style.display = show?'block':'none';
-      t.textContent = (show?'▾':'▸') + ' 面を考慮したずらし値（厳密時）';
+      const tri=t.querySelector('.tri'); if(tri) tri.textContent = show?'▾':'▸';
       t.setAttribute('aria-expanded', show);
       if(show) updateOffset();
     });
-    document.getElementById('faceWidth').addEventListener('input', updateOffset);
+    const faceRows=document.getElementById('faceRows');
+    faceRows.addEventListener('input', (e)=>{ if(e.target.classList.contains('faceW')) updateOffset(); });
+    faceRows.addEventListener('click', (e)=>{ if(e.target.classList.contains('addFace')) addFace(); });
+    refreshAddBtns();
   });
 </script>
 
