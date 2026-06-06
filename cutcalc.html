@@ -12,6 +12,10 @@
     h1{ font-size:16px; margin:0 0 2px; text-align:center }
     .subtitle{ text-align:center; font-size:11px; opacity:.75; letter-spacing:.06em; margin:0 0 8px }
     .disclosure{ appearance:none; border:none; background:none; color:#fff; cursor:pointer; font-size:13px; font-weight:700; padding:2px 0; text-align:left; width:100%; opacity:.92 }
+    .faceRow{ display:flex; align-items:center; gap:6px; margin-bottom:5px; font-size:13px; white-space:nowrap }
+    .faceRow .faceNo{ width:2.4em }
+    .faceRow .numfield{ width:62px }
+    .faceRow b{ font-size:15px }
     .panel{ background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25); border-radius:14px; padding:10px; margin-top:12px }
     #angleGuide{ width:100%; aspect-ratio:4/3; background:rgba(0,0,0,.15); border-radius:12px; display:block; max-height:260px; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
     #angleGuide.dragging{ cursor:grabbing; }
@@ -137,15 +141,13 @@
     <div id="statusMsg" class="status" style="display:none"></div>
   </div>
   <div class="panel">
-    <button class="disclosure" id="offsetToggle" aria-expanded="false">▸ ずらし量計算（底面・面取り用）</button>
+    <button class="disclosure" id="offsetToggle" aria-expanded="false">▸ 面を考慮したずらし値（厳密時）</button>
     <div id="offsetBody" style="display:none; margin-top:8px">
-      <div class="row-nowrap">
-        <span class="field">面の横幅(mm): <input id="faceWidth" class="numfield" type="text" inputmode="numeric" maxlength="4" placeholder="例30" /></span>
-        <span style="font-size:14px; white-space:nowrap">→ ずらし量 <b id="offsetOut" style="font-size:15px">—</b> mm</span>
-      </div>
+      <div class="faceRow"><span class="muted faceNo">面①</span><input id="face1" class="numfield" type="text" inputmode="numeric" maxlength="4" placeholder="横幅mm" /><span class="muted">→ ずらし値 <b id="off1">—</b> mm</span></div>
+      <div class="faceRow"><span class="muted faceNo">面②</span><input id="face2" class="numfield" type="text" inputmode="numeric" maxlength="4" placeholder="横幅mm" /><span class="muted">→ ずらし値 <b id="off2">—</b> mm</span></div>
+      <div class="faceRow"><span class="muted faceNo">面③</span><input id="face3" class="numfield" type="text" inputmode="numeric" maxlength="4" placeholder="横幅mm" /><span class="muted">→ ずらし値 <b id="off3">—</b> mm</span></div>
       <div class="muted" style="font-size:11px; margin-top:6px; line-height:1.5">
-        ずらし量 ＝ 面の横幅 × 比率（切断長÷幅 = <span id="ratioOut">—</span>）<br>
-        底面や面取り部の各点で「その横幅 × 比率」を足してケガきます。
+        ずらし値（端からの累計）＝（面①＋面②…）× 比率（切断長÷幅 = <span id="ratioOut">—</span>）
       </div>
     </div>
   </div>
@@ -532,18 +534,24 @@
 
   function renderAll(){ drawBackground(); drawGuide(); }
   function requestRender(){ renderAll(); updateOffset(); }
-  // ずらし量（底面・面取り）= 面の横幅 × 比率（切断長÷幅）
+  // ずらし値（底面・面取り）= 面の横幅 × 比率（切断長÷幅）
   function currentCutLen(){
     const open=openAngleFromGuide(); const width=getWidth();
     const angDeg=(mode==='dual')? open/2 : Math.abs(open-90);
     return calcCutLenMm(angDeg, width);
   }
   function updateOffset(){
-    const out=document.getElementById('offsetOut'); if(!out) return;
+    const rEl=document.getElementById('ratioOut'); if(!rEl) return;
     const width=getWidth(); const ratio = width>0 ? currentCutLen()/width : 0;
-    const rEl=document.getElementById('ratioOut'); if(rEl) rEl.textContent=ratio.toFixed(3);
-    const fw=parseFloat(zen2han(document.getElementById('faceWidth').value));
-    out.textContent = (isFinite(fw)&&fw>0) ? Math.round(fw*ratio) : '—';
+    rEl.textContent=ratio.toFixed(3);
+    let cum=0; // 端からの累計
+    for(let i=1;i<=3;i++){
+      const inp=document.getElementById('face'+i), out=document.getElementById('off'+i);
+      if(!inp||!out) continue;
+      const v=parseFloat(zen2han(inp.value));
+      if(isFinite(v)&&v>0){ cum+=v; out.textContent=Math.round(cum*ratio); }
+      else out.textContent='—';
+    }
   }
 
   // ===== スライダー反映 =====
@@ -897,11 +905,16 @@
     const widthMm = getWidth();
     const angDeg = (mode==='dual') ? open/2 : Math.abs(open - 90);
     const cutLen = calcCutLenMm(angDeg, widthMm);
-    const txt = Math.round(cutLen) + ' mm ＋ 数mm';
-    ['markingCutLenText','sideScribeCutLenText'].forEach(id => {
-      const el = document.getElementById(id);
-      if(el) el.textContent = txt;
-    });
+    const cl = Math.round(cutLen);
+    const topEl = document.getElementById('markingCutLenText');
+    if(topEl) topEl.textContent = cl + ' mm ＋ 数mm';
+    // 側面/底面：メインの「ずらし値」累計を差し引いて表示（0なら −0 を出さない）
+    const ratio = widthMm>0 ? cutLen/widthMm : 0;
+    let cum=0;
+    for(let i=1;i<=3;i++){ const el=document.getElementById('face'+i); const v=el?parseFloat(zen2han(el.value)):NaN; if(isFinite(v)&&v>0) cum+=v; }
+    const off = Math.round(cum*ratio);
+    const sideEl = document.getElementById('sideScribeCutLenText');
+    if(sideEl) sideEl.textContent = off>0 ? (cl+' − '+off+' ＋ 数mm') : (cl+' mm ＋ 数mm');
   }
 
   document.addEventListener('DOMContentLoaded',()=>{
@@ -914,16 +927,16 @@
     document.getElementById('helpModal').addEventListener('click', (e)=>{ if(e.target.id==='helpModal') closeHelpModal(); });
     document.querySelectorAll('.help-tab').forEach(b => b.addEventListener('click', ()=>switchHelpTab(b.dataset.tab)));
     document.getElementById('helpUseBtn').addEventListener('click', ()=> openHelpModal('use'));
-    // ずらし量計算（折りたたみ）
+    // ずらし値計算（折りたたみ）
     document.getElementById('offsetToggle').addEventListener('click', ()=>{
       const b=document.getElementById('offsetBody'), t=document.getElementById('offsetToggle');
       const show = (b.style.display==='none');
       b.style.display = show?'block':'none';
-      t.textContent = (show?'▾':'▸') + ' ずらし量計算（底面・面取り用）';
+      t.textContent = (show?'▾':'▸') + ' 面を考慮したずらし値（厳密時）';
       t.setAttribute('aria-expanded', show);
       if(show) updateOffset();
     });
-    document.getElementById('faceWidth').addEventListener('input', updateOffset);
+    ['face1','face2','face3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', updateOffset); });
   });
 </script>
 
@@ -1019,7 +1032,42 @@
         <figcaption>切断長 = アプリ算出値 ＋ 数mm余裕</figcaption>
       </figure>
 
-      <!-- 側面ケガキの方法（インライン・切断長動的） -->
+      <h4>各面への転写</h4>
+      <p style="font-size:12.5px; line-height:1.6">垂直な面は <b>90° 真下</b>、底面・面取りなど横に広がる面は <b>「面の横幅 × 比率」だけずらして</b> ケガきます。</p>
+
+      <!-- 断面図 -->
+      <figure>
+        <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif">
+          <defs>
+            <marker id="csB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3a7fc0"/></marker>
+          </defs>
+          <text x="180" y="15" text-anchor="middle" font-weight="700" font-size="12" fill="#222">断面図（端から見た形）</text>
+          <path d="M70,40 L290,40 L290,128 L278,140 L82,140 L70,128 Z" fill="#d9d9d9" stroke="#1a1a1a" stroke-width="1.4"/>
+          <path d="M118,40 L118,112 L242,112 L242,40" fill="#fafafa" stroke="#1a1a1a" stroke-width="1.1"/>
+          <text x="94" y="86" text-anchor="middle" font-size="9" fill="#2c8c2c" font-weight="700">垂直面</text>
+          <text x="94" y="98" text-anchor="middle" font-size="8" fill="#2c8c2c">90°真下</text>
+          <text x="266" y="86" text-anchor="middle" font-size="9" fill="#2c8c2c" font-weight="700">垂直面</text>
+          <text x="266" y="98" text-anchor="middle" font-size="8" fill="#2c8c2c">90°真下</text>
+          <text x="180" y="116" text-anchor="middle" font-size="9" fill="#cc2c2c" font-weight="700">底（横に広がる面）→ ずらす</text>
+          <g stroke="#3a7fc0" stroke-width="0.8" stroke-dasharray="2,2">
+            <line x1="82" y1="140" x2="82" y2="178"/>
+            <line x1="118" y1="140" x2="118" y2="152"/>
+            <line x1="242" y1="140" x2="242" y2="152"/>
+            <line x1="278" y1="140" x2="278" y2="178"/>
+          </g>
+          <line x1="82" y1="146" x2="118" y2="146" stroke="#3a7fc0" stroke-width="1.1" marker-start="url(#csB)" marker-end="url(#csB)"/>
+          <line x1="118" y1="146" x2="242" y2="146" stroke="#3a7fc0" stroke-width="1.1" marker-start="url(#csB)" marker-end="url(#csB)"/>
+          <line x1="242" y1="146" x2="278" y2="146" stroke="#3a7fc0" stroke-width="1.1" marker-start="url(#csB)" marker-end="url(#csB)"/>
+          <text x="100" y="159" text-anchor="middle" font-size="9" fill="#3a7fc0" font-weight="700">面①</text>
+          <text x="180" y="159" text-anchor="middle" font-size="9" fill="#3a7fc0" font-weight="700">面②</text>
+          <text x="260" y="159" text-anchor="middle" font-size="9" fill="#3a7fc0" font-weight="700">面③</text>
+          <line x1="82" y1="178" x2="278" y2="178" stroke="#3a7fc0" stroke-width="1.2" marker-start="url(#csB)" marker-end="url(#csB)"/>
+          <text x="180" y="195" text-anchor="middle" font-size="9.5" fill="#3a7fc0" font-weight="700">面の横幅（＝入力値の合計）</text>
+        </svg>
+        <figcaption>横に広がる面を 面①②③ に分け、各段の横幅を入力</figcaption>
+      </figure>
+
+      <!-- 側面図（垂直面＝90°真下・切断長動的） -->
       <figure>
         <svg viewBox="0 0 360 268" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;font-size:11px">
           <defs>
@@ -1043,7 +1091,6 @@
             <line x1="280" y1="100" x2="280" y2="132"/>
             <line x1="240" y1="100" x2="240" y2="132"/>
           </g>
-          <text x="260" y="120" text-anchor="middle" font-size="9" fill="#888">↓ 90°で真下</text>
 
           <!-- SIDE VIEW -->
           <text x="20" y="148" font-size="9" fill="#666">側面から見た図</text>
@@ -1060,49 +1107,43 @@
 
           <!-- Cut length dimension between the 2 vertical scribes -->
           <line x1="240" y1="226" x2="280" y2="226" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#ssa)" marker-end="url(#ssa)"/>
-          <rect x="200" y="234" width="120" height="18" fill="#fff7ed" stroke="#d67a2a" stroke-width="0.6" rx="3"/>
+          <rect x="178" y="234" width="162" height="18" fill="#fff7ed" stroke="#d67a2a" stroke-width="0.6" rx="3"/>
           <text id="sideScribeCutLenText" x="260" y="247" text-anchor="middle" fill="#cc2c2c" font-weight="700" font-size="12">— mm + 数mm</text>
         </svg>
         <figcaption>上面の切断線の両端から 90° 真下にケガキを降ろす</figcaption>
       </figure>
 
-      <!-- 側面ケガキの注意 -->
-      <div class="help-note">
-        ⚠️ 側面へのケガキは、さしがね（曲尺）等で 90° おろしてケガキます
-      </div>
-
-      <!-- さしがね使用例 -->
+      <!-- 底面図（横に広がる面＝ずらす） -->
       <figure>
-        <img src="images/sashigane.svg" alt="さしがね（曲尺）で90°に転写" />
-        <figcaption>さしがね（曲尺）を上面に当てて垂直方向にケガく</figcaption>
-      </figure>
-
-      <h4>底面など「横に広がる面」は少しずらす</h4>
-      <figure>
-        <svg viewBox="0 0 360 188" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif">
+        <svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif">
           <defs>
-            <marker id="zlO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d67a2a"/></marker>
-            <marker id="zlB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3a7fc0"/></marker>
+            <marker id="bfO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d67a2a"/></marker>
+            <marker id="bfB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3a7fc0"/></marker>
           </defs>
-          <text x="180" y="16" text-anchor="middle" font-weight="700" font-size="12" fill="#222">底面など「横に広がる面」のずらし</text>
-          <rect x="95" y="40" width="180" height="80" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1.2"/>
-          <line x1="130" y1="40" x2="130" y2="134" stroke="#888" stroke-width="1.1" stroke-dasharray="4,3"/>
-          <line x1="185" y1="120" x2="185" y2="134" stroke="#888" stroke-width="1.1" stroke-dasharray="4,3"/>
-          <line x1="130" y1="40" x2="185" y2="120" stroke="#2c8c2c" stroke-width="2.4"/>
-          <circle cx="130" cy="40" r="3" fill="#2c8c2c"/>
-          <circle cx="185" cy="120" r="3" fill="#2c8c2c"/>
-          <text x="124" y="36" text-anchor="end" font-size="8.5" fill="#888">真下</text>
-          <line x1="82" y1="40" x2="82" y2="120" stroke="#3a7fc0" stroke-width="1.2" marker-start="url(#zlB)" marker-end="url(#zlB)"/>
-          <text x="14" y="84" font-size="10" fill="#3a7fc0" font-weight="700">面の横幅</text>
-          <line x1="130" y1="134" x2="185" y2="134" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#zlO)" marker-end="url(#zlO)"/>
-          <text x="157" y="148" text-anchor="middle" font-size="10" fill="#9a4a10" font-weight="700">ずらし量</text>
-          <text x="180" y="170" text-anchor="middle" font-size="11" fill="#222">ずらし量 ＝ 面の横幅 × 比率（切断長÷幅）</text>
-          <text x="180" y="184" text-anchor="middle" font-size="9.5" fill="#666">例: 横幅30mm × 比率0.26 ≒ 8mm</text>
+          <text x="180" y="15" text-anchor="middle" font-weight="700" font-size="12" fill="#222">底面図（裏返して下から見た図）</text>
+          <rect x="60" y="40" width="240" height="92" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1.2"/>
+          <line x1="60" y1="70" x2="300" y2="70" stroke="#999" stroke-width="0.9" stroke-dasharray="3,2"/>
+          <text x="65" y="58" font-size="8" fill="#777">面取り部</text>
+          <text x="65" y="106" font-size="8" fill="#777">底面</text>
+          <line x1="118" y1="40" x2="118" y2="152" stroke="#888" stroke-width="1.1" stroke-dasharray="4,3"/>
+          <text x="118" y="36" text-anchor="middle" font-size="8" fill="#888">真下</text>
+          <line x1="118" y1="40" x2="206" y2="132" stroke="#2c8c2c" stroke-width="2.4"/>
+          <circle cx="118" cy="40" r="3" fill="#2c8c2c"/>
+          <circle cx="206" cy="132" r="3" fill="#2c8c2c"/>
+          <line x1="44" y1="40" x2="44" y2="132" stroke="#3a7fc0" stroke-width="1.2" marker-start="url(#bfB)" marker-end="url(#bfB)"/>
+          <text x="14" y="88" font-size="9" fill="#3a7fc0" font-weight="700">面の横幅</text>
+          <line x1="118" y1="70" x2="147" y2="70" stroke="#d67a2a" stroke-width="1.1"/>
+          <circle cx="147" cy="70" r="2.2" fill="#d67a2a"/>
+          <text x="153" y="67" font-size="8" fill="#9a4a10">①面取り端</text>
+          <line x1="206" y1="132" x2="206" y2="152" stroke="#888" stroke-width="0.9" stroke-dasharray="3,2"/>
+          <line x1="118" y1="152" x2="206" y2="152" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#bfO)" marker-end="url(#bfO)"/>
+          <text x="162" y="167" text-anchor="middle" font-size="10" fill="#9a4a10" font-weight="700">②ずらし値 ＝ 入力値計 × 比率</text>
+          <text x="180" y="186" text-anchor="middle" font-size="9" fill="#666">面①②③の横幅を足した「入力値計 × 比率」でずらす</text>
         </svg>
-        <figcaption>面の横幅ぶん、切断線が長手方向へずれる</figcaption>
+        <figcaption>横方向に進んだ分だけ切断線がずれる（各面で繰り返す）</figcaption>
       </figure>
       <div class="help-note" style="background:#eef6ff; border-left-color:#2563eb; color:#1e3a5f">
-        🧮 メイン画面の「<b>ずらし量計算</b>」（折りたたみ）に<b>面の横幅</b>を入れると、ずらし量を自動表示します。底面・面取りの各点で繰り返せば、ブログのような寸法（13/21/114mm…）が出せます。
+        🧮 メイン画面の「<b>面を考慮したずらし値（厳密時）</b>」（折りたたみ）に<b>面の横幅</b>を入れると、ずらし値を自動表示します。底面・面取りの各点で繰り返せば、ブログのような寸法（13/21/114mm…）が出せます。
       </div>
       <p style="font-size:11px; color:#666; margin-top:8px">※ 実用上は、数mm〜1cmの余裕と切断後の目地での微調整で吸収できるため、垂直に降ろすだけでも問題ありません。</p>
     </div>
