@@ -14,7 +14,7 @@
     .disclosure{ appearance:none; border:none; background:none; color:#fff; cursor:pointer; font-size:13px; font-weight:700; padding:2px 0; text-align:left; width:100%; opacity:.92 }
     .faceRow{ display:flex; align-items:center; gap:6px; margin-bottom:5px; font-size:13px; white-space:nowrap }
     .faceRow .faceNo{ width:2.4em }
-    .faceRow .numfield{ width:62px }
+    .faceRow .numfield{ width:50px }
     .faceRow b{ font-size:15px }
     .panel{ background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25); border-radius:14px; padding:10px; margin-top:12px }
     #angleGuide{ width:100%; aspect-ratio:4/3; background:rgba(0,0,0,.15); border-radius:12px; display:block; max-height:260px; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
@@ -143,11 +143,10 @@
   <div class="panel">
     <button class="disclosure" id="offsetToggle" aria-expanded="false">▸ 面を考慮したずらし値（厳密時）</button>
     <div id="offsetBody" style="display:none; margin-top:8px">
-      <div class="faceRow"><span class="muted faceNo">面①</span><input id="face1" class="numfield" type="text" inputmode="numeric" maxlength="4" placeholder="横幅mm" /><span class="muted">→ ずらし値 <b id="off1">—</b> mm</span></div>
-      <div class="faceRow"><span class="muted faceNo">面②</span><input id="face2" class="numfield" type="text" inputmode="numeric" maxlength="4" placeholder="横幅mm" /><span class="muted">→ ずらし値 <b id="off2">—</b> mm</span></div>
-      <div class="faceRow"><span class="muted faceNo">面③</span><input id="face3" class="numfield" type="text" inputmode="numeric" maxlength="4" placeholder="横幅mm" /><span class="muted">→ ずらし値 <b id="off3">—</b> mm</span></div>
+      <div class="faceRow"><span class="muted faceNo">面①</span><input id="face1" class="numfield" type="text" inputmode="numeric" maxlength="4" placeholder="横幅" /><span class="muted">mm → ずらし値 <b id="off1">—</b> mm</span></div>
+      <div class="faceRow"><span class="muted faceNo">面②</span><input id="face2" class="numfield" type="text" inputmode="numeric" maxlength="4" placeholder="横幅" /><span class="muted">mm → ずらし値 <b id="off2">—</b> mm</span></div>
       <div class="muted" style="font-size:11px; margin-top:6px; line-height:1.5">
-        ずらし値（端からの累計）＝（面①＋面②…）× 比率（切断長÷幅 = <span id="ratioOut">—</span>）
+        ずらし値（端からの累計）＝（面①＋面②）× 比率（切断長÷幅 = <span id="ratioOut">—</span>）
       </div>
     </div>
   </div>
@@ -545,7 +544,7 @@
     const width=getWidth(); const ratio = width>0 ? currentCutLen()/width : 0;
     rEl.textContent=ratio.toFixed(3);
     let cum=0; // 端からの累計
-    for(let i=1;i<=3;i++){
+    for(let i=1;i<=2;i++){
       const inp=document.getElementById('face'+i), out=document.getElementById('off'+i);
       if(!inp||!out) continue;
       const v=parseFloat(zen2han(inp.value));
@@ -911,7 +910,7 @@
     // 側面/底面：メインの「ずらし値」累計を差し引いて表示（0なら −0 を出さない）
     const ratio = widthMm>0 ? cutLen/widthMm : 0;
     let cum=0;
-    for(let i=1;i<=3;i++){ const el=document.getElementById('face'+i); const v=el?parseFloat(zen2han(el.value)):NaN; if(isFinite(v)&&v>0) cum+=v; }
+    for(let i=1;i<=2;i++){ const el=document.getElementById('face'+i); const v=el?parseFloat(zen2han(el.value)):NaN; if(isFinite(v)&&v>0) cum+=v; }
     const off = Math.round(cum*ratio);
     const sideEl = document.getElementById('sideScribeCutLenText');
     if(sideEl) sideEl.textContent = off>0 ? (cl+' − '+off+' ＋ 数mm') : (cl+' mm ＋ 数mm');
@@ -936,7 +935,7 @@
       t.setAttribute('aria-expanded', show);
       if(show) updateOffset();
     });
-    ['face1','face2','face3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', updateOffset); });
+    ['face1','face2'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', updateOffset); });
   });
 </script>
 
@@ -1052,15 +1051,12 @@
           <g stroke="#3a7fc0" stroke-width="0.8" stroke-dasharray="2,2">
             <line x1="82" y1="140" x2="82" y2="178"/>
             <line x1="118" y1="140" x2="118" y2="152"/>
-            <line x1="242" y1="140" x2="242" y2="152"/>
             <line x1="278" y1="140" x2="278" y2="178"/>
           </g>
           <line x1="82" y1="146" x2="118" y2="146" stroke="#3a7fc0" stroke-width="1.1" marker-start="url(#csB)" marker-end="url(#csB)"/>
-          <line x1="118" y1="146" x2="242" y2="146" stroke="#3a7fc0" stroke-width="1.1" marker-start="url(#csB)" marker-end="url(#csB)"/>
-          <line x1="242" y1="146" x2="278" y2="146" stroke="#3a7fc0" stroke-width="1.1" marker-start="url(#csB)" marker-end="url(#csB)"/>
+          <line x1="118" y1="146" x2="278" y2="146" stroke="#3a7fc0" stroke-width="1.1" marker-start="url(#csB)" marker-end="url(#csB)"/>
           <text x="100" y="159" text-anchor="middle" font-size="9" fill="#3a7fc0" font-weight="700">面①</text>
-          <text x="180" y="159" text-anchor="middle" font-size="9" fill="#3a7fc0" font-weight="700">面②</text>
-          <text x="260" y="159" text-anchor="middle" font-size="9" fill="#3a7fc0" font-weight="700">面③</text>
+          <text x="198" y="159" text-anchor="middle" font-size="9" fill="#3a7fc0" font-weight="700">面②</text>
           <line x1="82" y1="178" x2="278" y2="178" stroke="#3a7fc0" stroke-width="1.2" marker-start="url(#csB)" marker-end="url(#csB)"/>
           <text x="180" y="195" text-anchor="middle" font-size="9.5" fill="#3a7fc0" font-weight="700">面の横幅（＝入力値の合計）</text>
         </svg>
@@ -1138,7 +1134,7 @@
           <line x1="206" y1="132" x2="206" y2="152" stroke="#888" stroke-width="0.9" stroke-dasharray="3,2"/>
           <line x1="118" y1="152" x2="206" y2="152" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#bfO)" marker-end="url(#bfO)"/>
           <text x="162" y="167" text-anchor="middle" font-size="10" fill="#9a4a10" font-weight="700">②ずらし値 ＝ 入力値計 × 比率</text>
-          <text x="180" y="186" text-anchor="middle" font-size="9" fill="#666">面①②③の横幅を足した「入力値計 × 比率」でずらす</text>
+          <text x="180" y="186" text-anchor="middle" font-size="9" fill="#666">面①②の横幅を足した「入力値計 × 比率」でずらす</text>
         </svg>
         <figcaption>横方向に進んだ分だけ切断線がずれる（各面で繰り返す）</figcaption>
       </figure>
