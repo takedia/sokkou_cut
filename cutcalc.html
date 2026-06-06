@@ -11,6 +11,7 @@
     .container{ max-width:460px; margin:0 auto; background:var(--panel); backdrop-filter:blur(10px); border-radius:16px; padding:12px; box-shadow:0 10px 24px rgba(0,0,0,.2) }
     h1{ font-size:16px; margin:0 0 2px; text-align:center }
     .subtitle{ text-align:center; font-size:11px; opacity:.75; letter-spacing:.06em; margin:0 0 8px }
+    .disclosure{ appearance:none; border:none; background:none; color:#fff; cursor:pointer; font-size:13px; font-weight:700; padding:2px 0; text-align:left; width:100%; opacity:.92 }
     .panel{ background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25); border-radius:14px; padding:10px; margin-top:12px }
     #angleGuide{ width:100%; aspect-ratio:4/3; background:rgba(0,0,0,.15); border-radius:12px; display:block; max-height:260px; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
     #angleGuide.dragging{ cursor:grabbing; }
@@ -134,6 +135,19 @@
     </div>
 
     <div id="statusMsg" class="status" style="display:none"></div>
+  </div>
+  <div class="panel">
+    <button class="disclosure" id="offsetToggle" aria-expanded="false">▸ ずらし量計算（底面・面取り用）</button>
+    <div id="offsetBody" style="display:none; margin-top:8px">
+      <div class="row-nowrap">
+        <span class="field">面の横幅(mm): <input id="faceWidth" class="numfield" type="text" inputmode="numeric" maxlength="4" placeholder="例30" /></span>
+        <span style="font-size:14px; white-space:nowrap">→ ずらし量 <b id="offsetOut" style="font-size:15px">—</b> mm</span>
+      </div>
+      <div class="muted" style="font-size:11px; margin-top:6px; line-height:1.5">
+        ずらし量 ＝ 面の横幅 × 比率（切断長÷幅 = <span id="ratioOut">—</span>）<br>
+        底面や面取り部の各点で「その横幅 × 比率」を足してケガきます。
+      </div>
+    </div>
   </div>
   <div class="panel">
     <div class="grid-1">
@@ -517,7 +531,20 @@
   }
 
   function renderAll(){ drawBackground(); drawGuide(); }
-  function requestRender(){ renderAll(); }
+  function requestRender(){ renderAll(); updateOffset(); }
+  // ずらし量（底面・面取り）= 面の横幅 × 比率（切断長÷幅）
+  function currentCutLen(){
+    const open=openAngleFromGuide(); const width=getWidth();
+    const angDeg=(mode==='dual')? open/2 : Math.abs(open-90);
+    return calcCutLenMm(angDeg, width);
+  }
+  function updateOffset(){
+    const out=document.getElementById('offsetOut'); if(!out) return;
+    const width=getWidth(); const ratio = width>0 ? currentCutLen()/width : 0;
+    const rEl=document.getElementById('ratioOut'); if(rEl) rEl.textContent=ratio.toFixed(3);
+    const fw=parseFloat(zen2han(document.getElementById('faceWidth').value));
+    out.textContent = (isFinite(fw)&&fw>0) ? Math.round(fw*ratio) : '—';
+  }
 
   // ===== スライダー反映 =====
   function lerp(lv,a,b){ return a + (b-a)*(lv/100); }
@@ -887,6 +914,16 @@
     document.getElementById('helpModal').addEventListener('click', (e)=>{ if(e.target.id==='helpModal') closeHelpModal(); });
     document.querySelectorAll('.help-tab').forEach(b => b.addEventListener('click', ()=>switchHelpTab(b.dataset.tab)));
     document.getElementById('helpUseBtn').addEventListener('click', ()=> openHelpModal('use'));
+    // ずらし量計算（折りたたみ）
+    document.getElementById('offsetToggle').addEventListener('click', ()=>{
+      const b=document.getElementById('offsetBody'), t=document.getElementById('offsetToggle');
+      const show = (b.style.display==='none');
+      b.style.display = show?'block':'none';
+      t.textContent = (show?'▾':'▸') + ' ずらし量計算（底面・面取り用）';
+      t.setAttribute('aria-expanded', show);
+      if(show) updateOffset();
+    });
+    document.getElementById('faceWidth').addEventListener('input', updateOffset);
   });
 </script>
 
@@ -1064,6 +1101,9 @@
         </svg>
         <figcaption>面の横幅ぶん、切断線が長手方向へずれる</figcaption>
       </figure>
+      <div class="help-note" style="background:#eef6ff; border-left-color:#2563eb; color:#1e3a5f">
+        🧮 メイン画面の「<b>ずらし量計算</b>」（折りたたみ）に<b>面の横幅</b>を入れると、ずらし量を自動表示します。底面・面取りの各点で繰り返せば、ブログのような寸法（13/21/114mm…）が出せます。
+      </div>
       <p style="font-size:11px; color:#666; margin-top:8px">※ 実用上は、数mm〜1cmの余裕と切断後の目地での微調整で吸収できるため、垂直に降ろすだけでも問題ありません。</p>
     </div>
   </div>
