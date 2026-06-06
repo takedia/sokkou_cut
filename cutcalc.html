@@ -66,8 +66,8 @@
     .faceRow .offWrap{ white-space:nowrap; font-size:14px }
     .faceRow .offOut{ font-size:15px }
     .faceW::placeholder{ color:#c7ccd6; opacity:1 }
-    .addFace{ appearance:none; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff; width:26px; height:26px; border-radius:8px; font-size:16px; font-weight:700; line-height:1; padding:0; cursor:pointer }
-    .addFace:hover{ background:rgba(255,255,255,.28) }
+    .addFace,.delFace{ appearance:none; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff; width:26px; height:26px; border-radius:8px; font-size:16px; font-weight:700; line-height:1; padding:0; cursor:pointer }
+    .addFace:hover,.delFace:hover{ background:rgba(255,255,255,.28) }
     .disclosure .tri{ color:#ffd24a }
     /* 計測ログ モーダル */
     .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:100; padding:14px; }
@@ -153,15 +153,19 @@
           <span class="field">面の横幅: <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" placeholder="例20" /> mm</span>
           <span class="offWrap">→ ずらし値 <b class="offOut">—</b> mm</span>
           <button class="addFace" type="button" aria-label="面を追加">＋</button>
+          <button class="delFace" type="button" aria-label="面を削除">－</button>
         </div>
         <div class="faceRow" style="display:none">
           <span class="field">面の横幅: <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" placeholder="例20" /> mm</span>
           <span class="offWrap">→ ずらし値 <b class="offOut">—</b> mm</span>
           <button class="addFace" type="button" aria-label="面を追加">＋</button>
+          <button class="delFace" type="button" aria-label="面を削除">－</button>
         </div>
         <div class="faceRow" style="display:none">
           <span class="field">面の横幅: <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" placeholder="例20" /> mm</span>
           <span class="offWrap">→ ずらし値 <b class="offOut">—</b> mm</span>
+          <button class="addFace" type="button" aria-label="面を追加">＋</button>
+          <button class="delFace" type="button" aria-label="面を削除">－</button>
         </div>
       </div>
       <div class="muted" style="font-size:11px; margin-top:6px; line-height:1.5">
@@ -563,11 +567,21 @@
   function refreshAddBtns(){
     const rows=faceRowEls(); let lastVis=-1;
     rows.forEach((r,i)=>{ if(r.style.display!=='none') lastVis=i; });
-    rows.forEach((r,i)=>{ const b=r.querySelector('.addFace'); if(b) b.style.display=(i===lastVis)?'':'none'; });
+    rows.forEach((r,i)=>{
+      const add=r.querySelector('.addFace'), del=r.querySelector('.delFace');
+      if(add) add.style.display=(i===lastVis && i<rows.length-1)?'':'none';
+      if(del) del.style.display=(i===lastVis && i>0)?'':'none';
+    });
   }
   function addFace(){
     const rows=faceRowEls();
     for(let i=0;i<rows.length;i++){ if(rows[i].style.display==='none'){ rows[i].style.display=''; const inp=rows[i].querySelector('.faceW'); if(inp) inp.focus(); break; } }
+    refreshAddBtns(); updateOffset();
+  }
+  function delFace(){
+    const rows=faceRowEls(); let lastVis=-1;
+    rows.forEach((r,i)=>{ if(r.style.display!=='none') lastVis=i; });
+    if(lastVis>0){ const r=rows[lastVis]; r.style.display='none'; const inp=r.querySelector('.faceW'); if(inp) inp.value=''; }
     refreshAddBtns(); updateOffset();
   }
   function updateOffset(){
@@ -964,7 +978,7 @@
     });
     const faceRows=document.getElementById('faceRows');
     faceRows.addEventListener('input', (e)=>{ if(e.target.classList.contains('faceW')) updateOffset(); });
-    faceRows.addEventListener('click', (e)=>{ if(e.target.classList.contains('addFace')) addFace(); });
+    faceRows.addEventListener('click', (e)=>{ if(e.target.classList.contains('addFace')) addFace(); else if(e.target.classList.contains('delFace')) delFace(); });
     refreshAddBtns();
   });
 </script>
