@@ -136,14 +136,14 @@
     <div id="statusMsg" class="status" style="display:none"></div>
   </div>
   <div class="panel">
-    <button class="disclosure" id="offsetToggle" aria-expanded="false">▸ ずらし量計算（底面・面取り用）</button>
+    <button class="disclosure" id="offsetToggle" aria-expanded="false">▸ 面を考慮したずらし値（厳密時）</button>
     <div id="offsetBody" style="display:none; margin-top:8px">
       <div class="row-nowrap">
         <span class="field">面の横幅(mm): <input id="faceWidth" class="numfield" type="text" inputmode="numeric" maxlength="4" placeholder="例30" /></span>
-        <span style="font-size:14px; white-space:nowrap">→ ずらし量 <b id="offsetOut" style="font-size:15px">—</b> mm</span>
+        <span style="font-size:14px; white-space:nowrap">→ ずらし値 <b id="offsetOut" style="font-size:15px">—</b> mm</span>
       </div>
       <div class="muted" style="font-size:11px; margin-top:6px; line-height:1.5">
-        ずらし量 ＝ 面の横幅 × 比率（切断長÷幅 = <span id="ratioOut">—</span>）<br>
+        ずらし値 ＝ 面の横幅 × 比率（切断長÷幅 = <span id="ratioOut">—</span>）<br>
         底面や面取り部の各点で「その横幅 × 比率」を足してケガきます。
       </div>
     </div>
@@ -918,7 +918,7 @@
       const b=document.getElementById('offsetBody'), t=document.getElementById('offsetToggle');
       const show = (b.style.display==='none');
       b.style.display = show?'block':'none';
-      t.textContent = (show?'▾':'▸') + ' ずらし量計算（底面・面取り用）';
+      t.textContent = (show?'▾':'▸') + ' 面を考慮したずらし値（厳密時）';
       t.setAttribute('aria-expanded', show);
       if(show) updateOffset();
     });

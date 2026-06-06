@@ -4,6 +4,9 @@
     <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#2c8c2c"/>
     </marker>
+    <marker id="ago" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9a4a10"/>
+    </marker>
   </defs>
 
   <text x="210" y="18" text-anchor="middle" font-weight="700" font-size="13" fill="#222">基本操作の流れ</text>
@@ -27,11 +30,16 @@
   <rect x="220" y="166" width="60" height="14" fill="#fff" stroke="#ccc" rx="7"/>
   <text x="250" y="176" text-anchor="middle" font-size="8" fill="#333">切断 215mm</text>
 
-  <!-- Sliders -->
-  <line x1="145" y1="195" x2="278" y2="195" stroke="#bbb" stroke-width="4"/>
-  <circle cx="195" cy="195" r="5" fill="#4CAF50"/>
-  <line x1="145" y1="212" x2="278" y2="212" stroke="#bbb" stroke-width="4"/>
-  <circle cx="240" cy="212" r="5" fill="#4CAF50"/>
+  <!-- Sliders（横1列） -->
+  <line x1="145" y1="194" x2="206" y2="194" stroke="#bbb" stroke-width="4"/>
+  <circle cx="172" cy="194" r="5" fill="#4CAF50"/>
+  <line x1="217" y1="194" x2="278" y2="194" stroke="#bbb" stroke-width="4"/>
+  <circle cx="255" cy="194" r="5" fill="#4CAF50"/>
+
+  <!-- ずらし値 行（面取り・底面用） -->
+  <rect x="142" y="207" width="46" height="14" fill="#fff" stroke="#ccc" rx="3"/>
+  <text x="165" y="217" text-anchor="middle" font-size="7" fill="#333">面の横幅</text>
+  <text x="236" y="217" text-anchor="middle" font-size="8" fill="#9a4a10" font-weight="700">→ ずらし値 △mm</text>
 
   <!-- Buttons row -->
   <rect x="142" y="232" width="36" height="14" fill="#fff" stroke="#ccc" rx="4"/>
@@ -60,7 +68,7 @@
   <text x="50" y="208" font-weight="700" fill="#2c8c2c">③</text>
   <text x="13" y="222" fill="#222" font-size="10">スライダー</text>
   <text x="13" y="232" fill="#666" font-size="9">or 図ドラッグ</text>
-  <line x1="75" y1="212" x2="138" y2="208" stroke="#2c8c2c" stroke-width="1.2" marker-end="url(#ag)"/>
+  <line x1="75" y1="214" x2="138" y2="195" stroke="#2c8c2c" stroke-width="1.2" marker-end="url(#ag)"/>
 
   <!-- 4. Read cut length -->
   <text x="320" y="135" font-weight="700" fill="#2c8c2c">④</text>
@@ -68,4 +76,10 @@
   <text x="318" y="161" fill="#222" font-size="10">読み取り</text>
   <text x="318" y="175" fill="#666" font-size="9">タップで詳細</text>
   <line x1="316" y1="140" x2="200" y2="140" stroke="#2c8c2c" stroke-width="1.2" marker-end="url(#ag)"/>
+
+  <!-- 5. ずらし値（面取り・底面用） -->
+  <text x="322" y="205" font-weight="700" fill="#9a4a10">⑤</text>
+  <text x="312" y="219" fill="#222" font-size="9">面のずらし値</text>
+  <text x="312" y="230" fill="#666" font-size="8">（厳密時・任意）</text>
+  <line x1="310" y1="214" x2="284" y2="214" stroke="#9a4a10" stroke-width="1.2" marker-end="url(#ago)"/>
 </svg>
