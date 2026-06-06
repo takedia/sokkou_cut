@@ -113,10 +113,14 @@
 </head>
 <body>
 <div class="container">
-  <h1>側溝カットガイド <button class="help-icon-btn" id="helpUseBtn" title="使い方を表示" aria-label="使い方を表示">?</button></h1>
-  <div class="subtitle">角度カット計算ツール</div>
+  <h1>側溝カットガイド <button class="help-icon-btn" id="helpUseBtn" data-i18n-title="tip_help" data-i18n-aria="tip_help" title="使い方を表示" aria-label="使い方を表示">?</button>
+    <select id="langSel" aria-label="Language" style="float:right; font-size:12px; padding:2px 4px; border-radius:6px; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff">
+      <option value="ja">日本語</option><option value="en">English</option><option value="vi">Tiếng Việt</option><option value="zh">中文</option><option value="pt">Português</option><option value="fil">Filipino</option>
+    </select>
+  </h1>
+  <div class="subtitle" data-i18n="subtitle">角度カット計算ツール</div>
   <div class="panel canvasBlock">
-    <div class="muted" style="margin-bottom:6px; font-size:12px; line-height:1.5">
+    <div class="muted" data-i18n="intro" style="margin-bottom:6px; font-size:12px; line-height:1.5">
       カメラ起動 → ガイド線を実物（水糸・構造物）に合わせ、角度・切断長を読取り。詳しい使い方は右上の <b>?</b>
     </div>
     <canvas id="angleGuide"></canvas>
@@ -124,29 +128,29 @@
   </div>
   <div class="panel">
     <div class="row" style="justify-content:space-between; gap:12px">
-      <label class="toggle" title="片側=桝など1本のみカット">
-        <span class="muted">両側</span>
+      <label class="toggle" data-i18n-title="tip_mode" title="片側=桝など1本のみカット">
+        <span class="muted" data-i18n="mode_dual">両側</span>
         <input type="checkbox" id="modeToggle" />
-        <span class="muted">片側</span>
+        <span class="muted" data-i18n="mode_single">片側</span>
       </label>
-      <button class="btn" id="flipBtn" title="左右反転" style="padding:5px 10px; font-size:14px">⇄</button>
-      <span class="pill-sm">切断長: <span id="inlineCutLenNum" class="num">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="unit"> mm</span></span>
+      <button class="btn" id="flipBtn" data-i18n-title="tip_flip" title="左右反転" style="padding:5px 10px; font-size:14px">⇄</button>
+      <span class="pill-sm"><span data-i18n="cutlen">切断長:</span> <span id="inlineCutLenNum" class="num">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="unit"> mm</span></span>
     </div>
     <!-- スライダー（単独のL/Rラベルは廃止・折返し防止で省スペース化） -->
     <div class="row" style="margin-top:12px; gap:12px; flex-wrap:nowrap">
       <div id="leftWrap" style="flex:1; display:flex; min-width:0">
-        <input type="range" id="leftSlider" min="0" max="100" value="25" aria-label="左バー" style="flex:1; min-width:0" />
+        <input type="range" id="leftSlider" min="0" max="100" value="25" data-i18n-aria="aria_left" aria-label="左バー" style="flex:1; min-width:0" />
       </div>
       <div id="rightWrap" style="flex:1; display:flex; min-width:0">
-        <input type="range" id="rightSlider" min="0" max="100" value="75" aria-label="右バー" style="flex:1; min-width:0" />
+        <input type="range" id="rightSlider" min="0" max="100" value="75" data-i18n-aria="aria_right" aria-label="右バー" style="flex:1; min-width:0" />
       </div>
     </div>
   </div>
   <div class="panel">
     <div class="row" style="flex-direction:column; align-items:flex-start; gap:8px">
       <div class="row-nowrap">
-        <span class="field">幅/高さ(mm): <input id="productWidth" class="numfield" type="text" inputmode="numeric" maxlength="5" value="520" /></span>
-        <span class="field">角度(°): <input id="manualAngle" class="numfield" type="text" inputmode="numeric" maxlength="3" placeholder="例90" /></span>
+        <span class="field"><span data-i18n="wh">幅/高さ(mm):</span> <input id="productWidth" class="numfield" type="text" inputmode="numeric" maxlength="5" value="520" /></span>
+        <span class="field"><span data-i18n="angle">角度(°):</span> <input id="manualAngle" class="numfield" type="text" inputmode="numeric" maxlength="3" data-i18n-ph="ph_angle" placeholder="例90" /></span>
       </div>
     </div>
 
@@ -157,25 +161,25 @@
     <div id="offsetBody" style="display:none; margin-top:8px">
       <div id="faceRows">
         <div class="faceRow">
-          <span class="field">面の横幅: <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" placeholder="例20" /> mm</span>
-          <span class="offWrap">→ ずらし値 <b class="offOut">—</b> mm</span>
-          <button class="addFace" type="button" aria-label="面を追加">＋</button>
-          <button class="delFace" type="button" aria-label="面を削除">－</button>
+          <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
+          <span class="offWrap"><span data-i18n="arrow_offset">→ ずらし値</span> <b class="offOut">—</b> mm</span>
+          <button class="addFace" type="button" data-i18n-aria="aria_addface" aria-label="面を追加">＋</button>
+          <button class="delFace" type="button" data-i18n-aria="aria_delface" aria-label="面を削除">－</button>
         </div>
         <div class="faceRow" style="display:none">
-          <span class="field">面の横幅: <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" placeholder="例20" /> mm</span>
-          <span class="offWrap">→ ずらし値 <b class="offOut">—</b> mm</span>
-          <button class="addFace" type="button" aria-label="面を追加">＋</button>
-          <button class="delFace" type="button" aria-label="面を削除">－</button>
+          <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
+          <span class="offWrap"><span data-i18n="arrow_offset">→ ずらし値</span> <b class="offOut">—</b> mm</span>
+          <button class="addFace" type="button" data-i18n-aria="aria_addface" aria-label="面を追加">＋</button>
+          <button class="delFace" type="button" data-i18n-aria="aria_delface" aria-label="面を削除">－</button>
         </div>
         <div class="faceRow" style="display:none">
-          <span class="field">面の横幅: <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" placeholder="例20" /> mm</span>
-          <span class="offWrap">→ ずらし値 <b class="offOut">—</b> mm</span>
-          <button class="addFace" type="button" aria-label="面を追加">＋</button>
-          <button class="delFace" type="button" aria-label="面を削除">－</button>
+          <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
+          <span class="offWrap"><span data-i18n="arrow_offset">→ ずらし値</span> <b class="offOut">—</b> mm</span>
+          <button class="addFace" type="button" data-i18n-aria="aria_addface" aria-label="面を追加">＋</button>
+          <button class="delFace" type="button" data-i18n-aria="aria_delface" aria-label="面を削除">－</button>
         </div>
       </div>
-      <div class="muted" style="font-size:11px; margin-top:6px; line-height:1.5">
+      <div class="muted" data-i18n="offset_note" style="font-size:11px; margin-top:6px; line-height:1.5">
         <b>＋</b>で面を追加（最大3）。底面・面取りの各点の横幅を順に入れると、各点の累計ずらし値が出ます。
       </div>
     </div>
@@ -183,14 +187,15 @@
   <div class="panel">
     <div class="grid-1">
       <button class="btn" id="cameraToggleBtn">カメラ起動</button>
-      <button class="btn" id="captureBtn" title="カメラ映像を止めて合わせやすくする（もう一度でライブに戻る）" disabled>静止</button>
-      <label class="btn" style="text-align:center; cursor:pointer">画像読込<input id="imageInput" type="file" accept="image/*" style="display:none" /></label>
-      <button class="btn" id="logBtn">記録</button>
+      <button class="btn" id="captureBtn" data-i18n-title="tip_freeze" title="カメラ映像を止めて合わせやすくする（もう一度でライブに戻る）" disabled>静止</button>
+      <label class="btn" style="text-align:center; cursor:pointer"><span data-i18n="btn_image">画像読込</span><input id="imageInput" type="file" accept="image/*" style="display:none" /></label>
+      <button class="btn" id="logBtn" data-i18n="btn_log">記録</button>
     </div>
     <video id="video" playsinline style="display:none"></video>
     <canvas id="photoCanvas" style="display:none"></canvas>
   </div>
 </div>
+<script src="i18n.js"></script>
 <script>
   // ===== 状態 =====
   let leftAngle=135.0,rightAngle=45.0,mode='dual',flipped=false;
@@ -254,21 +259,21 @@
       const disp180=openAngle;                 // 0..180（幾何）
       const disp090=Math.abs(disp180-90); // 表示角 0..90（0→90→0）
       const from90=disp090;               // |角-90|（0..90）               // |角-90|
-      const rad=from90*Math.PI/180; const t=Math.tan(rad);
-      cutLen=(from90===0)?0:(t===0?Infinity:width/t);
+      const rad=from90*Math.PI/180; const tn=Math.tan(rad);
+      cutLen=(from90===0)?0:(tn===0?Infinity:width/tn);
       if(!isFinite(cutLen)||cutLen<0) cutLen=0;
-      angleLabel=`角度(片側):${padNum(disp090,3)}°`;
+      angleLabel=`${t('ci_angle_s')}${padNum(disp090,3)}°`;
     }else{
       const half=Math.min(90, Math.max(0, openAngle/2));
-      const rad=half*Math.PI/180; const t=Math.tan(rad);
-      cutLen=(half===90)?0:(t===0?Infinity:width/t);
+      const rad=half*Math.PI/180; const tn=Math.tan(rad);
+      cutLen=(half===90)?0:(tn===0?Infinity:width/tn);
       if(!isFinite(cutLen)||cutLen<0) cutLen=0;
-      angleLabel=`角度(両側):${padNum(openAngle,3)}°`;
+      angleLabel=`${t('ci_angle_d')}${padNum(openAngle,3)}°`;
     }
     // 上限クランプ（W×2）
     if(cutLen!==null){ cutLen=Math.min(cutLen, width*2); }
 
-    const label=`製品幅(高さ):${padNum(width,4)} mm  ${angleLabel}  切断長:${padNum(cutLen,4)} mm`;
+    const label=`${t('ci_width')}${padNum(width,4)} mm  ${angleLabel}  ${t('ci_cutlen')}${padNum(cutLen,4)} mm`;
     const mW = Math.round(guide.width * 0.96); // 常に同じ幅
     const x  = (guide.width - mW) / 2, y=8;
     // 帯幅に収まるようフォントを自動縮小（狭い画面で端が切れないように）
@@ -636,24 +641,24 @@
       stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false});
       video.srcObject=stream; await video.play();
       startLiveLoop();
-      showStatus('カメラ起動','success');
+      showStatus(t('st_cam_on'),'success');
       document.getElementById('cameraToggleBtn').textContent='カメラ停止';
       { const cb=document.getElementById('captureBtn'); cb.disabled=false; cb.textContent='静止'; }
       isCaptured=false; fitCanvas();
-    }catch(e){ showStatus('カメラ起動失敗: '+e.message,'error'); }
+    }catch(e){ showStatus(t('st_cam_fail')+e.message,'error'); }
   }
   function startLiveLoop(){ if(liveRAF) return; const loop=()=>{ if(!stream){ liveRAF=null; return; } renderAll(); liveRAF=requestAnimationFrame(loop); }; liveRAF=requestAnimationFrame(loop); }
   function stopLiveLoop(){ if(liveRAF){ cancelAnimationFrame(liveRAF); liveRAF=null; } }
-  function stopCamera(){ stopLiveLoop(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.removeAttribute('srcObject'); document.getElementById('cameraToggleBtn').textContent='カメラ起動'; { const cb=document.getElementById('captureBtn'); cb.disabled=true; cb.textContent='静止'; } isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus('カメラ停止','info'); }
+  function stopCamera(){ stopLiveLoop(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.removeAttribute('srcObject'); document.getElementById('cameraToggleBtn').textContent='カメラ起動'; { const cb=document.getElementById('captureBtn'); cb.disabled=true; cb.textContent='静止'; } isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus(t('st_cam_off'),'info'); }
   function toggleCamera(){ if(stream) stopCamera(); else startCamera(); }
-  function capturePhoto(){ if(!(video.videoWidth>0)) return showStatus('映像がありません','error'); photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const vw=video.videoWidth, vh=video.videoHeight, cw=photo.width, ch=photo.height; const vr=vw/vh, cr=cw/ch; let dw,dh,dx,dy; if(vr>cr){ dh=ch; dw=dh*vr; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/vr; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(video,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus('静止しました','success'); }
+  function capturePhoto(){ if(!(video.videoWidth>0)) return showStatus(t('st_no_video'),'error'); photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const vw=video.videoWidth, vh=video.videoHeight, cw=photo.width, ch=photo.height; const vr=vw/vh, cr=cw/ch; let dw,dh,dx,dy; if(vr>cr){ dh=ch; dw=dh*vr; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/vr; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(video,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus(t('st_frozen'),'success'); }
   function toggleFreeze(){
-    if(!stream) return showStatus('先にカメラを起動してください','error');
+    if(!stream) return showStatus(t('st_start_cam'),'error');
     const cb=document.getElementById('captureBtn');
-    if(isCaptured){ isCaptured=false; photo.width=photo.height=0; startLiveLoop(); cb.textContent='静止'; showStatus('ライブに戻しました','info'); }
+    if(isCaptured){ isCaptured=false; photo.width=photo.height=0; startLiveLoop(); cb.textContent='静止'; showStatus(t('st_live'),'info'); }
     else{ capturePhoto(); cb.textContent='解除'; }
   }
-  function handleImageLoad(ev){ const f=ev.target.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const iw=img.width,ih=img.height,cw=photo.width,ch=photo.height; const ir=iw/ih,cr=cw/ch; let dw,dh,dx,dy; if(ir>cr){ dh=ch; dw=dh*ir; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/ir; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(img,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus('画像読込完了','success'); }; img.onerror=()=>showStatus('画像読込失敗','error'); img.src=URL.createObjectURL(f); }
+  function handleImageLoad(ev){ const f=ev.target.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const iw=img.width,ih=img.height,cw=photo.width,ch=photo.height; const ir=iw/ih,cr=cw/ch; let dw,dh,dx,dy; if(ir>cr){ dh=ch; dw=dh*ir; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/ir; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(img,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus(t('st_img_ok'),'success'); }; img.onerror=()=>showStatus(t('st_img_fail'),'error'); img.src=URL.createObjectURL(f); }
 
   // ===== 角度の手入力でガイドを駆動（カメラ無しでも使える） =====
   // スライダー位置のみ同期（入力欄は書き換えない＝入力中も打ち続けられる）
@@ -671,7 +676,7 @@
     const norm=zen2han(el.value).trim();
     if(norm===''){ if(commit) updateFromSliders(); return; }           // 空欄（確定時のみ現在値へ戻す）
     if(!isNumericStr(norm)){                                           // 数字以外 → 反応させない（確定時のみ警告）
-      if(commit){ showStatus('角度は半角数字で入力してください','error'); updateFromSliders(); }
+      if(commit){ showStatus(t('st_angle_num'),'error'); updateFromSliders(); }
       return;
     }
     const raw=parseFloat(norm);
@@ -682,7 +687,7 @@
     if(commit){
       const open=openAngleFromGuide();
       el.value=(mode==='single')?Math.round(Math.abs(open-90)):Math.round(open);
-      if(raw<lo||raw>hi) showStatus((mode==='dual'?'両側':'片側')+'の角度は '+lo+'〜'+hi+'° に補正しました','info');
+      if(raw<lo||raw>hi) showStatus((mode==='dual'?t('mode_dual'):t('mode_single'))+' '+lo+'–'+hi+'°','info');
     }
     requestRender();
   }
@@ -690,14 +695,14 @@
   function sanitizeWidth(){
     const el=document.getElementById('productWidth');
     const norm=zen2han(el.value).trim();
-    if(norm===''){ el.value=lastValidWidth; showStatus('幅/高さが空です。前の値に戻しました','info'); requestRender(); return; }
+    if(norm===''){ el.value=lastValidWidth; showStatus(t('st_w_empty'),'info'); requestRender(); return; }
     if(!isNumericStr(norm)){                                   // 数字以外 → 警告し前の値へ
-      el.value=lastValidWidth; showStatus('幅/高さは半角数字で入力してください','error'); requestRender(); return;
+      el.value=lastValidWidth; showStatus(t('st_w_num'),'error'); requestRender(); return;
     }
     let v=Math.round(parseFloat(norm));
-    if(v<=0){ v=520; showStatus('幅/高さを既定値 520mm に補正しました','info'); }
-    else if(v<10){ v=10; showStatus('幅/高さの最小は 10mm です','info'); }
-    else if(v>9999){ v=9999; showStatus('幅/高さの最大は 9999mm です','info'); }
+    if(v<=0){ v=520; showStatus(t('st_w_def'),'info'); }
+    else if(v<10){ v=10; showStatus(t('st_w_min'),'info'); }
+    else if(v>9999){ v=9999; showStatus(t('st_w_max'),'info'); }
     el.value=v; lastValidWidth=v; requestRender();
   }
 
@@ -920,20 +925,20 @@
   function formatLogEntry(e){
     const d=new Date(e.timestamp);
     const time=`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-    const m=(e.mode==='single')?'片側':'両側';
-    let base=`${time}  ${m} 角${e.angle}° 幅${e.width} 切${e.cutLen}mm`;
-    if(e.faces && e.faces.length) base+=`  面[${e.faces.join('/')}] ずらし[${(e.offsets||[]).join('/')}]`;
+    const m=(e.mode==='single')?t('mode_single'):t('mode_dual');
+    let base=`${time}  ${m} ∠${e.angle}° ${e.width}mm ✂${e.cutLen}mm`;
+    if(e.faces && e.faces.length) base+=`  ▦[${e.faces.join('/')}]→[${(e.offsets||[]).join('/')}]`;
     return base;
   }
   function renderLogModal(){
     const cur=getCurrentMeasurement();
-    let curStr=`${cur.mode==='single'?'片側':'両側'} ・ 角度 ${cur.angle}° ・ 幅 ${cur.width}mm ・ 切断 ${cur.cutLen}mm`;
-    if(cur.faces && cur.faces.length) curStr+=` ・ 面[${cur.faces.join('/')}]`;
+    let curStr=`${cur.mode==='single'?t('mode_single'):t('mode_dual')} ・ ∠${cur.angle}° ・ ${cur.width}mm ・ ✂${cur.cutLen}mm`;
+    if(cur.faces && cur.faces.length) curStr+=` ・ ▦[${cur.faces.join('/')}]`;
     document.getElementById('logCurrentVals').textContent = curStr;
     const list=loadLog();
     const listEl=document.getElementById('logList');
     listEl.innerHTML='';
-    if(list.length===0){ listEl.innerHTML='<div class="log-empty">記録なし</div>'; return; }
+    if(list.length===0){ listEl.innerHTML='<div class="log-empty">'+t('log_empty')+'</div>'; return; }
     list.slice().reverse().forEach((entry, revIdx)=>{
       const idx=list.length-1-revIdx;
       const row=document.createElement('div'); row.className='log-entry';
@@ -957,7 +962,7 @@
     const log=loadLog(); log.push(entry); saveLogToStorage(log);
     document.getElementById('logNoteInput').value='';
     renderLogModal();
-    showStatus('記録を保存しました','success');
+    showStatus(t('st_log_saved'),'success');
   }
   // 記録の復元（読込）：モード・幅・角度・面を再現
   function restoreFaces(arr){
@@ -986,7 +991,7 @@
     restoreFaces(e.faces);           // 面を再現
     requestRender();                 // ガイド・ずらし再計算
     closeLogModal();
-    showStatus('記録を読込みました','success');
+    showStatus(t('st_log_loaded'),'success');
   }
 
   // ===== 使い方モーダル =====
@@ -1010,7 +1015,7 @@
     const cl = Math.round(cutLen);
     // 上面（ケガキ図）＝ 切断長そのもの
     const mEl = document.getElementById('markingCutLenText');
-    if(mEl) mEl.textContent = cl + ' mm ＋ 数mm';
+    if(mEl) mEl.textContent = cl + ' mm ' + t('extra_mm');
     // 側面・横に広がる面＝ 切断長 − ずらし値（面の横幅の累計 × 比率）
     const ratio = widthMm>0 ? cutLen/widthMm : 0;
     let faceSum = 0;
@@ -1022,8 +1027,39 @@
     });
     const off = Math.round(faceSum * ratio);
     const sEl = document.getElementById('sideScribeCutLenText');
-    if(sEl) sEl.textContent = off>0 ? (cl + ' mm − ' + off + ' ＋ 数mm') : (cl + ' mm ＋ 数mm');
+    if(sEl) sEl.textContent = off>0 ? (cl + ' mm − ' + off + ' ' + t('extra_mm')) : (cl + ' mm ' + t('extra_mm'));
   }
+
+  // ===== 多言語（i18n）: 辞書は i18n.js（window.I18N）。エンジンは下に残す =====
+  let curLang='ja';
+  function t(key){ const d=I18N[curLang]||I18N.ja; return (d[key]!==undefined)?d[key]:(I18N.ja[key]!==undefined?I18N.ja[key]:key); }
+  function detectLang(){
+    try{ const s=localStorage.getItem('cutcalc_lang'); if(s&&I18N[s]) return s; }catch(e){}
+    const n=(navigator.language||'ja').toLowerCase();
+    if(n.indexOf('ja')===0) return 'ja';
+    if(n.indexOf('vi')===0) return 'vi';
+    if(n.indexOf('zh')===0) return 'zh';
+    if(n.indexOf('pt')===0) return 'pt';
+    if(n.indexOf('fil')===0||n.indexOf('tl')===0) return 'fil';
+    if(n.indexOf('en')===0) return 'en';
+    return 'ja';
+  }
+  function applyI18n(){
+    document.documentElement.lang=curLang;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{ el.innerHTML=t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph'))); });
+    document.querySelectorAll('[data-i18n-title]').forEach(el=>{ el.setAttribute('title', t(el.getAttribute('data-i18n-title'))); });
+    document.querySelectorAll('[data-i18n-aria]').forEach(el=>{ el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
+    // 折りたたみボタンのラベル（▸/▾は維持）
+    const ot=document.getElementById('offsetToggle'); if(ot){ const tri=ot.querySelector('.tri'); const open=tri&&tri.textContent==='▾'; ot.innerHTML='<span class="tri">'+(open?'▾':'▸')+'</span> '+t('offset_toggle'); }
+    // カメラボタンの状態別ラベル
+    const cb=document.getElementById('cameraToggleBtn'); if(cb){ cb.textContent = (typeof stream!=='undefined'&&stream)? t('btn_camera_stop') : t('btn_camera'); }
+    const cap=document.getElementById('captureBtn'); if(cap){ cap.textContent = (typeof isCaptured!=='undefined'&&isCaptured)? t('btn_unfreeze') : t('btn_freeze'); }
+    if(typeof requestRender==='function') requestRender();          // 上部バー等を再描画
+    if(typeof updateHelpCutLen==='function') updateHelpCutLen();    // ＋数mm 等
+    if(typeof renderLogModal==='function' && document.getElementById('logModal') && document.getElementById('logModal').classList.contains('show')) renderLogModal();
+  }
+  function setLang(l){ if(!I18N[l]) return; curLang=l; try{ localStorage.setItem('cutcalc_lang', l); }catch(e){} const sel=document.getElementById('langSel'); if(sel) sel.value=l; applyI18n(); }
 
   // ===== 厳密ケガキ図（切断方法タブ／面の横幅×比率で動的描画・本体値に結線） =====
   var FIG = (function(){
@@ -1162,6 +1198,8 @@
 
   document.addEventListener('DOMContentLoaded',()=>{
     setup();
+    curLang=detectLang(); applyI18n();
+    const langSel=document.getElementById('langSel'); if(langSel){ langSel.value=curLang; langSel.addEventListener('change', ()=>setLang(langSel.value)); }
     document.getElementById('logBtn').addEventListener('click', openLogModal);
     document.getElementById('logCloseBtn').addEventListener('click', closeLogModal);
     document.getElementById('logSaveBtn').addEventListener('click', saveCurrentLog);
@@ -1192,13 +1230,13 @@
 <div id="helpModal" class="modal-overlay">
   <div class="modal-panel">
     <div class="modal-header">
-      <span>📘 使い方・解説</span>
-      <button class="modal-close" id="helpCloseBtn" aria-label="閉じる">×</button>
+      <span data-i18n="help_header">📘 使い方・解説</span>
+      <button class="modal-close" id="helpCloseBtn" data-i18n-aria="aria_close" aria-label="閉じる">×</button>
     </div>
     <div class="help-tabs">
-      <button class="help-tab active" data-tab="use">使い方</button>
-      <button class="help-tab" data-tab="cross">横断/縦断</button>
-      <button class="help-tab" data-tab="cutmethod">切断方法</button>
+      <button class="help-tab active" data-tab="use" data-i18n="tab_use">使い方</button>
+      <button class="help-tab" data-tab="cross" data-i18n="tab_cross">横断/縦断</button>
+      <button class="help-tab" data-tab="cutmethod" data-i18n="tab_cut">切断方法</button>
     </div>
 
     <div class="help-section active" data-section="use">
@@ -1364,14 +1402,14 @@
 <div id="logModal" class="modal-overlay">
   <div class="modal-panel">
     <div class="modal-header">
-      <span>📋 計測記録</span>
-      <button class="modal-close" id="logCloseBtn" aria-label="閉じる">×</button>
+      <span data-i18n="log_title">📋 計測記録</span>
+      <button class="modal-close" id="logCloseBtn" data-i18n-aria="aria_close" aria-label="閉じる">×</button>
     </div>
     <div class="modal-current">
       <div class="modal-current-vals" id="logCurrentVals">―</div>
       <div class="modal-row">
-        <input type="text" id="logNoteInput" placeholder="メモ（例: 〇〇現場 北東角）" maxlength="40" />
-        <button class="btn primary" id="logSaveBtn">保存</button>
+        <input type="text" id="logNoteInput" data-i18n-ph="log_memo_ph" placeholder="メモ（例: 〇〇現場 北東角）" maxlength="40" />
+        <button class="btn primary" id="logSaveBtn" data-i18n="log_save">保存</button>
       </div>
     </div>
     <div class="modal-list" id="logList"></div>
