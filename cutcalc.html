@@ -139,10 +139,10 @@
     <!-- スライダー（単独のL/Rラベルは廃止・折返し防止で省スペース化） -->
     <div class="row" style="margin-top:12px; gap:12px; flex-wrap:nowrap">
       <div id="leftWrap" style="flex:1; display:flex; min-width:0">
-        <input type="range" id="leftSlider" min="0" max="100" value="25" data-i18n-aria="aria_left" aria-label="左バー" style="flex:1; min-width:0" />
+        <input type="range" id="leftSlider" min="0" max="100" step="any" value="25" data-i18n-aria="aria_left" aria-label="左バー" style="flex:1; min-width:0" />
       </div>
       <div id="rightWrap" style="flex:1; display:flex; min-width:0">
-        <input type="range" id="rightSlider" min="0" max="100" value="75" data-i18n-aria="aria_right" aria-label="右バー" style="flex:1; min-width:0" />
+        <input type="range" id="rightSlider" min="0" max="100" step="any" value="75" data-i18n-aria="aria_right" aria-label="右バー" style="flex:1; min-width:0" />
       </div>
     </div>
   </div>
@@ -203,6 +203,8 @@
   // 全角数字・記号を半角へ正規化／数値文字列の判定
   const zen2han = s => String(s).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[．。]/g,'.').replace(/[－ー―−]/g,'-').replace(/\s+/g,'');
   const isNumericStr = s => /^-?\d+(\.\d+)?$/.test(s);
+  // 数値として妥当な文字列のみ数値化（前方一致の緩さ "12abc"→12 等を塞ぐ。不正は NaN）
+  const parseNum = v => { const n=zen2han(String(v)).trim(); return isNumericStr(n)?parseFloat(n):NaN; };
   const guide=document.getElementById('angleGuide');
   const gtx=guide.getContext('2d');
   // カメラ関連の参照と状態
@@ -254,24 +256,12 @@
   // ===== 上部表示（角度/切断長） =====
   function drawTopInfo(openAngle,width){
     const isSingle=(mode==='single');
-    let angleLabel, cutLen=null;
-    if(isSingle){
-      const disp180=openAngle;                 // 0..180（幾何）
-      const disp090=Math.abs(disp180-90); // 表示角 0..90（0→90→0）
-      const from90=disp090;               // |角-90|（0..90）               // |角-90|
-      const rad=from90*Math.PI/180; const tn=Math.tan(rad);
-      cutLen=(from90===0)?0:(tn===0?Infinity:width/tn);
-      if(!isFinite(cutLen)||cutLen<0) cutLen=0;
-      angleLabel=`${t('ci_angle_s')}${padNum(disp090,3)}°`;
-    }else{
-      const half=Math.min(90, Math.max(0, openAngle/2));
-      const rad=half*Math.PI/180; const tn=Math.tan(rad);
-      cutLen=(half===90)?0:(tn===0?Infinity:width/tn);
-      if(!isFinite(cutLen)||cutLen<0) cutLen=0;
-      angleLabel=`${t('ci_angle_d')}${padNum(openAngle,3)}°`;
-    }
-    // 上限クランプ（W×2）
-    if(cutLen!==null){ cutLen=Math.min(cutLen, width*2); }
+    // 切断長は calcCutLenMm に一元化（pill/上部バーとケガキ図/ログ/FIGを常に一致させる）
+    const angDeg = isSingle ? Math.abs(openAngle-90) : (openAngle/2);
+    const cutLen = calcCutLenMm(angDeg, width);
+    const angleLabel = isSingle
+      ? `${t('ci_angle_s')}${padNum(Math.abs(openAngle-90),3)}°`
+      : `${t('ci_angle_d')}${padNum(openAngle,3)}°`;
 
     const label=`${t('ci_width')}${padNum(width,4)} mm  ${angleLabel}  ${t('ci_cutlen')}${padNum(cutLen,4)} mm`;
     const mW = Math.round(guide.width * 0.96); // 常に同じ幅
@@ -289,7 +279,13 @@
     if(inline){ inline.textContent=padNum(cutLen,4); }
   }
 
-  function getWidth(){ const v=parseFloat(zen2han(document.getElementById('productWidth').value)); return (v>0)?v:520; }
+  function getWidth(){
+    const norm=zen2han(document.getElementById('productWidth').value).trim();
+    if(!isNumericStr(norm)) return lastValidWidth;            // 数字以外（空/混在/小数点先頭等）は前回有効値
+    let v=Math.round(parseFloat(norm));
+    if(v<=0) return 520;                                       // 0/負は既定値
+    return Math.max(10, Math.min(9999, v));                    // sanitizeWidth と同じ範囲にクランプ
+  }
   function openAngleFromGuide(){
     if(mode==='dual') return Math.abs(leftAngle-rightAngle);
     const a=((leftAngle%360)+360)%360; // 0..360 正規化
@@ -601,13 +597,12 @@
   function updateOffset(){
     const rows=faceRowEls(); if(!rows.length) return;
     const width=getWidth(); const ratio = width>0 ? currentCutLen()/width : 0;
-    const rEl=document.getElementById('ratioOut'); if(rEl) rEl.textContent=ratio.toFixed(3);
     let cum=0;
     rows.forEach((r)=>{
       if(r.style.display==='none') return;
       const inp=r.querySelector('.faceW'), out=r.querySelector('.offOut');
       if(!inp||!out) return;
-      const v=parseFloat(zen2han(inp.value));
+      const v=parseNum(inp.value);
       if(isFinite(v)&&v>0){ cum+=v; out.textContent=Math.round(cum*ratio); }
       else { out.textContent='—'; }
     });
@@ -639,7 +634,7 @@
   async function startCamera(){
     try{
       stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false});
-      video.srcObject=stream; await video.play();
+      video.srcObject=stream; await video.play().catch(()=>{});   // play中断(AbortError等)はカメラ失敗扱いにしない（getUserMediaは成功済み）
       startLiveLoop();
       showStatus(t('st_cam_on'),'success');
       document.getElementById('cameraToggleBtn').textContent=t('btn_camera_stop');
@@ -649,7 +644,7 @@
   }
   function startLiveLoop(){ if(liveRAF) return; const loop=()=>{ if(!stream){ liveRAF=null; return; } renderAll(); liveRAF=requestAnimationFrame(loop); }; liveRAF=requestAnimationFrame(loop); }
   function stopLiveLoop(){ if(liveRAF){ cancelAnimationFrame(liveRAF); liveRAF=null; } }
-  function stopCamera(){ stopLiveLoop(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.removeAttribute('srcObject'); document.getElementById('cameraToggleBtn').textContent=t('btn_camera'); { const cb=document.getElementById('captureBtn'); cb.disabled=true; cb.textContent=t('btn_freeze'); } isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus(t('st_cam_off'),'info'); }
+  function stopCamera(){ stopLiveLoop(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.srcObject=null; document.getElementById('cameraToggleBtn').textContent=t('btn_camera'); { const cb=document.getElementById('captureBtn'); cb.disabled=true; cb.textContent=t('btn_freeze'); } isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus(t('st_cam_off'),'info'); }
   function toggleCamera(){ if(stream) stopCamera(); else startCamera(); }
   function capturePhoto(){ if(!(video.videoWidth>0)) return showStatus(t('st_no_video'),'error'); photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const vw=video.videoWidth, vh=video.videoHeight, cw=photo.width, ch=photo.height; const vr=vw/vh, cr=cw/ch; let dw,dh,dx,dy; if(vr>cr){ dh=ch; dw=dh*vr; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/vr; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(video,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus(t('st_frozen'),'success'); }
   function toggleFreeze(){
@@ -658,16 +653,16 @@
     if(isCaptured){ isCaptured=false; photo.width=photo.height=0; startLiveLoop(); cb.textContent=t('btn_freeze'); showStatus(t('st_live'),'info'); }
     else{ capturePhoto(); cb.textContent=t('btn_unfreeze'); }
   }
-  function handleImageLoad(ev){ const f=ev.target.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const iw=img.width,ih=img.height,cw=photo.width,ch=photo.height; const ir=iw/ih,cr=cw/ch; let dw,dh,dx,dy; if(ir>cr){ dh=ch; dw=dh*ir; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/ir; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(img,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus(t('st_img_ok'),'success'); }; img.onerror=()=>showStatus(t('st_img_fail'),'error'); img.src=URL.createObjectURL(f); }
+  function handleImageLoad(ev){ const f=ev.target.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const iw=img.width,ih=img.height,cw=photo.width,ch=photo.height; const ir=iw/ih,cr=cw/ch; let dw,dh,dx,dy; if(ir>cr){ dh=ch; dw=dh*ir; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/ir; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(img,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus(t('st_img_ok'),'success'); try{ URL.revokeObjectURL(img.src); }catch(e){} }; img.onerror=()=>{ showStatus(t('st_img_fail'),'error'); try{ URL.revokeObjectURL(img.src); }catch(e){} }; img.src=URL.createObjectURL(f); }
 
   // ===== 角度の手入力でガイドを駆動（カメラ無しでも使える） =====
   // スライダー位置のみ同期（入力欄は書き換えない＝入力中も打ち続けられる）
   function syncSliderPositions(){
     const lv=Math.max(0,Math.min(100,(180-leftAngle)/0.6));
-    document.getElementById('leftSlider').value=Math.round(lv);
+    document.getElementById('leftSlider').value=lv;                 // step="any"で精密保持（丸めない）
     if(mode==='dual'){
       const rv=Math.max(0,Math.min(100,(60-rightAngle)/0.6));
-      document.getElementById('rightSlider').value=Math.round(rv);
+      document.getElementById('rightSlider').value=rv;
     }
   }
   // commit=false:入力中（リアルタイム反映・欄は触らない） / true:確定（補正値を欄へ書戻し）
@@ -682,7 +677,7 @@
     const raw=parseFloat(norm);
     let v=raw, lo, hi;
     if(mode==='dual'){ lo=60; hi=180; v=Math.max(lo,Math.min(hi,v)); leftAngle=90+v/2; rightAngle=90-v/2; }
-    else            { lo=0;  hi=90;  v=Math.max(lo,Math.min(hi,v)); leftAngle=Math.max(120,Math.min(180,90+v)); rightAngle=90; }
+    else            { lo=30; hi=90;  v=Math.max(lo,Math.min(hi,v)); leftAngle=Math.max(120,Math.min(180,90+v)); rightAngle=90; }  // 実効レンジ30-90に整合（0-29入力時に範囲案内が出る）
     syncSliderPositions();
     if(commit){
       const open=openAngleFromGuide();
@@ -821,13 +816,13 @@
     if(mode==='dual'){
       const lv = Math.max(0, Math.min(100, (180 - leftAngle)/0.6));
       const rv = Math.max(0, Math.min(100, (60  - rightAngle)/0.6));
-      document.getElementById('leftSlider').value  = Math.round(lv);
-      document.getElementById('rightSlider').value = Math.round(rv);
+      document.getElementById('leftSlider').value  = lv;            // 精密保持（step="any"）
+      document.getElementById('rightSlider').value = rv;
       document.getElementById('manualAngle').value = Math.round(Math.abs(leftAngle - rightAngle));
     }else{
       // 片側: leftAngle = 180 - 0.6*lv  → lv = (180 - leftAngle)/0.6
       const lv = Math.max(0, Math.min(100, (180 - leftAngle)/0.6));
-      document.getElementById('leftSlider').value = Math.round(lv);
+      document.getElementById('leftSlider').value = lv;             // 精密保持（step="any"）
       const open = openAngleFromGuide();
       document.getElementById('manualAngle').value = Math.round(Math.abs(open - 90));
     }
@@ -907,8 +902,8 @@
     document.querySelectorAll('#faceRows .faceRow').forEach(r=>{
       if(r.style.display==='none') return;
       const inp=r.querySelector('.faceW');
-      const v=inp?parseFloat(zen2han(inp.value)):NaN;
-      if(isFinite(v)&&v>0) arr.push(Math.round(v));
+      const v=inp?parseNum(inp.value):NaN;
+      if(isFinite(v)&&v>0) arr.push(v);                 // 生値で返す（丸めは表示時のみ＝他経路と累計基準を統一）
     });
     return arr;
   }
@@ -917,10 +912,10 @@
     let displayAngle, cutLen;
     if(mode==='single'){ displayAngle=Math.abs(open-90); cutLen=calcCutLenMm(displayAngle, width); }
     else               { displayAngle=open;             cutLen=calcCutLenMm(open/2,        width); }
-    const faces=readFaceWidths();
+    const facesRaw=readFaceWidths();
     const ratioVal = width>0 ? cutLen/width : 0;
-    let cum=0; const offsets=faces.map(f=>{ cum+=f; return Math.round(cum*ratioVal); });
-    return { timestamp:new Date().toISOString(), mode, angle:Math.round(displayAngle), width:Math.round(width), cutLen:Math.round(cutLen), faces, offsets };
+    let cum=0; const offsets=facesRaw.map(f=>{ cum+=f; return Math.round(cum*ratioVal); });  // 生値累計→末尾丸め（updateOffsetと一致）
+    return { timestamp:new Date().toISOString(), mode, angle:Math.round(displayAngle), width:Math.round(width), cutLen:Math.round(cutLen), faces:facesRaw.map(v=>Math.round(v)), offsets };
   }
   function formatLogEntry(e){
     const d=new Date(e.timestamp);
@@ -1022,10 +1017,10 @@
     document.querySelectorAll('#faceRows .faceRow').forEach(r => {
       if(r.style.display==='none') return;
       const inp = r.querySelector('.faceW');
-      const v = inp ? parseFloat(zen2han(inp.value)) : NaN;
+      const v = inp ? parseNum(inp.value) : NaN;
       if(isFinite(v) && v>0) faceSum += v;
     });
-    const off = Math.round(faceSum * ratio);
+    const off = Math.min(Math.round(faceSum * ratio), cl);   // ずらし値は切断長を超えない（負の差を表示しない）
     const sEl = document.getElementById('sideScribeCutLenText');
     if(sEl) sEl.textContent = off>0 ? (cl + ' mm − ' + off + ' ' + t('extra_mm')) : (cl + ' mm ' + t('extra_mm'));
   }
@@ -1070,9 +1065,12 @@
     var st = { W:520, L:135, faces:[], taper:false };
     function $(id){ return document.getElementById(id); }
     function sx(){ return (X1-X0)/st.W; }
+    // 縦方向スケール: 幅が小さくても断面が縦に伸びすぎないよう、既知良好な W=520 相当を上限にする
+    // （横=実寸スケール sx、縦=上限付き syv。底面図が sy で縦を独立スケールするのと同じ考え方）
+    function syv(){ return (X1-X0)/Math.max(st.W, 520); }
     function xL(d){ return X0 + d*sx(); }
     function xR(d){ return X1 - d*sx(); }
-    function py(mm){ return Y_TOP + mm*sx(); }
+    function py(mm){ return Y_TOP + mm*syv(); }
     function ratio(){ return st.W>0 ? st.L/st.W : 0; }
     function cumsOf(faces){ var c=[],s=0; faces.forEach(function(w){s+=w;c.push(s);}); return c; }
     function fmt(n,dec){ var d=(dec===undefined?1:dec); var x=Number(n.toFixed(d)); try{ return x.toLocaleString(curLang,{maximumFractionDigits:d}); }catch(e){ return x.toLocaleString(undefined,{maximumFractionDigits:d}); } }
@@ -1084,12 +1082,13 @@
       s+='<text x="180" y="16" text-anchor="middle" font-weight="700" font-size="12" fill="#222">'+t('fig_sec_title')+'（'+(n===0?t('fig_sec_none'):((n===1?t('fig_sec_one'):t('fig_sec_two'))+(st.taper?'・'+t('fig_sec_taper'):'')))+'）</text>';
       var yBot=py(H_TOTAL), d, startYs;
       if(n===2){
-        var ySh=py(SHOULDER_V), yF1=py(SHOULDER_V+F1_V), yPl=yBot-F2_V*sx();
+        var ySh=py(SHOULDER_V), yF1=py(SHOULDER_V+F1_V), yPl=yBot-F2_V*syv();
         if(st.taper){ yF1=yPl; }
-        var yFloor=yBot-T1*sx(), r=12;
-        var xiL=180-(INNER_W/2)*sx(), xiR=180+(INNER_W/2)*sx();
-        var a1=xL(C[0]), a2=xL(C[1]), b1=xR(C[0]), b2=xR(C[1]);
-        var rate2=st.taper ? (faces[0]*sx())/(yPl-ySh) : 0, sIn2=rate2*(yFloor-r-ySh);
+        var yFloor=yBot-T1*syv(), r=12;
+        var IW=Math.min(INNER_W, st.W*0.58);  // 内空幅は全幅に比例（基準W=520で300のまま、小幅では比例縮小し壁を残す＝はみ出し防止）
+        var xiL=180-(IW/2)*sx(), xiR=180+(IW/2)*sx();
+        var a1=Math.min(xL(C[0]),180), a2=Math.min(xL(C[1]),180), b1=Math.max(xR(C[0]),180), b2=Math.max(xR(C[1]),180);  // 中央(180)を越えて左右が交差しないようクランプ（面>W/2の非物理入力対策）
+        var rate2=st.taper ? (faces[0]*sx())/(yPl-ySh) : 0, sIn2=Math.min(rate2*(yFloor-r-ySh), Math.max(0,(xiR-xiL)/2-r));  // 内壁が交差しない上限でクランプ（小幅＋テーパー対策）
         d='M'+X0+','+Y_TOP+' L'+F(xiL)+','+Y_TOP+' L'+F(xiL)+','+F(ySh)
           +' L'+F(xiL+sIn2)+','+F(yFloor-r)+' Q'+F(xiL+sIn2)+','+F(yFloor)+' '+F(xiL+sIn2+r)+','+F(yFloor)
           +' L'+F(xiR-sIn2-r)+','+F(yFloor)+' Q'+F(xiR-sIn2)+','+F(yFloor)+' '+F(xiR-sIn2)+','+F(yFloor-r)
@@ -1099,9 +1098,9 @@
           +' L'+F(a1)+','+F(yPl)+' L'+F(a1)+','+F(yF1)+' L'+X0+','+F(ySh)+' Z';
         startYs=[ySh,yPl,yBot];
       } else if(n===1){
-        var f1px=faces[0]*sx(), yCh=yBot-CH_V*sx(), yFloor1=yBot-T1*sx(), r1=14;
+        var f1px=Math.min(faces[0]*sx(), (X1-X0)/2), yCh=yBot-CH_V*syv(), yFloor1=yBot-T1*syv(), r1=14;  // 面>W/2で下隅が交差しないようクランプ
         var wiL=X0+T_W1*sx(), wiR=X1-T_W1*sx();
-        var slope1=st.taper ? f1px/(yBot-Y_TOP) : 0, sIn1=slope1*(yFloor1-r1-Y_TOP);
+        var slope1=st.taper ? f1px/(yBot-Y_TOP) : 0, sIn1=Math.min(slope1*(yFloor1-r1-Y_TOP), Math.max(0,(wiR-wiL)/2-r1));  // 内壁が交差しない上限でクランプ（小幅＋テーパー対策）
         var inner1='M'+X0+','+Y_TOP+' L'+F(wiL)+','+Y_TOP
           +' L'+F(wiL+sIn1)+','+F(yFloor1-r1)+' Q'+F(wiL+sIn1)+','+F(yFloor1)+' '+F(wiL+sIn1+r1)+','+F(yFloor1)
           +' L'+F(wiR-sIn1-r1)+','+F(yFloor1)+' Q'+F(wiR-sIn1)+','+F(yFloor1)+' '+F(wiR-sIn1)+','+F(yFloor1-r1)
@@ -1109,7 +1108,7 @@
         if(st.taper){ d=inner1+' L'+F(X1-f1px)+','+F(yBot)+' L'+F(X0+f1px)+','+F(yBot)+' Z'; startYs=[Y_TOP,yBot]; }
         else { d=inner1+' L'+X1+','+F(yCh)+' L'+F(X1-f1px)+','+F(yBot)+' L'+F(X0+f1px)+','+F(yBot)+' L'+X0+','+F(yCh)+' Z'; startYs=[yCh,yBot]; }
       } else {
-        var yFloor0=yBot-T1*sx(), r0=14, w0L=X0+T_W1*sx(), w0R=X1-T_W1*sx();
+        var yFloor0=yBot-T1*syv(), r0=14, w0L=X0+T_W1*sx(), w0R=X1-T_W1*sx();
         d='M'+X0+','+Y_TOP+' L'+F(w0L)+','+Y_TOP
           +' L'+F(w0L)+','+F(yFloor0-r0)+' Q'+F(w0L)+','+F(yFloor0)+' '+F(w0L+r0)+','+F(yFloor0)
           +' L'+F(w0R-r0)+','+F(yFloor0)+' Q'+F(w0R)+','+F(yFloor0)+' '+F(w0R)+','+F(yFloor0-r0)
@@ -1118,15 +1117,16 @@
       }
       s+='<path d="'+d+'" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1.4" stroke-linejoin="round"/>';
       var B=[0].concat(C), rowY=function(i){ return 268-i*20; }, endY=function(j){ return j===0?294:rowY(Math.max(0,j-1))+6; };
+      var cxL=function(d){ return Math.min(xL(d),180); }, cxR=function(d){ return Math.max(xR(d),180); };  // 投影/寸法線も中央クランプ（累計>W/2の逆転防止。正常入力では無影響）
       s+='<g stroke="#999" stroke-width="0.7" stroke-dasharray="3,2">';
       B.forEach(function(c,j){
-        s+='<line x1="'+F(xL(c))+'" y1="'+F(startYs[j])+'" x2="'+F(xL(c))+'" y2="'+endY(j)+'"/>';
-        s+='<line x1="'+F(xR(c))+'" y1="'+F(startYs[j])+'" x2="'+F(xR(c))+'" y2="'+endY(j)+'"/>';
+        s+='<line x1="'+F(cxL(c))+'" y1="'+F(startYs[j])+'" x2="'+F(cxL(c))+'" y2="'+endY(j)+'"/>';
+        s+='<line x1="'+F(cxR(c))+'" y1="'+F(startYs[j])+'" x2="'+F(cxR(c))+'" y2="'+endY(j)+'"/>';
       });
       s+='</g>';
       for(var i=0;i<n;i++){
         var y=rowY(i), p0=B[i], p1=B[i+1];
-        var seg=[[xL(p0),xL(p1),faces[i]],[xL(p1),xR(p1),st.W-2*B[i+1]],[xR(p1),xR(p0),faces[i]]];
+        var seg=[[cxL(p0),cxL(p1),faces[i]],[cxL(p1),cxR(p1),Math.max(0,st.W-2*B[i+1])],[cxR(p1),cxR(p0),faces[i]]];
         s+='<g stroke="#555" stroke-width="0.8">';
         seg.forEach(function(g){ s+='<line x1="'+F(g[0])+'" y1="'+y+'" x2="'+F(g[1])+'" y2="'+y+'" marker-start="url(#figDD)" marker-end="url(#figDD)"/>'; });
         s+='</g>';
@@ -1175,7 +1175,8 @@
       var r=ratio(), C=cumsOf(st.faces);
       var depths=[0].concat(C, C.slice().reverse().map(function(c){ return st.W-c; }), [st.W]);
       var html='<tr><th>'+t('tbl_cum')+'</th><th>'+t('tbl_calc')+'</th><th>'+t('tbl_offset')+'</th></tr>';
-      depths.forEach(function(dp){ var v=dp*r; html+='<tr><td>'+fmt(dp,0)+'</td><td class="f">'+fmt(dp,0)+' × '+r.toFixed(4)+' = '+fmt(v,1)+'</td><td><b>'+Math.round(v)+'</b></td></tr>'; });
+      var rD=Number(r.toFixed(4));
+      depths.forEach(function(dp){ html+='<tr><td>'+fmt(dp,0)+'</td><td class="f">'+fmt(dp,0)+' × '+r.toFixed(4)+' = '+fmt(dp*rD,1)+'</td><td><b>'+Math.round(dp*r)+'</b></td></tr>'; });  // 計算列は表示比率で自己整合・確定値は実比率で底面図と一致
       $('figCalcTable').innerHTML=html;
     }
 
@@ -1187,10 +1188,13 @@
       document.querySelectorAll('#faceRows .faceRow').forEach(function(row){
         if(row.style.display==='none') return;
         var inp=row.querySelector('.faceW');
-        var v=inp?parseFloat(zen2han(inp.value)):NaN;
+        var v=inp?parseNum(inp.value):NaN;
         if(isFinite(v)&&v>0) arr.push(v);
       });
-      st.faces=arr;
+      // 非物理入力（面の累計が全幅超）でも図が破綻しないよう、図用に累計を全幅でキャップ（主パネルのずらし値表示は実値のまま）
+      var capped=[], run=0;
+      arr.forEach(function(w){ if(run>=st.W) return; var c=Math.min(w, st.W-run); if(c>0){ capped.push(c); run+=c; } });
+      st.faces=capped;
       var tp=$('figTaper');
       if(tp){ tp.disabled=(arr.length===0); if(tp.disabled) tp.checked=false; st.taper=tp.checked; }
       buildSection(); buildBottom(); buildTable();
@@ -1199,8 +1203,9 @@
   })();
 
   document.addEventListener('DOMContentLoaded',()=>{
+    curLang=detectLang();           // 言語を先に確定（初回描画/テストから正しい言語に）
     setup();
-    curLang=detectLang(); applyI18n();
+    applyI18n();
     const langSel=document.getElementById('langSel'); if(langSel){ langSel.value=curLang; langSel.addEventListener('change', ()=>setLang(langSel.value)); }
     document.getElementById('logBtn').addEventListener('click', openLogModal);
     document.getElementById('logCloseBtn').addEventListener('click', closeLogModal);
