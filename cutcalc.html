@@ -191,6 +191,10 @@
       <label class="btn" style="text-align:center; cursor:pointer"><span data-i18n="btn_image">画像読込</span><input id="imageInput" type="file" accept="image/*" style="display:none" /></label>
       <button class="btn" id="logBtn" data-i18n="btn_log">記録</button>
     </div>
+    <!-- アプリ内(Android)でのみ表示＝広告除去(IAP)。Web版では window.AndroidBilling が無いので常に非表示 -->
+    <div id="proBar" style="display:none; margin-top:8px; text-align:center">
+      <button class="btn" id="removeAdsBtn" style="font-size:12px; padding:7px 14px" data-i18n="remove_ads">広告を消す</button>
+    </div>
     <video id="video" playsinline style="display:none"></video>
     <canvas id="photoCanvas" style="display:none"></canvas>
   </div>
@@ -1230,7 +1234,24 @@
     refreshAddBtns();
     const figTaper=document.getElementById('figTaper');
     if(figTaper) figTaper.addEventListener('change', ()=>FIG.render());
+    initRemoveAds();
   });
+
+  // ===== 広告除去(IAP) UI 制御：アプリ内(window.AndroidBilling)でのみ動作。Web版は何もしない =====
+  function initRemoveAds(){
+    const bar=document.getElementById('proBar'), btn=document.getElementById('removeAdsBtn');
+    if(!bar||!btn) return;
+    const B=window.AndroidBilling;
+    let show=false;
+    try{ show = !!(B && B.available && B.available() && !(B.isAdsRemoved && B.isAdsRemoved())); }catch(e){ show=false; }
+    if(show){
+      try{ const p = B.price && B.price(); if(p) btn.textContent = t('remove_ads') + '（' + p + '）'; }catch(e){}
+      bar.style.display='block';
+    }
+    btn.addEventListener('click', ()=>{ try{ window.AndroidBilling && window.AndroidBilling.buyRemoveAds(); }catch(e){} });
+  }
+  // 購入完了時にネイティブから呼ばれる
+  window.onAdsRemoved = function(){ const bar=document.getElementById('proBar'); if(bar) bar.style.display='none'; };
 </script>
 
 <!-- 使い方モーダル -->
