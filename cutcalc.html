@@ -157,7 +157,7 @@
     <div id="statusMsg" class="status" style="display:none"></div>
   </div>
   <div class="panel">
-    <button class="disclosure" id="offsetToggle" aria-expanded="false"><span class="tri">▸</span> 面を考慮したずらし値（厳密時）</button>
+    <button class="disclosure" id="offsetToggle" aria-expanded="false"><span class="tri">▸</span> 角面ケガキ補正（厳密時）</button>
     <div id="offsetBody" style="display:none; margin-top:8px">
       <div id="faceRows">
         <div class="faceRow">
@@ -180,7 +180,7 @@
         </div>
       </div>
       <div class="muted" data-i18n="offset_note" style="font-size:11px; margin-top:6px; line-height:1.5">
-        <b>＋</b>で面を追加（最大3）。底面・面取りの各点の横幅を順に入れると、各点の累計ずらし値が出ます。
+        <b>＋</b>で面を追加（最大3）。底面・面取りの各点の横幅を順に入れると、各点の累計ずらし値が出ます。断面が四角形の材料（ブロック・角材など）でも計算は同じです。
       </div>
     </div>
   </div>
@@ -1274,13 +1274,13 @@
         <li data-i18n="h_use_li2"><b>両側/片側</b> モードを選択。コーナーは両側、桝接続は片側</li>
         <li data-i18n="h_use_li3"><b>スライダー</b> または <b>図を直接ドラッグ</b> でガイドを実物のラインに合わせる</li>
         <li data-i18n="h_use_li4">図内の <b>ケガキ図</b> を長押しで切断方法、必要なら <b>記録</b> に保存</li>
-        <li data-i18n="h_use_li5">（任意）<b>厳密に面部（底面・面取り）も考慮してケガキ線を引く</b>場合は、<b>面を考慮したずらし値（厳密時）</b> に面の横幅を入れ、表示される<b>ずらし値</b>だけ各面でずらしてケガく</li>
+        <li data-i18n="h_use_li5">（任意）<b>厳密に角面（底面・面取り）も考慮してケガキ線を引く</b>場合は、<b>角面ケガキ補正（厳密時）</b> に面の横幅を入れ、表示される<b>ずらし値</b>だけ各面でずらしてケガく</li>
       </ol>
       <figure>
         <img src="images/usage-basic.svg" data-i18n-alt="h_use_cap" alt="基本操作の流れ" />
         <figcaption data-i18n="h_use_cap">基本操作の流れ</figcaption>
       </figure>
-      <p data-i18n="h_use_other" style="font-size:12px; color:#555; margin-top:8px">縁石・ブロック・幅木・タイル・額縁などの角度カットも、同様の手順で行えます。</p>
+      <p data-i18n="h_use_other" style="font-size:12px; color:#555; margin-top:8px">縁石・ブロック・幅木・タイル・額縁などの角度カットも、同様の手順で行えます。断面が四角形の材料でも、切断長・ずらし値の計算はそのまま使えます。</p>
     </div>
 
     <div class="help-section" data-section="cross">
