@@ -72,8 +72,6 @@
     .secMini svg{ max-width:190px; height:auto; border:1px solid #e6e6f0; border-radius:6px; background:#fafafa; font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; cursor:pointer; touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none }
     .secCap{ font-size:10px; color:#666; margin-top:3px }
     .faceW::placeholder{ color:#c7ccd6; opacity:1 }
-    .addFace,.delFace{ appearance:none; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff; width:20px; height:20px; border-radius:6px; font-size:13px; font-weight:700; line-height:1; padding:0; cursor:pointer }
-    .addFace:hover,.delFace:hover{ background:rgba(255,255,255,.28) }
     .disclosure .tri{ color:#ffd24a; font-size:19px; font-weight:900; vertical-align:-2px; margin-right:3px; display:inline-block }
     /* 計測ログ モーダル */
     .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:100; padding:14px; }
@@ -598,39 +596,10 @@
     return calcCutLenMm(angDeg, width);
   }
   function faceRowEls(){ return [].slice.call(document.querySelectorAll('#faceRows .faceRow')); }
-  function rectOn(){ const c=document.getElementById('rectMode'); return !!(c&&c.checked); }
-  function visibleFaceCount(){ return faceRowEls().filter(r=>r.style.display!=='none').length; }
-  function syncRectUI(){
+  function syncRectUI(){   // 四角チェックで面取り位置(rectSub)を開閉。面は最大2固定・テーパーはメイン欄offTaperに統一
     const c=document.getElementById('rectMode'); if(!c) return;
-    const on=c.checked, sub=document.getElementById('rectSub');
-    if(sub) sub.style.display = on?'block':'none';
-    if(!on) c.disabled = (visibleFaceCount()>2);   // 3面入力中は四角チェック不可（断面図は2面まで）
-    // テーパーはメイン欄offTaperに統一（側溝・四角の両モード共通）
-  }
-  function refreshAddBtns(){
-    const rows=faceRowEls(); let lastVis=-1;
-    rows.forEach((r,i)=>{ if(r.style.display!=='none') lastVis=i; });
-    const cap = rectOn()?2:rows.length;   // 四角モードは最大2面
-    rows.forEach((r,i)=>{
-      const add=r.querySelector('.addFace'), del=r.querySelector('.delFace');
-      if(add) add.style.display=(i===lastVis && i<rows.length-1 && (lastVis+1)<cap)?'':'none';
-      if(del) del.style.display=(i===lastVis)?'':'none';
-    });
-    syncRectUI();
-  }
-  function addFace(){
-    const rows=faceRowEls();
-    for(let i=0;i<rows.length;i++){ if(rows[i].style.display==='none'){ rows[i].style.display=''; const inp=rows[i].querySelector('.faceW'); if(inp) inp.focus(); break; } }
-    refreshAddBtns(); updateOffset();
-  }
-  function delFace(){
-    const rows=faceRowEls(); let lastVis=-1;
-    rows.forEach((r,i)=>{ if(r.style.display!=='none') lastVis=i; });
-    if(lastVis<0) return;
-    const r=rows[lastVis], inp=r.querySelector('.faceW');
-    if(lastVis>0){ r.style.display='none'; if(inp) inp.value=''; }   // 2行目以降は行ごと削除
-    else if(inp){ inp.value=''; inp.focus(); }                       // 1行のみ＝値をリセット
-    refreshAddBtns(); updateOffset();
+    const sub=document.getElementById('rectSub');
+    if(sub) sub.style.display = c.checked?'block':'none';
   }
   function updateOffset(){
     const rows=faceRowEls(); if(!rows.length) return;
@@ -888,7 +857,7 @@
   }
   function pointerDown(ev){
     const p = getCanvasPoint(ev);
-    if(isInInset(p)){ // ケガキ図：長押し(500ms)で切断方法を表示（誤タップ防止）
+    if(isInInset(p)){ // ケガキ図：長押し(350ms)で切断方法を表示（誤タップ防止）
       ev.preventDefault();
       insetPress = { x:p.x, y:p.y, fired:false };
       insetPress.t = setTimeout(()=>{ if(insetPress){ insetPress.fired=true; openHelpModal(); } }, 350);
@@ -1007,7 +976,7 @@
       r.style.display = show ? '' : 'none';
       if(inp) inp.value = (i<arr.length) ? arr[i] : '';
     });
-    if(typeof refreshAddBtns==='function') refreshAddBtns();
+    if(typeof syncRectUI==='function') syncRectUI();
     if(typeof updateOffset==='function') updateOffset();
     if(arr.length){
       const b=document.getElementById('offsetBody'), t=document.getElementById('offsetToggle');
@@ -1210,7 +1179,6 @@
       }
       s+='<line x1="'+X0+'" y1="288" x2="'+X1+'" y2="288" stroke="#333" stroke-width="0.8" marker-start="url(#figDD)" marker-end="url(#figDD)"/>';
       s+='<text x="180" y="284" text-anchor="middle" font-size="10" fill="#333">'+fmt(st.W,0)+'</text>';
-      if(nAll>MAX_FACES){ s+='<text x="180" y="306" text-anchor="middle" font-size="9.5" fill="#b3261e">'+t('fig_sec_omit')+'</text>'; }
       setSec(s);
     }
 
@@ -1304,12 +1272,10 @@
     });
     const faceRows=document.getElementById('faceRows');
     faceRows.addEventListener('input', (e)=>{ if(e.target.classList.contains('faceW')){ var cv=zen2han(e.target.value).replace(/[^0-9]/g,'').slice(0,4); if(cv!==e.target.value) e.target.value=cv; updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); } });
-    faceRows.addEventListener('click', (e)=>{ if(e.target.classList.contains('addFace')) addFace(); else if(e.target.classList.contains('delFace')) delFace(); });
-    refreshAddBtns();
     const reRender=()=>{ if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); };
     const offTaper=document.getElementById('offTaper'); if(offTaper) offTaper.addEventListener('change', reRender);
     const rectMode=document.getElementById('rectMode');
-    if(rectMode) rectMode.addEventListener('change', ()=>{ syncRectUI(); refreshAddBtns(); reRender(); updateOffset(); });
+    if(rectMode) rectMode.addEventListener('change', ()=>{ syncRectUI(); reRender(); updateOffset(); });
     document.querySelectorAll('input[name=rectPos]').forEach(r=> r.addEventListener('change', reRender));
     syncRectUI();
     // 埋め込み断面図：長押し(350ms)で切断方法へ。長押し直後のゴーストクリック/選択を抑制
