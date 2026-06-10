@@ -68,6 +68,8 @@
     .rectOpts label{ display:inline-flex; align-items:center; gap:4px; font-size:12px; margin:2px 12px 2px 0; cursor:pointer }
     .rectOpts .rectChk{ font-weight:700; color:#15436e }
     #rectSub{ padding:6px 0 2px; font-size:12px; line-height:1.9 }
+    .secMini{ margin:8px 0 0; text-align:center }
+    .secMini svg{ max-width:190px; height:auto; border:1px solid #e6e6f0; border-radius:6px; background:#fafafa; font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif }
     .faceW::placeholder{ color:#c7ccd6; opacity:1 }
     .addFace,.delFace{ appearance:none; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff; width:20px; height:20px; border-radius:6px; font-size:13px; font-weight:700; line-height:1; padding:0; cursor:pointer }
     .addFace:hover,.delFace:hover{ background:rgba(255,255,255,.28) }
@@ -187,14 +189,15 @@
         <b>＋</b>で面を追加（最大3）。底面・面取りの各点の横幅を順に入れると、各点の累計ずらし値が出ます。これは基準面（辺）に対する補正値で、基準の取り方や面の位置で向き（＋/−）が変わります。断面が四角形の材料（ブロック・角材など）でも計算は同じです。
       </div>
       <div class="rectOpts" style="margin-top:10px">
+        <label><input type="checkbox" id="offTaper"> <span data-i18n="rect_taper">テーパー（斜め壁）</span></label>
         <label class="rectChk"><input type="checkbox" id="rectMode"> <span data-i18n="rect_mode">断面は四角形（ブロック・角材）</span></label>
         <div id="rectSub" style="display:none">
           <span data-i18n="rect_pos">面取り位置:</span>
           <label><input type="radio" name="rectPos" value="top" checked> <span data-i18n="rect_top">上のみ</span></label>
           <label><input type="radio" name="rectPos" value="bottom"> <span data-i18n="rect_bottom">下のみ</span></label>
           <label><input type="radio" name="rectPos" value="both"> <span data-i18n="rect_both">上下</span></label>
-          <label><input type="checkbox" id="rectTaper"> <span data-i18n="rect_taper">テーパー（斜め壁）</span></label>
         </div>
+        <figure class="secMini"><svg id="figSecSvgMain" viewBox="0 0 360 312" xmlns="http://www.w3.org/2000/svg"></svg></figure>
       </div>
     </div>
   </div>
@@ -596,7 +599,7 @@
     const on=c.checked, sub=document.getElementById('rectSub');
     if(sub) sub.style.display = on?'block':'none';
     if(!on) c.disabled = (visibleFaceCount()>2);   // 3面入力中は四角チェック不可（断面図は2面まで）
-    const ft=document.querySelector('.fig-taper'); if(ft) ft.style.display = on?'none':'';  // 四角時は解説のテーパーを隠し、メインのrectTaperを使う
+    // テーパーはメイン欄offTaperに統一（側溝・四角の両モード共通）
   }
   function refreshAddBtns(){
     const rows=faceRowEls(); let lastVis=-1;
@@ -1093,6 +1096,7 @@
     var X0=70, X1=290, Y_TOP=46, H_TOTAL=360, T1=60, T_W1=60, SHOULDER_V=100, F1_V=65, F2_V=50, CH_V=75, INNER_W=300;
     var st = { W:520, L:135, faces:[], taper:false, rect:false, rectPos:'top' };
     function $(id){ return document.getElementById(id); }
+    function setSec(s){ var a=$('figSecSvg'); if(a) a.innerHTML=s; var b=$('figSecSvgMain'); if(b) b.innerHTML=s; }  // 断面図は解説とメイン埋め込みの両方へ
     function sx(){ return (X1-X0)/st.W; }
     // 縦方向スケール: 幅が小さくても断面が縦に伸びすぎないよう、既知良好な W=520 相当を上限にする
     // （横=実寸スケール sx、縦=上限付き syv。底面図が sy で縦を独立スケールするのと同じ考え方）
@@ -1131,7 +1135,7 @@
       s+='<text x="180" y="'+F(yBot+24)+'" text-anchor="middle" font-size="10" fill="#333">'+fmt(st.W,0)+'</text>';
       if(topW>0) s+='<text x="'+F(X0+tWpx/2)+'" y="'+(Y_TOP-5)+'" text-anchor="middle" font-size="10" fill="#b3261e">'+fmt(topW,0)+'</text>';
       if(botW>0) s+='<text x="'+F(X0+bWpx/2)+'" y="'+F(yBot+13)+'" text-anchor="middle" font-size="10" fill="#b3261e">'+fmt(botW,0)+'</text>';
-      $('figSecSvg').innerHTML=s;
+      setSec(s);
     }
 
     function buildSection(){
@@ -1195,7 +1199,7 @@
       s+='<line x1="'+X0+'" y1="288" x2="'+X1+'" y2="288" stroke="#333" stroke-width="0.8" marker-start="url(#figDD)" marker-end="url(#figDD)"/>';
       s+='<text x="180" y="284" text-anchor="middle" font-size="10" fill="#333">'+fmt(st.W,0)+'</text>';
       if(nAll>MAX_FACES){ s+='<text x="180" y="306" text-anchor="middle" font-size="9.5" fill="#b3261e">'+t('fig_sec_omit')+'</text>'; }
-      $('figSecSvg').innerHTML=s;
+      setSec(s);
     }
 
     function buildBottom(){
@@ -1257,8 +1261,7 @@
       st.faces=capped;
       var rm=document.getElementById('rectMode'); st.rect=!!(rm&&rm.checked);
       var rp=document.querySelector('input[name=rectPos]:checked'); st.rectPos=rp?rp.value:'top';
-      if(st.rect){ var rt=document.getElementById('rectTaper'); st.taper=!!(rt&&rt.checked); }
-      else { var tp=$('figTaper'); if(tp){ tp.disabled=(arr.length===0); if(tp.disabled) tp.checked=false; } st.taper=tp?tp.checked:false; }
+      var ot=document.getElementById('offTaper'); if(ot){ ot.disabled=(arr.length===0); if(ot.disabled) ot.checked=false; } st.taper=ot?ot.checked:false;
       buildSection(); buildBottom(); buildTable();
     }
     return { render: render };
@@ -1291,13 +1294,11 @@
     faceRows.addEventListener('input', (e)=>{ if(e.target.classList.contains('faceW')) updateOffset(); });
     faceRows.addEventListener('click', (e)=>{ if(e.target.classList.contains('addFace')) addFace(); else if(e.target.classList.contains('delFace')) delFace(); });
     refreshAddBtns();
-    const figTaper=document.getElementById('figTaper');
-    if(figTaper) figTaper.addEventListener('change', ()=>FIG.render());
     const reRender=()=>{ if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); };
+    const offTaper=document.getElementById('offTaper'); if(offTaper) offTaper.addEventListener('change', reRender);
     const rectMode=document.getElementById('rectMode');
     if(rectMode) rectMode.addEventListener('change', ()=>{ syncRectUI(); refreshAddBtns(); reRender(); updateOffset(); });
     document.querySelectorAll('input[name=rectPos]').forEach(r=> r.addEventListener('change', reRender));
-    const rectTaper=document.getElementById('rectTaper'); if(rectTaper) rectTaper.addEventListener('change', reRender);
     syncRectUI();
     initRemoveAds();
   });
@@ -1470,7 +1471,7 @@
       </figure>
 
       <h4 data-i18n="h_strict_h">面がある場合の厳密なケガキ方法</h4>
-      <label class="fig-taper"><input type="checkbox" id="figTaper"> <span data-i18n="h_taper_label">テーパー壁（斜め壁）として描く</span></label>
+      <!-- テーパー切替はメイン欄「厳密に角面を考慮してケガキ」内に統一 -->
       <figure>
         <svg id="figSecSvg" viewBox="0 0 360 312" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"></svg>
       </figure>
