@@ -68,7 +68,7 @@
     .faceW::placeholder{ color:#c7ccd6; opacity:1 }
     .addFace,.delFace{ appearance:none; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff; width:20px; height:20px; border-radius:6px; font-size:13px; font-weight:700; line-height:1; padding:0; cursor:pointer }
     .addFace:hover,.delFace:hover{ background:rgba(255,255,255,.28) }
-    .disclosure .tri{ color:#ffd24a }
+    .disclosure .tri{ color:#ffd24a; font-size:19px; font-weight:900; vertical-align:-2px; margin-right:3px; display:inline-block }
     /* 計測ログ モーダル */
     .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:100; padding:14px; }
     .modal-overlay.show{ display:flex; }
@@ -157,7 +157,7 @@
     <div id="statusMsg" class="status" style="display:none"></div>
   </div>
   <div class="panel">
-    <button class="disclosure" id="offsetToggle" aria-expanded="false"><span class="tri">▸</span> 角面ケガキ補正（厳密時）</button>
+    <button class="disclosure" id="offsetToggle" aria-expanded="false"><span class="tri">▸</span> 厳密に角面を考慮してケガキ</button>
     <div id="offsetBody" style="display:none; margin-top:8px">
       <div id="faceRows">
         <div class="faceRow">
@@ -180,7 +180,7 @@
         </div>
       </div>
       <div class="muted" data-i18n="offset_note" style="font-size:11px; margin-top:6px; line-height:1.5">
-        <b>＋</b>で面を追加（最大3）。底面・面取りの各点の横幅を順に入れると、各点の累計ずらし値が出ます。断面が四角形の材料（ブロック・角材など）でも計算は同じです。
+        <b>＋</b>で面を追加（最大3）。底面・面取りの各点の横幅を順に入れると、各点の累計ずらし値が出ます。これは基準面（辺）に対する補正値で、基準の取り方や面の位置で向き（＋/−）が変わります。断面が四角形の材料（ブロック・角材など）でも計算は同じです。
       </div>
     </div>
   </div>
@@ -1274,7 +1274,7 @@
         <li data-i18n="h_use_li2"><b>両側/片側</b> モードを選択。コーナーは両側、桝接続は片側</li>
         <li data-i18n="h_use_li3"><b>スライダー</b> または <b>図を直接ドラッグ</b> でガイドを実物のラインに合わせる</li>
         <li data-i18n="h_use_li4">図内の <b>ケガキ図</b> を長押しで切断方法、必要なら <b>記録</b> に保存</li>
-        <li data-i18n="h_use_li5">（任意）<b>厳密に角面（底面・面取り）も考慮してケガキ線を引く</b>場合は、<b>角面ケガキ補正（厳密時）</b> に面の横幅を入れ、表示される<b>ずらし値</b>だけ各面でずらしてケガく</li>
+        <li data-i18n="h_use_li5">（任意）<b>厳密に角面（底面・面取り）も考慮してケガキ線を引く</b>場合は、<b>厳密に角面を考慮してケガキ</b> に面の横幅を入れ、表示される<b>ずらし値</b>だけ各面でずらしてケガく</li>
       </ol>
       <figure>
         <img src="images/usage-basic.svg" data-i18n-alt="h_use_cap" alt="基本操作の流れ" />
