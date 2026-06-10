@@ -574,7 +574,7 @@
   }
 
   function renderAll(){ drawBackground(); drawGuide(); }
-  function requestRender(){ renderAll(); updateOffset(); }
+  function requestRender(){ renderAll(); updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); }
   // ずらし量（底面・面取り）= 面の横幅 × 比率（切断長÷幅）
   function currentCutLen(){
     const open=openAngleFromGuide(); const width=getWidth();
@@ -1124,7 +1124,7 @@
       s+='<line x1="'+X0+'" y1="'+F(yBot+28)+'" x2="'+X1+'" y2="'+F(yBot+28)+'" stroke="#333" stroke-width="0.8" marker-start="url(#figDD2)" marker-end="url(#figDD2)"/>';
       s+='<text x="180" y="'+F(yBot+24)+'" text-anchor="middle" font-size="10" fill="#333">'+fmt(st.W,0)+'</text>';
       if(topW>0) s+='<text x="'+F(X0+tWpx/2)+'" y="'+(Y_TOP-5)+'" text-anchor="middle" font-size="10" fill="#b3261e">'+fmt(topW,0)+'</text>';
-      if(botW>0) s+='<text x="'+F(X0+bWpx/2)+'" y="'+F(yBot+13)+'" text-anchor="middle" font-size="10" fill="#b3261e">'+fmt(botW,0)+'</text>';
+      if(botW>0){ var bLx=(st.taper&&pos==='both')?(X1-bWpx/2):(X0+bWpx/2); s+='<text x="'+F(bLx)+'" y="'+F(yBot+13)+'" text-anchor="middle" font-size="10" fill="#b3261e">'+fmt(botW,0)+'</text>'; }
       setSec(s);
     }
 
@@ -1281,7 +1281,7 @@
       if(show) updateOffset();
     });
     const faceRows=document.getElementById('faceRows');
-    faceRows.addEventListener('input', (e)=>{ if(e.target.classList.contains('faceW')) updateOffset(); });
+    faceRows.addEventListener('input', (e)=>{ if(e.target.classList.contains('faceW')){ var cv=zen2han(e.target.value).replace(/[^0-9]/g,'').slice(0,4); if(cv!==e.target.value) e.target.value=cv; updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); } });
     faceRows.addEventListener('click', (e)=>{ if(e.target.classList.contains('addFace')) addFace(); else if(e.target.classList.contains('delFace')) delFace(); });
     refreshAddBtns();
     const reRender=()=>{ if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); };
