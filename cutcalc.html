@@ -427,25 +427,25 @@
       label = Math.round(Math.abs(openAngleFromGuide() - 90));
     }
     const lo = Math.min(a,b), hi = Math.max(a,b);
-    const rr = Math.min(W, H) * 0.12;   // 分度器マーク：アイコン/フィーチャー風・少し小さめ
+    const rr = Math.min(W, H) * 0.10;   // 分度器マーク：アイコン/フィーチャー風・小さめ
     const RED = '#e53935';
     gtx.save();
     // 角度セクターの薄い塗り
     gtx.beginPath(); gtx.moveTo(cx, cy); gtx.arc(cx, cy, rr, lo*Math.PI/180, hi*Math.PI/180); gtx.closePath();
-    gtx.fillStyle='rgba(229,57,53,0.10)'; gtx.fill();
-    // 赤い弧（細線）
+    gtx.fillStyle='rgba(229,57,53,0.09)'; gtx.fill();
+    // 赤い弧（極細線）
     gtx.beginPath(); gtx.arc(cx, cy, rr, lo*Math.PI/180, hi*Math.PI/180);
-    gtx.strokeStyle=RED; gtx.lineWidth=1.5; gtx.lineCap='round'; gtx.stroke();
-    // 目盛り（10°毎・30°で長め、細線）
+    gtx.strokeStyle=RED; gtx.lineWidth=0.9; gtx.lineCap='round'; gtx.stroke();
+    // 目盛り（10°毎・30°で長め、極細線）
     for(let d=Math.ceil(lo/10)*10; d<=hi+0.001; d+=10){
       const a2=d*Math.PI/180, maj=(d%30===0);
-      const r1=rr-(maj?4.5:2.5), r2=rr+(maj?4.5:2.5);
+      const r1=rr-(maj?3.5:2), r2=rr+(maj?3.5:2);
       gtx.beginPath(); gtx.moveTo(cx+Math.cos(a2)*r1, cy+Math.sin(a2)*r1); gtx.lineTo(cx+Math.cos(a2)*r2, cy+Math.sin(a2)*r2);
-      gtx.strokeStyle=RED; gtx.lineWidth=maj?1.1:0.7; gtx.stroke();
+      gtx.strokeStyle=RED; gtx.lineWidth=maj?0.8:0.5; gtx.stroke();
     }
     // 中心点（赤＋白）
-    gtx.fillStyle=RED; gtx.beginPath(); gtx.arc(cx, cy, 3, 0, Math.PI*2); gtx.fill();
-    gtx.fillStyle='#fff'; gtx.beginPath(); gtx.arc(cx, cy, 1.4, 0, Math.PI*2); gtx.fill();
+    gtx.fillStyle=RED; gtx.beginPath(); gtx.arc(cx, cy, 2.4, 0, Math.PI*2); gtx.fill();
+    gtx.fillStyle='#fff'; gtx.beginPath(); gtx.arc(cx, cy, 1.1, 0, Math.PI*2); gtx.fill();
     // 数値（可読性のため黄＋黒フチを維持）
     const vt = label + '°';
     // 両側=頂点(交点)を避け弧より少し下へ / 片側=中心線を避け開いた側へ
