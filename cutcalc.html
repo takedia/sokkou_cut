@@ -69,7 +69,8 @@
     .rectOpts .rectChk{ font-weight:700; color:#15436e }
     #rectSub{ padding:6px 0 2px; font-size:12px; line-height:1.9 }
     .secMini{ margin:8px 0 0; text-align:center }
-    .secMini svg{ max-width:190px; height:auto; border:1px solid #e6e6f0; border-radius:6px; background:#fafafa; font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif }
+    .secMini svg{ max-width:190px; height:auto; border:1px solid #e6e6f0; border-radius:6px; background:#fafafa; font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; cursor:pointer; touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none }
+    .secCap{ font-size:10px; color:#666; margin-top:3px }
     .faceW::placeholder{ color:#c7ccd6; opacity:1 }
     .addFace,.delFace{ appearance:none; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff; width:20px; height:20px; border-radius:6px; font-size:13px; font-weight:700; line-height:1; padding:0; cursor:pointer }
     .addFace:hover,.delFace:hover{ background:rgba(255,255,255,.28) }
@@ -169,35 +170,24 @@
         <div class="faceRow">
           <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
           <span class="offWrap"><span data-i18n="arrow_offset">→ ずらし値</span> <b class="offOut">—</b> mm</span>
-          <button class="addFace" type="button" data-i18n-aria="aria_addface" aria-label="面を追加">＋</button>
-          <button class="delFace" type="button" data-i18n-aria="aria_delface" aria-label="面を削除">－</button>
         </div>
-        <div class="faceRow" style="display:none">
+        <div class="faceRow">
           <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
           <span class="offWrap"><span data-i18n="arrow_offset">→ ずらし値</span> <b class="offOut">—</b> mm</span>
-          <button class="addFace" type="button" data-i18n-aria="aria_addface" aria-label="面を追加">＋</button>
-          <button class="delFace" type="button" data-i18n-aria="aria_delface" aria-label="面を削除">－</button>
         </div>
-        <div class="faceRow" style="display:none">
-          <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
-          <span class="offWrap"><span data-i18n="arrow_offset">→ ずらし値</span> <b class="offOut">—</b> mm</span>
-          <button class="addFace" type="button" data-i18n-aria="aria_addface" aria-label="面を追加">＋</button>
-          <button class="delFace" type="button" data-i18n-aria="aria_delface" aria-label="面を削除">－</button>
-        </div>
-      </div>
-      <div class="muted" data-i18n="offset_note" style="font-size:11px; margin-top:6px; line-height:1.5">
-        <b>＋</b>で面を追加（最大3）。底面・面取りの各点の横幅を順に入れると、各点の累計ずらし値が出ます。これは基準面（辺）に対する補正値で、基準の取り方や面の位置で向き（＋/−）が変わります。断面が四角形の材料（ブロック・角材など）でも計算は同じです。
       </div>
       <div class="rectOpts" style="margin-top:10px">
-        <label><input type="checkbox" id="offTaper"> <span data-i18n="rect_taper">テーパー（斜め壁）</span></label>
-        <label class="rectChk"><input type="checkbox" id="rectMode"> <span data-i18n="rect_mode">断面は四角形（ブロック・角材）</span></label>
+        <label class="rectChk"><input type="checkbox" id="rectMode"> <span data-i18n="rect_mode">断面は四角形（角材・ブロック・面木等）</span></label>
         <div id="rectSub" style="display:none">
           <span data-i18n="rect_pos">面取り位置:</span>
           <label><input type="radio" name="rectPos" value="top" checked> <span data-i18n="rect_top">上のみ</span></label>
           <label><input type="radio" name="rectPos" value="bottom"> <span data-i18n="rect_bottom">下のみ</span></label>
           <label><input type="radio" name="rectPos" value="both"> <span data-i18n="rect_both">上下</span></label>
         </div>
-        <figure class="secMini"><svg id="figSecSvgMain" viewBox="0 0 360 312" xmlns="http://www.w3.org/2000/svg"></svg></figure>
+        <label><input type="checkbox" id="offTaper"> <span data-i18n="rect_taper">テーパー（斜め壁）</span></label>
+        <figure class="secMini"><svg id="figSecSvgMain" viewBox="0 0 360 312" xmlns="http://www.w3.org/2000/svg"></svg>
+          <figcaption class="secCap" data-i18n="offset_note">※断面図はあくまでイメージ図です</figcaption>
+        </figure>
       </div>
     </div>
   </div>
@@ -1300,6 +1290,18 @@
     if(rectMode) rectMode.addEventListener('change', ()=>{ syncRectUI(); refreshAddBtns(); reRender(); updateOffset(); });
     document.querySelectorAll('input[name=rectPos]').forEach(r=> r.addEventListener('change', reRender));
     syncRectUI();
+    // 埋め込み断面図：長押し(350ms)で切断方法へ。長押し直後のゴーストクリック/選択を抑制
+    const secMain=document.getElementById('figSecSvgMain');
+    if(secMain){
+      let pr=null;
+      secMain.addEventListener('pointerdown', (e)=>{ pr={x:e.clientX,y:e.clientY,fired:false}; pr.t=setTimeout(()=>{ if(pr){ pr.fired=true; window.__swallowClick=Date.now(); openHelpModal('cutmethod'); } },350); });
+      secMain.addEventListener('pointermove', (e)=>{ if(pr&&!pr.fired&&Math.hypot(e.clientX-pr.x,e.clientY-pr.y)>12){ clearTimeout(pr.t); pr=null; } });
+      const endPr=()=>{ if(pr){ clearTimeout(pr.t); pr=null; } };
+      secMain.addEventListener('pointerup', endPr);
+      secMain.addEventListener('pointercancel', endPr);
+      secMain.addEventListener('contextmenu', (e)=>e.preventDefault());
+    }
+    document.addEventListener('click', (e)=>{ if(window.__swallowClick && (Date.now()-window.__swallowClick)<700){ window.__swallowClick=0; e.preventDefault(); e.stopPropagation(); } }, true);
     initRemoveAds();
   });
 
