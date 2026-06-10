@@ -105,6 +105,7 @@
     .help-link{ display:inline-block; margin-top:8px; font-size:11px; color:#2563eb; text-decoration:underline; }
     /* 厳密ケガキ図（面がある場合） */
     .fig-taper{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:#334; margin:2px 0 8px; cursor:pointer; }
+    .help-back{ display:block; width:100%; margin:16px 0 4px; }
     table.calc{ border-collapse:collapse; width:100%; font-size:12px; margin:6px 0 14px; }
     table.calc th, table.calc td{ border:1px solid #d7dde3; padding:4px 6px; text-align:center; color:#222; }
     table.calc th{ background:#eef2f6; font-weight:700; }
@@ -1216,6 +1217,7 @@
     document.getElementById('logSaveBtn').addEventListener('click', saveCurrentLog);
     document.getElementById('logModal').addEventListener('click', (e)=>{ if(e.target.id==='logModal') closeLogModal(); });
     document.getElementById('helpCloseBtn').addEventListener('click', closeHelpModal);
+    { const hb=document.getElementById('helpBackBtn'); if(hb) hb.addEventListener('click', closeHelpModal); }
     document.getElementById('helpModal').addEventListener('click', (e)=>{ if(e.target.id==='helpModal') closeHelpModal(); });
     document.querySelectorAll('.help-tab').forEach(b => b.addEventListener('click', ()=>switchHelpTab(b.dataset.tab)));
     document.getElementById('helpUseBtn').addEventListener('click', ()=> openHelpModal('use'));
@@ -1423,6 +1425,7 @@
         ⚠️ <b>＜後述＞水平・垂直の両方に曲がる場合</b>：コーナー（水平方向の振れ）と勾配（縦方向の振れ）が<b>同時に起きる</b>箇所もあります。その場合は1方向だけでは合いません。<b>水平の角度は「両側モード」</b>、<b>縦の勾配は「片側モード」</b>で別々に測り、両方のケガキ線を合わせて切ってください。
       </div>
     </div>
+    <button class="btn help-back" id="helpBackBtn" data-i18n="help_back">← メイン画面に戻る</button>
   </div>
 </div>
 
