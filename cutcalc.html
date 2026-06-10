@@ -437,9 +437,9 @@
     const ext = Math.max(3.5, rr*0.16);
     gtx.lineCap='round'; gtx.strokeStyle=RED; gtx.lineWidth=0.9;
     [lo,hi].forEach(function(ad){ const a3=ad*Math.PI/180; gtx.beginPath(); gtx.moveTo(cx, cy); gtx.lineTo(cx+Math.cos(a3)*(rr+ext), cy+Math.sin(a3)*(rr+ext)); gtx.stroke(); });
-    // 赤い弧（極細線）
+    // 赤い弧（半円部分だけ少し太め）
     gtx.beginPath(); gtx.arc(cx, cy, rr, lo*Math.PI/180, hi*Math.PI/180);
-    gtx.strokeStyle=RED; gtx.lineWidth=0.9; gtx.stroke();
+    gtx.strokeStyle=RED; gtx.lineWidth=1.7; gtx.stroke();
     // 目盛り（白・10°毎・30°で長め、極細線）
     for(let d=Math.ceil(lo/10)*10; d<=hi+0.001; d+=10){
       const a2=d*Math.PI/180, maj=(d%30===0);
