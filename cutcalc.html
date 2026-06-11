@@ -1084,6 +1084,17 @@
     function py(mm){ return Y_TOP + mm*syv(); }
     function ratio(){ return st.W>0 ? st.L/st.W : 0; }
     function cumsOf(faces){ var c=[],s=0; faces.forEach(function(w){s+=w;c.push(s);}); return c; }
+    // 四角モードの面取り「span位置(mm)」を列挙。面取りは左右対称＝幅fは左x=f・右x=W-fの両端に出る。
+    // 上下チャンファ=上下とも左右、上下テーパー(平行四辺形)=上は左のみ/下は右のみ。値は各位置×比率。
+    function rectMarkPos(){
+      var fr=(st.facesRaw||st.faces), pos=st.rectPos||'top', W=st.W, raw=[];
+      function add(f,side){ if(f>0) raw.push(side==='L'?f:(W-f)); }
+      if(pos==='both' && st.taper){ add(fr[0],'L'); add(fr[1],'R'); }                 // 平行四辺形
+      else if(pos==='both'){ add(fr[0],'L'); add(fr[0],'R'); add(fr[1],'L'); add(fr[1],'R'); }  // 上下=各面左右
+      else { fr.forEach(function(f){ add(f,'L'); add(f,'R'); }); }                    // 上のみ/下のみ=各面左右
+      var seen={}, out=[]; raw.forEach(function(p){ var k=Math.round(p); if(p>0 && p<W && !seen[k]){ seen[k]=1; out.push(p); } });  // 同値は重複除去（→線が重なる＝本数が減る）
+      return out.sort(function(a,b){ return a-b; });
+    }
     function fmt(n,dec){ var d=(dec===undefined?1:dec); var x=Number(n.toFixed(d)); try{ return x.toLocaleString(curLang,{maximumFractionDigits:d}); }catch(e){ return x.toLocaleString(undefined,{maximumFractionDigits:d}); } }
 
     function buildSectionRect(){
@@ -1208,15 +1219,8 @@
       // マーカー: 四角=上面を左・下面を右に配置（各面の補正値=面幅×比率）。側溝=累計＋左右対称。
       var marks=[];
       if(st.rect){
-        var fr=(st.facesRaw||st.faces), pos=st.rectPos||'top';
-        if(pos==='both'){
-          if(fr[0]>0) marks.push({x:xL(fr[0]),        val:fr[0]*r, side:'L'});   // 上面=左
-          if(fr[1]>0) marks.push({x:xL(st.W-fr[1]),   val:fr[1]*r, side:'R'});   // 下面=右
-        } else if(pos==='bottom'){
-          fr.forEach(function(f){ if(f>0) marks.push({x:xL(st.W-f), val:f*r, side:'R'}); });  // 下のみ=右
-        } else {
-          fr.forEach(function(f){ if(f>0) marks.push({x:xL(f),      val:f*r, side:'L'}); });  // 上のみ=左
-        }
+        // 各面取りの span位置 p に、値=p×比率（＝その位置での切断線オフセット）を左右両側に表示。
+        marks=rectMarkPos().map(function(p){ return {x:xL(p), val:p*r, side:(p<st.W/2)?'L':'R'}; });
       } else {
         var dep=C.concat(C.slice().reverse().map(function(c){ return st.W-c; }));
         marks=dep.map(function(dp,k){ return {x:xL(dp), val:dp*r, side:(k%2===0)?'L':'R'}; });
@@ -1239,8 +1243,8 @@
 
     function buildTable(){
       var r=ratio(), C=cumsOf(st.faces);
-      // 四角=各面個別（面幅×比率）。側溝=累計＋左右対称。
-      var depths = st.rect ? (st.facesRaw||st.faces).filter(function(v){ return v>0; })
+      // 底面図と一致：四角=面取りの span位置(左右両側)、側溝=累計＋左右対称。先頭0・末尾W付き。
+      var depths = st.rect ? [0].concat(rectMarkPos(), [st.W])
                            : [0].concat(C, C.slice().reverse().map(function(c){ return st.W-c; }), [st.W]);
       var html='<tr><th>'+t('tbl_cum')+'</th><th>'+t('tbl_calc')+'</th><th>'+t('tbl_offset')+'</th></tr>';
       var rD=Number(r.toFixed(4));
