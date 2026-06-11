@@ -59,7 +59,7 @@
        width: 64px;
        font-size: 14px;
     }
-    /* ずらし値（厳密時）の面入力行 */
+    /* ケガキ補正値（厳密時）の面入力行 */
     .faceRow{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; font-size:13px; margin-bottom:6px }
     .faceRow .field{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap }
     .faceRow .numfield{ width:56px; font-size:14px }
@@ -167,11 +167,11 @@
       <div id="faceRows">
         <div class="faceRow">
           <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
-          <span class="offWrap"><span data-i18n="arrow_offset">→ ずらし値</span> <b class="offOut">—</b> mm</span>
+          <span class="offWrap"><span data-i18n="arrow_offset">→ ケガキ補正値</span> <b class="offOut">—</b> mm</span>
         </div>
         <div class="faceRow">
           <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
-          <span class="offWrap"><span data-i18n="arrow_offset">→ ずらし値</span> <b class="offOut">—</b> mm</span>
+          <span class="offWrap"><span data-i18n="arrow_offset">→ ケガキ補正値</span> <b class="offOut">—</b> mm</span>
         </div>
       </div>
       <div class="rectOpts" style="margin-top:10px">
@@ -1018,7 +1018,7 @@
     // 上面（ケガキ図）＝ 切断長そのもの
     const mEl = document.getElementById('markingCutLenText');
     if(mEl) mEl.textContent = cl + ' mm ' + t('extra_mm');
-    // 側面・横に広がる面＝ 切断長 − ずらし値（面の横幅の累計 × 比率）
+    // 側面・横に広がる面＝ 切断長 − ケガキ補正値（面の横幅の累計 × 比率）
     const ratio = widthMm>0 ? cutLen/widthMm : 0;
     let faceSum = 0;
     document.querySelectorAll('#faceRows .faceRow').forEach(r => {
@@ -1027,7 +1027,7 @@
       const v = inp ? parseNum(inp.value) : NaN;
       if(isFinite(v) && v>0) faceSum += v;
     });
-    const off = Math.min(Math.round(faceSum * ratio), cl);   // ずらし値は切断長を超えない（負の差を表示しない）
+    const off = Math.min(Math.round(faceSum * ratio), cl);   // ケガキ補正値は切断長を超えない（負の差を表示しない）
     const sEl = document.getElementById('sideScribeCutLenText');
     if(sEl) sEl.textContent = off>0 ? (cl + ' mm − ' + off + ' ' + t('extra_mm')) : (cl + ' mm ' + t('extra_mm'));
   }
@@ -1235,7 +1235,7 @@
         var v=inp?parseNum(inp.value):NaN;
         if(isFinite(v)&&v>0) arr.push(v);
       });
-      // 非物理入力（面の累計が全幅超）でも図が破綻しないよう、図用に累計を全幅でキャップ（主パネルのずらし値表示は実値のまま）
+      // 非物理入力（面の累計が全幅超）でも図が破綻しないよう、図用に累計を全幅でキャップ（主パネルのケガキ補正値表示は実値のまま）
       var capped=[], run=0;
       arr.forEach(function(w){ if(run>=st.W) return; var c=Math.min(w, st.W-run); if(c>0){ capped.push(c); run+=c; } });
       st.faces=capped;
@@ -1330,13 +1330,13 @@
         <li data-i18n="h_use_li2"><b>両側/片側</b> モードを選択。コーナーは両側、桝接続は片側</li>
         <li data-i18n="h_use_li3"><b>スライダー</b> または <b>図を直接ドラッグ</b> でガイドを実物のラインに合わせる</li>
         <li data-i18n="h_use_li4">図内の <b>ケガキ図</b> を長押しで切断方法、必要なら <b>記録</b> に保存</li>
-        <li data-i18n="h_use_li5">（任意）<b>厳密に角面（底面・面取り）も考慮してケガキ線を引く</b>場合は、<b>厳密に角面を考慮してケガキ</b> に面の横幅を入れ、表示される<b>ずらし値</b>だけ各面でずらしてケガく</li>
+        <li data-i18n="h_use_li5">（任意）<b>厳密に角面（底面・面取り）も考慮してケガキ線を引く</b>場合は、<b>厳密に角面を考慮してケガキ</b> に面の横幅を入れ、表示される<b>ケガキ補正値</b>だけ各面でずらしてケガく</li>
       </ol>
       <figure>
         <img src="images/usage-basic.svg" data-i18n-alt="h_use_cap" alt="基本操作の流れ" />
         <figcaption data-i18n="h_use_cap">基本操作の流れ</figcaption>
       </figure>
-      <p data-i18n="h_use_other" style="font-size:12px; color:#555; margin-top:8px">縁石・ブロック・幅木・タイル・額縁などの角度カットも、同様の手順で行えます。断面が四角形の材料でも、切断長・ずらし値の計算はそのまま使えます。</p>
+      <p data-i18n="h_use_other" style="font-size:12px; color:#555; margin-top:8px">縁石・ブロック・幅木・タイル・額縁などの角度カットも、同様の手順で行えます。断面が四角形の材料でも、切断長・ケガキ補正値の計算はそのまま使えます。</p>
     </div>
 
     <div class="help-section" data-section="cross">
@@ -1451,7 +1451,7 @@
 
       <!-- 側面ケガキの注意 -->
       <div class="help-note" data-i18n="h_side_note">
-        ⚠️ 側面へのケガキは、切断長を下図のように同じ寸法でおろせば、ほとんどの場合（後述）は大丈夫です。目地などで調整できるからです。<b>面を厳密に考慮する</b>場合は、各面で「<b>ずらし値</b>」（面の横幅 × 比率）だけずらしてケガきます。<b>→ 下の「面がある場合の厳密なケガキ方法」を参照</b>
+        ⚠️ 側面へのケガキは、切断長を下図のように同じ寸法でおろせば、ほとんどの場合（後述）は大丈夫です。目地などで調整できるからです。<b>面を厳密に考慮する</b>場合は、各面で「<b>ケガキ補正値</b>」（面の横幅 × 比率）だけずらしてケガきます。<b>→ 下の「面がある場合の厳密なケガキ方法」を参照</b>
       </div>
 
       <!-- さしがね使用例 -->
@@ -1467,9 +1467,9 @@
       </figure>
       <figure>
         <svg id="figBotSvg" viewBox="0 0 360 412" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"></svg>
-        <figcaption data-i18n="h_bottom_cap">赤がずらし値（累計 × 比率）、緑が切断線</figcaption>
+        <figcaption data-i18n="h_bottom_cap">赤がケガキ補正値（累計 × 比率）、緑が切断線</figcaption>
       </figure>
-      <h4 data-i18n="h_calc_h">ずらし値の計算（自動）</h4>
+      <h4 data-i18n="h_calc_h">ケガキ補正値の計算（自動）</h4>
       <table class="calc" id="figCalcTable"></table>
       <div class="help-note" data-i18n="h_taper_note" style="background:#eef5fc; border-left-color:#3a7fc0; color:#15436e">
         📐 斜め壁（テーパー）も「面」と同じ扱い。横への倒れ幅を面の横幅として入力してください（メイン欄の「テーパー」チェックで図も切替）。
