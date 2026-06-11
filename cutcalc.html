@@ -89,6 +89,8 @@
     .log-entry-note{ font-family: -apple-system, sans-serif; color:#666; font-size:11px; }
     .log-entry-del{ background:#fee; border:1px solid #fcc; color:#c00; padding:3px 9px; border-radius:5px; cursor:pointer; font-size:11px; }
     .log-entry-load{ background:#e8f5e9; border:1px solid #a5d6a7; color:#1b5e20; padding:3px 9px; border-radius:5px; cursor:pointer; font-size:11px; margin-right:4px; }
+    .log-thumb{ width:58px; height:44px; object-fit:cover; border-radius:5px; border:1px solid #ddd; flex-shrink:0; cursor:pointer; }
+    .log-thumb.big{ width:220px; height:auto; }
     .log-empty{ text-align:center; color:#999; padding:18px; font-size:12px; }
     .help-icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.7); background:rgba(255,255,255,0.12); color:#fff; cursor:pointer; font-size:13px; font-weight:700; padding:0; vertical-align:middle; margin-left:8px; transition:background 0.15s; }
     .help-icon-btn:hover{ background:rgba(255,255,255,0.28); }
@@ -162,6 +164,20 @@
     <div id="statusMsg" class="status" style="display:none"></div>
   </div>
   <div class="panel">
+    <div class="grid-1">
+      <button class="btn" id="cameraToggleBtn">カメラ起動</button>
+      <button class="btn" id="captureBtn" data-i18n-title="tip_freeze" title="カメラ映像を止めて合わせやすくする（もう一度でライブに戻る）" disabled>静止</button>
+      <label class="btn" style="text-align:center; cursor:pointer"><span data-i18n="btn_image">画像読込</span><input id="imageInput" type="file" accept="image/*" style="display:none" /></label>
+      <button class="btn" id="logBtn" data-i18n="btn_log">記録</button>
+    </div>
+    <!-- アプリ内(Android)でのみ表示＝広告除去(IAP)。Web版では window.AndroidBilling が無いので常に非表示 -->
+    <div id="proBar" style="display:none; margin-top:8px; text-align:center">
+      <button class="btn" id="removeAdsBtn" style="font-size:12px; padding:7px 14px" data-i18n="remove_ads">広告を消す</button>
+    </div>
+    <video id="video" playsinline style="display:none"></video>
+    <canvas id="photoCanvas" style="display:none"></canvas>
+  </div>
+  <div class="panel">
     <button class="disclosure" id="offsetToggle" aria-expanded="false"><span class="tri">▸</span> 厳密に角面を考慮してケガキ</button>
     <div id="offsetBody" style="display:none; margin-top:8px">
       <div id="faceRows">
@@ -184,24 +200,10 @@
         </div>
         <label><input type="checkbox" id="offTaper"> <span data-i18n="rect_taper">テーパー（斜め壁）</span></label>
         <figure class="secMini"><svg id="figSecSvgMain" viewBox="0 0 360 312" xmlns="http://www.w3.org/2000/svg"></svg>
-          <figcaption class="secCap" data-i18n="offset_note">👆 タップで切断方法へ（参考用のイメージ図です）</figcaption>
+          <figcaption class="secCap" data-i18n="offset_note">タップで切断方法へ（参考用イメージ図）</figcaption>
         </figure>
       </div>
     </div>
-  </div>
-  <div class="panel">
-    <div class="grid-1">
-      <button class="btn" id="cameraToggleBtn">カメラ起動</button>
-      <button class="btn" id="captureBtn" data-i18n-title="tip_freeze" title="カメラ映像を止めて合わせやすくする（もう一度でライブに戻る）" disabled>静止</button>
-      <label class="btn" style="text-align:center; cursor:pointer"><span data-i18n="btn_image">画像読込</span><input id="imageInput" type="file" accept="image/*" style="display:none" /></label>
-      <button class="btn" id="logBtn" data-i18n="btn_log">記録</button>
-    </div>
-    <!-- アプリ内(Android)でのみ表示＝広告除去(IAP)。Web版では window.AndroidBilling が無いので常に非表示 -->
-    <div id="proBar" style="display:none; margin-top:8px; text-align:center">
-      <button class="btn" id="removeAdsBtn" style="font-size:12px; padding:7px 14px" data-i18n="remove_ads">広告を消す</button>
-    </div>
-    <video id="video" playsinline style="display:none"></video>
-    <canvas id="photoCanvas" style="display:none"></canvas>
   </div>
 </div>
 <script src="i18n.js"></script>
@@ -947,6 +949,7 @@
     let curStr=`${cur.mode==='single'?t('mode_single'):t('mode_dual')} ・ ∠${cur.angle}° ・ ${cur.width}mm ・ ✂${cur.cutLen}mm`;
     if(cur.faces && cur.faces.length) curStr+=` ・ ▦[${cur.faces.join('/')}]`;
     document.getElementById('logCurrentVals').textContent = curStr;
+    { const ct=captureThumb(), cth=document.getElementById('logCurrentThumb'); if(cth){ if(ct){ cth.src=ct; cth.style.display=''; } else { cth.style.display='none'; } } }
     const list=loadLog();
     const listEl=document.getElementById('logList');
     listEl.innerHTML='';
@@ -961,17 +964,30 @@
       load.addEventListener('click', ()=>restoreEntry(entry));
       const del=document.createElement('button'); del.className='log-entry-del'; del.textContent=t('log_del');
       del.addEventListener('click', ()=>{ const lg=loadLog(); lg.splice(idx,1); saveLogToStorage(lg); renderLogModal(); });
+      if(entry.thumb){ const im=document.createElement('img'); im.className='log-thumb'; im.src=entry.thumb; im.alt=''; im.addEventListener('click',()=>im.classList.toggle('big')); row.appendChild(im); }
       row.appendChild(info); row.appendChild(load); row.appendChild(del);
       listEl.appendChild(row);
     });
   }
   function openLogModal(){ renderLogModal(); document.getElementById('logModal').classList.add('show'); }
   function closeLogModal(){ document.getElementById('logModal').classList.remove('show'); }
+  // 静止/読込画像がある時だけ、ガイド画面(画像＋ガイド線)を320px JPEGサムネイルで取得
+  function captureThumb(){
+    if(!(isCaptured && photo.width>0)) return null;
+    try{ var tw=320, th=Math.max(1,Math.round(tw*guide.height/guide.width));
+      var c=document.createElement('canvas'); c.width=tw; c.height=th;
+      c.getContext('2d').drawImage(guide,0,0,tw,th);
+      return c.toDataURL('image/jpeg',0.6);
+    }catch(e){ return null; }
+  }
+  function safeSaveLog(log){ try{ saveLogToStorage(log); return true; }catch(e){ return false; } }
   function saveCurrentLog(){
     const note=(document.getElementById('logNoteInput').value||'').trim();
     const entry=getCurrentMeasurement();
     if(note) entry.note=note;
-    const log=loadLog(); log.push(entry); saveLogToStorage(log);
+    const thumb=captureThumb(); if(thumb) entry.thumb=thumb;             // 静止/読込画像があればサムネイル同梱
+    const log=loadLog(); log.push(entry);
+    if(!safeSaveLog(log) && entry.thumb){ delete entry.thumb; safeSaveLog(log); }  // 容量超過時は画像を外して保存
     document.getElementById('logNoteInput').value='';
     renderLogModal();
     showStatus(t('st_log_saved'),'success');
@@ -1520,6 +1536,7 @@
     </div>
     <div class="modal-current">
       <div class="modal-current-vals" id="logCurrentVals">―</div>
+      <img id="logCurrentThumb" class="log-thumb" style="display:none" alt="" onclick="this.classList.toggle('big')" />
       <div class="modal-row">
         <input type="text" id="logNoteInput" data-i18n-ph="log_memo_ph" placeholder="メモ（例: 〇〇現場 北東角）" maxlength="40" />
         <button class="btn primary" id="logSaveBtn" data-i18n="log_save">保存</button>
