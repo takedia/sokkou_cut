@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>側溝カットガイド</title>
   <style>
-    :root { --bg1:#1e293b; --bg2:#0f172a; --panel:rgba(255,255,255,.10); --txt:#fff; --accent:#fb923c; --rightLine:#ffcc33 }
+    :root { --bg1:#172554; --bg2:#1e3a8a; --panel:rgba(255,255,255,.10); --txt:#fff; --accent:#fcd34d; --rightLine:#ffcc33 }
     *{ box-sizing:border-box }
     body{ margin:0; padding:12px; min-height:100vh; color:var(--txt); background:linear-gradient(135deg,var(--bg1),var(--bg2)); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif }
     .container{ position:relative; max-width:460px; margin:0 auto; background:var(--panel); backdrop-filter:blur(10px); border-radius:16px; padding:12px; box-shadow:0 10px 24px rgba(0,0,0,.2) }
@@ -52,19 +52,19 @@
        display: flex;
        flex-wrap: wrap;           /* 入らない時は折返し（スマホ縦対応） */
        align-items: center;
-       gap: 6px 14px;
-       font-size: 13px;
+       gap: 6px 10px;
+       font-size: 11.5px;
     }
     .row-nowrap .field {        /* ラベル＋入力を1組として扱い、組ごとに折返す */
        display: inline-flex;
        align-items: center;
-       gap: 6px;
+       gap: 5px;
        white-space: nowrap;
     }
     .row-nowrap .numfield {
        flex-shrink: 0;
-       width: 64px;
-       font-size: 14px;
+       width: 46px;
+       font-size: 13px;
     }
     /* ケガキ補正値（厳密時）の面入力行 */
     .faceRow{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; font-size:13px; margin-bottom:6px }
@@ -100,7 +100,8 @@
     .log-thumb.big{ width:220px; height:auto; }
     .log-empty{ text-align:center; color:#999; padding:18px; font-size:12px; }
     .theme-picker{ margin:12px 4px 4px; }
-    .theme-title{ font-size:12px; font-weight:700; color:#445; margin-bottom:6px; }
+    .theme-title{ font-size:12px; font-weight:700; color:#445; margin-bottom:4px; }
+    .theme-desc{ font-size:11px; color:#667; margin-bottom:8px; line-height:1.4; }
     .theme-grid{ display:flex; flex-wrap:wrap; gap:7px; }
     .theme-sw{ width:44px; height:32px; border-radius:8px; border:2px solid #ddd; cursor:pointer; position:relative; padding:0; }
     .theme-sw.on{ border-color:#333; box-shadow:0 0 0 2px rgba(0,0,0,.18); }
@@ -156,14 +157,14 @@
         <input type="checkbox" id="modeToggle" />
         <span class="muted" data-i18n="mode_single">片側</span>
       </label>
-      <button class="btn" id="flipBtn" data-i18n-title="tip_flip" title="左右反転" style="padding:5px 10px; font-size:14px">⇄</button>
       <span class="pill-sm"><span data-i18n="cutlen">切断長:</span> <span id="inlineCutLenNum" class="num">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="unit"> mm</span></span>
     </div>
-    <!-- スライダー（単独のL/Rラベルは廃止・折返し防止で省スペース化） -->
-    <div class="row" style="margin-top:12px; gap:12px; flex-wrap:nowrap">
+    <!-- スライダー（左右バー＋中央に左右反転ボタン） -->
+    <div class="row" style="margin-top:12px; gap:10px; flex-wrap:nowrap">
       <div id="leftWrap" style="flex:1; display:flex; min-width:0">
         <input type="range" id="leftSlider" min="0" max="100" step="any" value="25" data-i18n-aria="aria_left" aria-label="左バー" style="flex:1; min-width:0" />
       </div>
+      <button class="btn" id="flipBtn" data-i18n-title="tip_flip" title="左右反転" style="padding:5px 10px; font-size:14px; flex:none">⇄</button>
       <div id="rightWrap" style="flex:1; display:flex; min-width:0">
         <input type="range" id="rightSlider" min="0" max="100" step="any" value="75" data-i18n-aria="aria_right" aria-label="右バー" style="flex:1; min-width:0" />
       </div>
@@ -1117,7 +1118,7 @@
     {id:'deepsea',      bg1:'#0c4a6e', bg2:'#082f49', ac:'#34d399'},
     {id:'grape',        bg1:'#4c1d95', bg2:'#5b21b6', ac:'#2dd4bf'}
   ];
-  var DEFAULT_THEME = 'slate_orange';
+  var DEFAULT_THEME = 'navy';
   function currentTheme(){ try{ return localStorage.getItem('cutcalc_theme') || DEFAULT_THEME; }catch(e){ return DEFAULT_THEME; } }
   function applyTheme(id){
     var t=null; for(var i=0;i<THEMES.length;i++){ if(THEMES[i].id===id){ t=THEMES[i]; break; } }
@@ -1435,6 +1436,11 @@
         <figcaption data-i18n="h_use_cap">基本操作の流れ</figcaption>
       </figure>
       <p data-i18n="h_use_other" style="font-size:12px; color:#555; margin-top:8px">縁石・ブロック・幅木・タイル・額縁などの角度カットも、同様の手順で行えます。断面が四角形の材料でも、切断長・ケガキ補正値の計算はそのまま使えます。</p>
+      <div class="theme-picker">
+        <div class="theme-title" data-i18n="theme_label">配色</div>
+        <div class="theme-desc" data-i18n="theme_desc">お好みの配色を選べます。選んだ色は次回も保持されます。</div>
+        <div class="theme-grid" id="themeGrid"></div>
+      </div>
     </div>
 
     <div class="help-section" data-section="cross">
@@ -1579,10 +1585,6 @@
       <div class="help-note" data-i18n="h_both_note">
         ⚠️ <b>＜後述＞水平・垂直の両方に曲がる場合</b>：コーナー（水平方向の振れ）と勾配（縦方向の振れ）が<b>同時に起きる</b>箇所もあります。その場合は1方向だけでは合いません。<b>水平の角度は「両側モード」</b>、<b>縦の勾配は「片側モード」</b>で別々に測り、両方のケガキ線を合わせて切ってください。
       </div>
-    </div>
-    <div class="theme-picker">
-      <div class="theme-title" data-i18n="theme_label">配色</div>
-      <div class="theme-grid" id="themeGrid"></div>
     </div>
     <button class="btn help-back" id="helpBackBtn" data-i18n="help_back">← メイン画面に戻る</button>
   </div>
