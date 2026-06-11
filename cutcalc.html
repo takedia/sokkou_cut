@@ -52,8 +52,10 @@
        display: flex;
        flex-wrap: wrap;           /* 入らない時は折返し（スマホ縦対応） */
        align-items: center;
+       justify-content: space-between;   /* 幅/高さを左・角度を右へ振り分け、間隔を最大化 */
        gap: 6px 10px;
-       font-size: 11.5px;
+       font-size: 11px;
+       width: 100%;
     }
     .row-nowrap .field {        /* ラベル＋入力を1組として扱い、組ごとに折返す */
        display: inline-flex;
@@ -63,7 +65,7 @@
     }
     .row-nowrap .numfield {
        flex-shrink: 0;
-       width: 46px;
+       width: 42px;
        font-size: 13px;
     }
     /* ケガキ補正値（厳密時）の面入力行 */
@@ -106,6 +108,13 @@
     .theme-sw{ width:44px; height:32px; border-radius:8px; border:2px solid #ddd; cursor:pointer; position:relative; padding:0; }
     .theme-sw.on{ border-color:#333; box-shadow:0 0 0 2px rgba(0,0,0,.18); }
     .theme-sw .tdot{ position:absolute; right:3px; bottom:3px; width:11px; height:11px; border-radius:50%; border:1px solid rgba(255,255,255,.85); }
+    .light-theme .panel{ border-color:rgba(0,0,0,.10) }
+    .light-theme .subtitle{ opacity:.6 }
+    .light-theme .muted{ color:var(--txt); opacity:.8 }
+    .light-theme .help-btn{ color:var(--txt) }
+    .light-theme .disclosure{ color:var(--txt) }
+    .light-theme .toggle input{ background:#cbd5e1 }
+    .light-theme .canvasBlock .muted b{ color:var(--txt) }
     /* ヘルプモーダル */
     .help-tabs{ display:flex; gap:4px; margin-bottom:10px; border-bottom:1px solid #ddd; }
     .help-tab{ flex:1; padding:6px 4px; background:none; border:none; cursor:pointer; font-size:12px; font-weight:600; color:#555; border-bottom:2px solid transparent; }
@@ -1102,21 +1111,18 @@
   function setLang(l){ if(!I18N[l]) return; curLang=l; try{ localStorage.setItem('cutcalc_lang', l); }catch(e){} const sel=document.getElementById('langSel'); if(sel) sel.value=l; applyI18n(); }
 
   var THEMES = [
-    {id:'slate_orange', bg1:'#1e293b', bg2:'#0f172a', ac:'#fb923c'},
-    {id:'ocean',        bg1:'#1e3c72', bg2:'#2a5298', ac:'#00bcd4'},
-    {id:'purple',       bg1:'#667eea', bg2:'#764ba2', ac:'#4caf50'},
-    {id:'teal',         bg1:'#0f766e', bg2:'#134e4a', ac:'#f59e0b'},
-    {id:'slate_green',  bg1:'#1e293b', bg2:'#0f172a', ac:'#22c55e'},
-    {id:'indigo',       bg1:'#312e81', bg2:'#1e1b4b', ac:'#22d3ee'},
-    {id:'sunset',       bg1:'#9a3412', bg2:'#7c2d12', ac:'#38bdf8'},
-    {id:'forest',       bg1:'#14532d', bg2:'#166534', ac:'#a3e635'},
     {id:'navy',         bg1:'#172554', bg2:'#1e3a8a', ac:'#fcd34d'},
+    {id:'ocean',        bg1:'#1e3c72', bg2:'#2a5298', ac:'#00bcd4'},
+    {id:'slate_orange', bg1:'#1e293b', bg2:'#0f172a', ac:'#fb923c'},
+    {id:'slate_green',  bg1:'#1e293b', bg2:'#0f172a', ac:'#22c55e'},
+    {id:'teal',         bg1:'#0f766e', bg2:'#134e4a', ac:'#f59e0b'},
     {id:'wine',         bg1:'#7f1d1d', bg2:'#581c1c', ac:'#fbbf24'},
-    {id:'midnight',     bg1:'#0f172a', bg2:'#1e293b', ac:'#fb923c'},
     {id:'plum',         bg1:'#581c87', bg2:'#6b21a8', ac:'#f472b6'},
-    {id:'charcoal',     bg1:'#1f2937', bg2:'#111827', ac:'#06b6d4'},
-    {id:'deepsea',      bg1:'#0c4a6e', bg2:'#082f49', ac:'#34d399'},
-    {id:'grape',        bg1:'#4c1d95', bg2:'#5b21b6', ac:'#2dd4bf'}
+    {id:'grape',        bg1:'#4c1d95', bg2:'#5b21b6', ac:'#2dd4bf'},
+    {id:'icon_amber',   bg1:'#c2410c', bg2:'#7c2d12', ac:'#4ade80'},
+    {id:'feature_lime', bg1:'#0d1b2a', bg2:'#1b263b', ac:'#aeea00'},
+    {id:'paper',        bg1:'#9fb0c4', bg2:'#bcc9d8', ac:'#1d4ed8', txt:'#172033', panel:'rgba(255,255,255,.66)', light:true},
+    {id:'cream',        bg1:'#e3c489', bg2:'#f0dcb4', ac:'#c2410c', txt:'#5c2310', panel:'rgba(255,255,255,.66)', light:true}
   ];
   var DEFAULT_THEME = 'navy';
   function currentTheme(){ try{ return localStorage.getItem('cutcalc_theme') || DEFAULT_THEME; }catch(e){ return DEFAULT_THEME; } }
@@ -1125,6 +1131,9 @@
     if(!t){ t=THEMES[0]; id=t.id; }
     var r=document.documentElement.style;
     r.setProperty('--bg1',t.bg1); r.setProperty('--bg2',t.bg2); r.setProperty('--accent',t.ac);
+    r.setProperty('--txt', t.txt || '#fff');
+    r.setProperty('--panel', t.panel || 'rgba(255,255,255,.10)');
+    document.documentElement.classList.toggle('light-theme', !!t.light);
     try{ localStorage.setItem('cutcalc_theme', id); }catch(e){}
     var grid=document.getElementById('themeGrid');
     if(grid){ var bs=grid.querySelectorAll('.theme-sw'); for(var j=0;j<bs.length;j++){ bs[j].classList.toggle('on', bs[j].getAttribute('data-theme')===id); } }
