@@ -1205,29 +1205,43 @@
       s+='<line x1="'+X0+'" y1="'+y0+'" x2="'+X1+'" y2="'+y0+'" stroke="#999" stroke-width="1"/>';
       s+='<line x1="'+X0+'" y1="'+y0+'" x2="'+X0+'" y2="362" stroke="#999" stroke-width="1"/>';
       s+='<line x1="'+X1+'" y1="'+y0+'" x2="'+X1+'" y2="362" stroke="#999" stroke-width="1"/>';
-      var depths = st.rect ? (st.facesRaw||st.faces).slice().filter(function(v){ return v>0; })   // 四角=各面独立・生値（左右ミラー無し／パネルと一致）
-                           : C.concat(C.slice().reverse().map(function(c){ return st.W-c; }));
+      // マーカー: 四角=上面を左・下面を右に配置（各面の補正値=面幅×比率）。側溝=累計＋左右対称。
+      var marks=[];
+      if(st.rect){
+        var fr=(st.facesRaw||st.faces), pos=st.rectPos||'top';
+        if(pos==='both'){
+          if(fr[0]>0) marks.push({x:xL(fr[0]),        val:fr[0]*r, side:'L'});   // 上面=左
+          if(fr[1]>0) marks.push({x:xL(st.W-fr[1]),   val:fr[1]*r, side:'R'});   // 下面=右
+        } else if(pos==='bottom'){
+          fr.forEach(function(f){ if(f>0) marks.push({x:xL(st.W-f), val:f*r, side:'R'}); });  // 下のみ=右
+        } else {
+          fr.forEach(function(f){ if(f>0) marks.push({x:xL(f),      val:f*r, side:'L'}); });  // 上のみ=左
+        }
+      } else {
+        var dep=C.concat(C.slice().reverse().map(function(c){ return st.W-c; }));
+        marks=dep.map(function(dp,k){ return {x:xL(dp), val:dp*r, side:(k%2===0)?'L':'R'}; });
+      }
       s+='<g stroke="#999" stroke-width="0.8" stroke-dasharray="4,3">';
-      depths.forEach(function(dp){ s+='<line x1="'+xL(dp).toFixed(1)+'" y1="'+y0+'" x2="'+xL(dp).toFixed(1)+'" y2="362"/>'; });
+      marks.forEach(function(m){ s+='<line x1="'+m.x.toFixed(1)+'" y1="'+y0+'" x2="'+m.x.toFixed(1)+'" y2="362"/>'; });
       s+='</g>';
       var yEnd=y0+st.L*sy;
       s+='<line x1="'+X0+'" y1="'+y0+'" x2="'+X1+'" y2="'+yEnd.toFixed(1)+'" stroke="#2c8c2c" stroke-width="2.8"/>';
       s+='<circle cx="'+X0+'" cy="'+y0+'" r="3.2" fill="#2c8c2c"/>';
       s+='<text x="'+(X0-6)+'" y="'+(y0-3)+'" text-anchor="end" font-size="10" fill="#2c8c2c" font-weight="700">0</text>';
       s+='<text x="'+(X1+6)+'" y="'+(yEnd+4).toFixed(1)+'" font-size="10" fill="#2c8c2c" font-weight="700">'+fmt(st.L,0)+'</text>';
-      depths.forEach(function(dp,k){
-        var v=dp*r, vy=y0+v*sy, x=xL(dp);
-        s+='<line x1="'+x.toFixed(1)+'" y1="'+y0+'" x2="'+x.toFixed(1)+'" y2="'+vy.toFixed(1)+'" stroke="#cc2c2c" stroke-width="1.3" marker-end="url(#figOR)"/>';
-        s+='<circle cx="'+x.toFixed(1)+'" cy="'+vy.toFixed(1)+'" r="2.6" fill="#cc2c2c"/>';
-        var left=(k%2===0);
-        s+='<text x="'+(left?x-6:x+6).toFixed(1)+'" y="'+(vy+3).toFixed(1)+'" '+(left?'text-anchor="end" ':'')+'font-size="10" fill="#cc2c2c" font-weight="700">'+Math.round(v)+'</text>';
+      marks.forEach(function(m){ var vy=y0+m.val*sy, lft=(m.side==='L');
+        s+='<line x1="'+m.x.toFixed(1)+'" y1="'+y0+'" x2="'+m.x.toFixed(1)+'" y2="'+vy.toFixed(1)+'" stroke="#cc2c2c" stroke-width="1.3" marker-end="url(#figOR)"/>';
+        s+='<circle cx="'+m.x.toFixed(1)+'" cy="'+vy.toFixed(1)+'" r="2.6" fill="#cc2c2c"/>';
+        s+='<text x="'+(lft?m.x-6:m.x+6).toFixed(1)+'" y="'+(vy+3).toFixed(1)+'" '+(lft?'text-anchor="end" ':'')+'font-size="10" fill="#cc2c2c" font-weight="700">'+Math.round(m.val)+'</text>';
       });
       $('figBotSvg').innerHTML=s;
     }
 
     function buildTable(){
       var r=ratio(), C=cumsOf(st.faces);
-      var depths=[0].concat(C, C.slice().reverse().map(function(c){ return st.W-c; }), [st.W]);
+      // 四角=各面個別（面幅×比率）。側溝=累計＋左右対称。
+      var depths = st.rect ? (st.facesRaw||st.faces).filter(function(v){ return v>0; })
+                           : [0].concat(C, C.slice().reverse().map(function(c){ return st.W-c; }), [st.W]);
       var html='<tr><th>'+t('tbl_cum')+'</th><th>'+t('tbl_calc')+'</th><th>'+t('tbl_offset')+'</th></tr>';
       var rD=Number(r.toFixed(4));
       depths.forEach(function(dp){ html+='<tr><td>'+fmt(dp,0)+'</td><td class="f">'+fmt(dp,0)+' × '+r.toFixed(4)+' = '+fmt(dp*rD,1)+'</td><td><b>'+Math.round(dp*r)+'</b></td></tr>'; });  // 計算列は表示比率で自己整合・確定値は実比率で底面図と一致
@@ -1256,9 +1270,9 @@
       // 四角モードでは側溝専用の底面図・計算表を隠す（累計＋左右対称ロジックが四角断面に不適合のため）
       // 底面図は常に表示（四角は各面独立・左右ミラー無しで描画）。計算表は四角では隠す（数値はメイン欄）
       var botSvg=$('figBotSvg'); if(botSvg&&botSvg.parentNode) botSvg.parentNode.style.display='';
-      var calcH=document.querySelector('[data-i18n="h_calc_h"]'); if(calcH) calcH.style.display=st.rect?'none':'';
-      var calcTbl=$('figCalcTable'); if(calcTbl) calcTbl.style.display=st.rect?'none':'';
-      buildBottom(); if(!st.rect) buildTable();
+      var calcH=document.querySelector('[data-i18n="h_calc_h"]'); if(calcH) calcH.style.display='';
+      var calcTbl=$('figCalcTable'); if(calcTbl) calcTbl.style.display='';
+      buildBottom(); buildTable();
     }
     return { render: render };
   })();
