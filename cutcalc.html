@@ -8,9 +8,11 @@
     :root { --bg1:#667eea; --bg2:#764ba2; --panel:rgba(255,255,255,.10); --txt:#fff; --accent:#4CAF50; --rightLine:#ffcc33 }
     *{ box-sizing:border-box }
     body{ margin:0; padding:12px; min-height:100vh; color:var(--txt); background:linear-gradient(135deg,var(--bg1),var(--bg2)); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif }
-    .container{ max-width:460px; margin:0 auto; background:var(--panel); backdrop-filter:blur(10px); border-radius:16px; padding:12px; box-shadow:0 10px 24px rgba(0,0,0,.2) }
+    .container{ position:relative; max-width:460px; margin:0 auto; background:var(--panel); backdrop-filter:blur(10px); border-radius:16px; padding:12px; box-shadow:0 10px 24px rgba(0,0,0,.2) }
     h1{ font-size:16px; margin:0 0 2px; text-align:center }
-    .subtitle{ text-align:center; font-size:11px; opacity:.75; letter-spacing:.06em; margin:0 0 8px }
+    .subtitle{ text-align:center; font-size:11px; opacity:.75; letter-spacing:.06em; margin:0 0 6px }
+    .langRow{ position:absolute; top:12px; right:12px; margin:0; z-index:3 }
+    .langSel{ font-size:12px; padding:2px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff }
     .disclosure{ appearance:none; border:none; background:none; color:#fff; cursor:pointer; font-size:13px; font-weight:700; padding:2px 0; text-align:left; width:100%; opacity:.92 }
     .panel{ background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25); border-radius:14px; padding:10px; margin-top:12px }
     #angleGuide{ width:100%; aspect-ratio:4/3; background:rgba(0,0,0,.15); border-radius:12px; display:block; max-height:260px; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
@@ -120,12 +122,13 @@
 </head>
 <body>
 <div class="container">
-  <h1>側溝カットガイド <button class="help-icon-btn" id="helpUseBtn" data-i18n-title="tip_help" data-i18n-aria="tip_help" title="使い方を表示" aria-label="使い方を表示">?</button>
-    <select id="langSel" aria-label="Language" style="float:right; font-size:12px; padding:2px 4px; border-radius:6px; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff">
+  <h1>側溝カットガイド <button class="help-icon-btn" id="helpUseBtn" data-i18n-title="tip_help" data-i18n-aria="tip_help" title="使い方を表示" aria-label="使い方を表示">?</button></h1>
+  <div class="subtitle" data-i18n="subtitle">角度カット計算ツール</div>
+  <div class="langRow">
+    <select id="langSel" aria-label="Language" class="langSel">
       <option value="ja">日本語</option><option value="en">English</option><option value="vi">Tiếng Việt</option><option value="zh">中文</option><option value="pt">Português</option><option value="fil">Filipino</option>
     </select>
-  </h1>
-  <div class="subtitle" data-i18n="subtitle">角度カット計算ツール</div>
+  </div>
   <div class="panel canvasBlock">
     <div class="muted" data-i18n="intro" style="margin-bottom:6px; font-size:12px; line-height:1.5">
       カメラ起動 → ガイド線を実物（水糸・構造物）に合わせ、角度・切断長を読取り。詳しい使い方は右上の <b>?</b>
