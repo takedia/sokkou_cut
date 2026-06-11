@@ -184,7 +184,7 @@
         </div>
         <label><input type="checkbox" id="offTaper"> <span data-i18n="rect_taper">テーパー（斜め壁）</span></label>
         <figure class="secMini"><svg id="figSecSvgMain" viewBox="0 0 360 312" xmlns="http://www.w3.org/2000/svg"></svg>
-          <figcaption class="secCap" data-i18n="offset_note">※断面図はあくまでイメージ図です</figcaption>
+          <figcaption class="secCap" data-i18n="offset_note">👆 タップで詳しい切断方法へ（断面図はイメージ）</figcaption>
         </figure>
       </div>
     </div>
@@ -1312,18 +1312,9 @@
     if(rectMode) rectMode.addEventListener('change', ()=>{ syncRectUI(); reRender(); updateOffset(); });
     document.querySelectorAll('input[name=rectPos]').forEach(r=> r.addEventListener('change', ()=>{ syncRectUI(); reRender(); updateOffset(); }));
     syncRectUI();
-    // 埋め込み断面図：長押し(350ms)で切断方法へ。長押し直後のゴーストクリック/選択を抑制
+    // 埋め込み断面図：タップで切断方法へ（静的な図なので長押し不要）。上部カメラの「ケガキ図」はドラッグ操作と競合するため長押しのまま。
     const secMain=document.getElementById('figSecSvgMain');
-    if(secMain){
-      let pr=null;
-      secMain.addEventListener('pointerdown', (e)=>{ pr={x:e.clientX,y:e.clientY,fired:false}; pr.t=setTimeout(()=>{ if(pr){ pr.fired=true; window.__swallowClick=Date.now(); openHelpModal('cutmethod'); } },350); });
-      secMain.addEventListener('pointermove', (e)=>{ if(pr&&!pr.fired&&Math.hypot(e.clientX-pr.x,e.clientY-pr.y)>12){ clearTimeout(pr.t); pr=null; } });
-      const endPr=()=>{ if(pr){ clearTimeout(pr.t); pr=null; } };
-      secMain.addEventListener('pointerup', endPr);
-      secMain.addEventListener('pointercancel', endPr);
-      secMain.addEventListener('contextmenu', (e)=>e.preventDefault());
-    }
-    document.addEventListener('click', (e)=>{ if(window.__swallowClick && (Date.now()-window.__swallowClick)<700){ window.__swallowClick=0; e.preventDefault(); e.stopPropagation(); } }, true);
+    if(secMain) secMain.addEventListener('click', ()=>{ if(typeof openHelpModal==='function') openHelpModal('cutmethod'); });
     initRemoveAds();
   });
 
@@ -1424,6 +1415,9 @@
           <line x1="360" y1="50" x2="280" y2="140" stroke="#2c8c2c" stroke-width="3"/>
           <circle cx="360" cy="50" r="3" fill="#2c8c2c"/>
           <circle cx="280" cy="140" r="3" fill="#2c8c2c"/>
+          <!-- 上端の余裕（下の「+数mm」と対応：始点側にも数mmのばす） -->
+          <line x1="360" y1="50" x2="373" y2="35" stroke="#2c8c2c" stroke-width="3" stroke-dasharray="4,2"/>
+          <text x="378" y="33" data-i18n="extra_mm" fill="#cc2c2c" font-weight="700" font-size="11">＋ 数mm</text>
           <line x1="360" y1="46" x2="360" y2="54" stroke="#d67a2a" stroke-width="1.4"/>
           <line x1="280" y1="136" x2="280" y2="144" stroke="#d67a2a" stroke-width="1.4"/>
           <polygon points="360,50 360,140 280,140" fill="#ef4444" opacity="0.2"/>
