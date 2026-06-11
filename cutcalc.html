@@ -598,15 +598,18 @@
   function faceRowEls(){ return [].slice.call(document.querySelectorAll('#faceRows .faceRow')); }
   function syncRectUI(){   // 四角チェックで面取り位置(rectSub)を開閉。面は最大2固定・テーパーはメイン欄offTaperに統一
     const c=document.getElementById('rectMode'); if(!c) return;
-    const sub=document.getElementById('rectSub');
-    if(sub) sub.style.display = c.checked?'block':'none';
+    const on=c.checked, sub=document.getElementById('rectSub');
+    if(sub) sub.style.display = on?'block':'none';
+    // 四角の上のみ/下のみ=1面（2行目を隠す）、上下=2面（上面/下面）。側溝=2面。
+    const pe=document.querySelector('input[name=rectPos]:checked'); const pos=pe?pe.value:'top';
+    const rws=faceRowEls();
+    if(rws[1]) rws[1].style.display = ((!on)||(pos==='both')) ? '' : 'none';
   }
   function updateOffset(){
     const rows=faceRowEls(); if(!rows.length) return;
     const width=getWidth(); const ratio = width>0 ? currentCutLen()/width : 0;
-    // 四角「上下」＝上面・下面は独立（各面=自身の横幅×比率）。側溝/上のみ/下のみ＝同じ側で累計。
-    const rc=document.getElementById('rectMode'); const rect=!!(rc&&rc.checked);
-    const pe=document.querySelector('input[name=rectPos]:checked'); const indep = rect && (pe?pe.value:'top')==='both';
+    // 四角モードは各面独立（上のみ/下のみ=1面、上下=上面/下面）。側溝=同じ側で累計。
+    const rc=document.getElementById('rectMode'); const indep=!!(rc&&rc.checked);
     let cum=0;
     rows.forEach((r)=>{
       if(r.style.display==='none') return;
@@ -924,8 +927,12 @@
     else               { displayAngle=open;             cutLen=calcCutLenMm(open/2,        width); }
     const facesRaw=readFaceWidths();
     const ratioVal = width>0 ? cutLen/width : 0;
-    let cum=0; const offsets=facesRaw.map(f=>{ cum+=f; return Math.round(cum*ratioVal); });  // 生値累計→末尾丸め（updateOffsetと一致）
-    return { timestamp:new Date().toISOString(), mode, angle:Math.round(displayAngle), width:Math.round(width), cutLen:Math.round(cutLen), faces:facesRaw.map(v=>Math.round(v)), offsets };
+    const rc=document.getElementById('rectMode'); const rect=!!(rc&&rc.checked);
+    const pe=document.querySelector('input[name=rectPos]:checked'); const rectPos=pe?pe.value:'top';
+    const ot=document.getElementById('offTaper'); const taper=!!(ot&&ot.checked);
+    const indep = rect;   // updateOffsetと同一モデル：四角=各面独立、側溝=同側累計
+    let cum=0; const offsets=facesRaw.map(f=>{ if(indep){ return Math.round(f*ratioVal); } cum+=f; return Math.round(cum*ratioVal); });
+    return { timestamp:new Date().toISOString(), mode, angle:Math.round(displayAngle), width:Math.round(width), cutLen:Math.round(cutLen), faces:facesRaw.map(v=>Math.round(v)), offsets, rect, rectPos, taper };
   }
   function formatLogEntry(e){
     const d=new Date(e.timestamp);
@@ -993,7 +1000,11 @@
     const pw=document.getElementById('productWidth'); if(pw && e.width) pw.value=e.width;
     const ma=document.getElementById('manualAngle'); if(ma && (e.angle||e.angle===0)) ma.value=e.angle;
     applyManualAngle(true);          // 角度をガイドへ反映
-    restoreFaces(e.faces);           // 面を再現
+    // 四角モード設定を復元（古い記録はrect未保存→側溝扱い）
+    const rm=document.getElementById('rectMode'); if(rm) rm.checked=!!e.rect;
+    if(e.rectPos){ const rp=document.querySelector('input[name=rectPos][value="'+e.rectPos+'"]'); if(rp) rp.checked=true; }
+    const ot2=document.getElementById('offTaper'); if(ot2) ot2.checked=!!e.taper;
+    restoreFaces(e.faces);           // 面を再現（syncRectUI/updateOffsetを内部で呼ぶ）
     requestRender();                 // ガイド・ずらし再計算
     closeLogModal();
     showStatus(t('st_log_loaded'),'success');
@@ -1061,7 +1072,7 @@
   var FIG = (function(){
     var MAX_FACES = 2;
     var X0=70, X1=290, Y_TOP=46, H_TOTAL=360, T1=60, T_W1=60, SHOULDER_V=100, F1_V=65, F2_V=50, CH_V=75, INNER_W=300;
-    var st = { W:520, L:135, faces:[], taper:false, rect:false, rectPos:'top' };
+    var st = { W:520, L:135, faces:[], facesRaw:[], taper:false, rect:false, rectPos:'top' };
     function $(id){ return document.getElementById(id); }
     function setSec(s){ var a=$('figSecSvg'); if(a) a.innerHTML=s; var b=$('figSecSvgMain'); if(b) b.innerHTML=s; }  // 断面図は解説とメイン埋め込みの両方へ
     function sx(){ return (X1-X0)/st.W; }
@@ -1080,7 +1091,7 @@
       var F=function(v){ return (+v).toFixed(1); }, yBot=py(H_TOTAL), halfW=st.W/2;
       var sum=faces.reduce(function(a,b){ return a+b; },0);
       var topW, botW;
-      if(pos==='both'){ topW=faces[0]||0; botW=(faces[1]!==undefined?faces[1]:(faces[0]||0)); }
+      if(pos==='both'){ topW=faces[0]||0; botW=faces[1]||0; }   // 上下=上面(row1)/下面(row2)。片方空なら片面のみ
       else if(pos==='bottom'){ botW=sum; topW=0; }
       else { topW=sum; botW=0; }
       topW=Math.min(topW, halfW); botW=Math.min(botW, halfW);
@@ -1102,7 +1113,7 @@
       s+='<text x="180" y="'+F(yBot+38)+'" text-anchor="middle" font-size="10" fill="#333">'+fmt(st.W,0)+'</text>';
       // 面の値は「横幅」＝横向きの寸法線（赤両矢印）で明示。各面を個別表示（累計しない）。縦/斜めとの混同を防ぐ。側溝モードの図は変更なし。
       var topFaces=(pos==='top')?faces.slice():(pos==='both'?[faces[0]||0]:[]);
-      var botFaces=(pos==='bottom')?faces.slice():(pos==='both'?[(faces[1]!==undefined?faces[1]:(faces[0]||0))]:[]);
+      var botFaces=(pos==='bottom')?faces.slice():(pos==='both'?(faces[1]>0?[faces[1]]:[]):[]);
       var ty=Y_TOP-9, tcum=0;
       topFaces.forEach(function(fw){ if(fw<=0) return; var x1=X0+Math.min(tcum,topW)*sx(), x2=X0+Math.min(tcum+fw,topW)*sx(); tcum+=fw; if(x2-x1<0.5) return;
         s+='<line x1="'+F(x1)+'" y1="'+ty+'" x2="'+F(x2)+'" y2="'+ty+'" stroke="#b3261e" stroke-width="1" marker-start="url(#figDDr)" marker-end="url(#figDDr)"/>'
@@ -1194,7 +1205,8 @@
       s+='<line x1="'+X0+'" y1="'+y0+'" x2="'+X1+'" y2="'+y0+'" stroke="#999" stroke-width="1"/>';
       s+='<line x1="'+X0+'" y1="'+y0+'" x2="'+X0+'" y2="362" stroke="#999" stroke-width="1"/>';
       s+='<line x1="'+X1+'" y1="'+y0+'" x2="'+X1+'" y2="362" stroke="#999" stroke-width="1"/>';
-      var depths=C.concat(C.slice().reverse().map(function(c){ return st.W-c; }));
+      var depths = st.rect ? (st.facesRaw||st.faces).slice().filter(function(v){ return v>0; })   // 四角=各面独立・生値（左右ミラー無し／パネルと一致）
+                           : C.concat(C.slice().reverse().map(function(c){ return st.W-c; }));
       s+='<g stroke="#999" stroke-width="0.8" stroke-dasharray="4,3">';
       depths.forEach(function(dp){ s+='<line x1="'+xL(dp).toFixed(1)+'" y1="'+y0+'" x2="'+xL(dp).toFixed(1)+'" y2="362"/>'; });
       s+='</g>';
@@ -1236,17 +1248,17 @@
       // 非物理入力（面の累計が全幅超）でも図が破綻しないよう、図用に累計を全幅でキャップ（主パネルのケガキ補正値表示は実値のまま）
       var capped=[], run=0;
       arr.forEach(function(w){ if(run>=st.W) return; var c=Math.min(w, st.W-run); if(c>0){ capped.push(c); run+=c; } });
-      st.faces=capped;
+      st.faces=capped; st.facesRaw=arr.slice();   // facesRaw=生値（底面図・ケガキ補正値用）、faces=図形描画用クランプ値
       var rm=document.getElementById('rectMode'); st.rect=!!(rm&&rm.checked);
       var rp=document.querySelector('input[name=rectPos]:checked'); st.rectPos=rp?rp.value:'top';
       var ot=document.getElementById('offTaper'); if(ot){ ot.disabled=(arr.length===0); if(ot.disabled) ot.checked=false; } st.taper=ot?ot.checked:false;
       buildSection();
       // 四角モードでは側溝専用の底面図・計算表を隠す（累計＋左右対称ロジックが四角断面に不適合のため）
-      var hideGutter=st.rect;
-      var botSvg=$('figBotSvg'); if(botSvg&&botSvg.parentNode) botSvg.parentNode.style.display=hideGutter?'none':'';
-      var calcH=document.querySelector('[data-i18n="h_calc_h"]'); if(calcH) calcH.style.display=hideGutter?'none':'';
-      var calcTbl=$('figCalcTable'); if(calcTbl) calcTbl.style.display=hideGutter?'none':'';
-      if(!hideGutter){ buildBottom(); buildTable(); }
+      // 底面図は常に表示（四角は各面独立・左右ミラー無しで描画）。計算表は四角では隠す（数値はメイン欄）
+      var botSvg=$('figBotSvg'); if(botSvg&&botSvg.parentNode) botSvg.parentNode.style.display='';
+      var calcH=document.querySelector('[data-i18n="h_calc_h"]'); if(calcH) calcH.style.display=st.rect?'none':'';
+      var calcTbl=$('figCalcTable'); if(calcTbl) calcTbl.style.display=st.rect?'none':'';
+      buildBottom(); if(!st.rect) buildTable();
     }
     return { render: render };
   })();
@@ -1280,7 +1292,7 @@
     const offTaper=document.getElementById('offTaper'); if(offTaper) offTaper.addEventListener('change', reRender);
     const rectMode=document.getElementById('rectMode');
     if(rectMode) rectMode.addEventListener('change', ()=>{ syncRectUI(); reRender(); updateOffset(); });
-    document.querySelectorAll('input[name=rectPos]').forEach(r=> r.addEventListener('change', ()=>{ reRender(); updateOffset(); }));
+    document.querySelectorAll('input[name=rectPos]').forEach(r=> r.addEventListener('change', ()=>{ syncRectUI(); reRender(); updateOffset(); }));
     syncRectUI();
     // 埋め込み断面図：長押し(350ms)で切断方法へ。長押し直後のゴーストクリック/選択を抑制
     const secMain=document.getElementById('figSecSvgMain');
@@ -1471,7 +1483,7 @@
       </figure>
       <figure>
         <svg id="figBotSvg" viewBox="0 0 360 412" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"></svg>
-        <figcaption data-i18n="h_bottom_cap">赤がケガキ補正値（累計 × 比率）、緑が切断線</figcaption>
+        <figcaption data-i18n="h_bottom_cap">赤がケガキ補正値、緑が切断線</figcaption>
       </figure>
       <h4 data-i18n="h_calc_h">ケガキ補正値の計算（自動）</h4>
       <table class="calc" id="figCalcTable"></table>
