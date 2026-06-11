@@ -5,14 +5,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>側溝カットガイド</title>
   <style>
-    :root { --bg1:#667eea; --bg2:#764ba2; --panel:rgba(255,255,255,.10); --txt:#fff; --accent:#4CAF50; --rightLine:#ffcc33 }
+    :root { --bg1:#1e293b; --bg2:#0f172a; --panel:rgba(255,255,255,.10); --txt:#fff; --accent:#fb923c; --rightLine:#ffcc33 }
     *{ box-sizing:border-box }
     body{ margin:0; padding:12px; min-height:100vh; color:var(--txt); background:linear-gradient(135deg,var(--bg1),var(--bg2)); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif }
     .container{ position:relative; max-width:460px; margin:0 auto; background:var(--panel); backdrop-filter:blur(10px); border-radius:16px; padding:12px; box-shadow:0 10px 24px rgba(0,0,0,.2) }
-    h1{ font-size:16px; margin:0 0 2px; text-align:center }
+    .appHeader{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; column-gap:6px }
+    h1{ font-size:16px; margin:0; text-align:center; white-space:nowrap }
     .subtitle{ text-align:center; font-size:11px; opacity:.75; letter-spacing:.06em; margin:0 0 6px }
-    .langRow{ position:absolute; top:12px; right:12px; margin:0; z-index:3 }
-    .langSel{ font-size:12px; padding:2px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15); color:#fff }
+    .langWrap{ justify-self:start; position:relative; width:30px; height:24px }
+    .langWrap .globeIco{ position:absolute; inset:0; margin:auto; width:21px; height:21px; pointer-events:none; color:var(--accent) }
+    .langSel{ position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; -webkit-appearance:none; appearance:none; border:none }
+    .help-btn{ justify-self:end; display:inline-flex; align-items:center; gap:3px; padding:2px 9px; border-radius:12px; border:1.5px solid var(--accent); background:rgba(255,255,255,.10); color:#fff; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap; transition:background .15s }
+    .help-btn:hover{ background:rgba(255,255,255,.24) }
+    .help-btn .qmk{ color:var(--accent); font-weight:800; font-size:13px; line-height:1 }
     .disclosure{ appearance:none; border:none; background:none; color:#fff; cursor:pointer; font-size:13px; font-weight:700; padding:2px 0; text-align:left; width:100%; opacity:.92 }
     .panel{ background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25); border-radius:14px; padding:10px; margin-top:12px }
     #angleGuide{ width:100%; aspect-ratio:4/3; background:rgba(0,0,0,.15); border-radius:12px; display:block; max-height:260px; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
@@ -94,8 +99,12 @@
     .log-thumb{ width:58px; height:44px; object-fit:cover; border-radius:5px; border:1px solid #ddd; flex-shrink:0; cursor:pointer; }
     .log-thumb.big{ width:220px; height:auto; }
     .log-empty{ text-align:center; color:#999; padding:18px; font-size:12px; }
-    .help-icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.7); background:rgba(255,255,255,0.12); color:#fff; cursor:pointer; font-size:13px; font-weight:700; padding:0; vertical-align:middle; margin-left:8px; transition:background 0.15s; }
-    .help-icon-btn:hover{ background:rgba(255,255,255,0.28); }
+    .theme-picker{ margin:12px 4px 4px; }
+    .theme-title{ font-size:12px; font-weight:700; color:#445; margin-bottom:6px; }
+    .theme-grid{ display:flex; flex-wrap:wrap; gap:7px; }
+    .theme-sw{ width:44px; height:32px; border-radius:8px; border:2px solid #ddd; cursor:pointer; position:relative; padding:0; }
+    .theme-sw.on{ border-color:#333; box-shadow:0 0 0 2px rgba(0,0,0,.18); }
+    .theme-sw .tdot{ position:absolute; right:3px; bottom:3px; width:11px; height:11px; border-radius:50%; border:1px solid rgba(255,255,255,.85); }
     /* ヘルプモーダル */
     .help-tabs{ display:flex; gap:4px; margin-bottom:10px; border-bottom:1px solid #ddd; }
     .help-tab{ flex:1; padding:6px 4px; background:none; border:none; cursor:pointer; font-size:12px; font-weight:600; color:#555; border-bottom:2px solid transparent; }
@@ -122,16 +131,20 @@
 </head>
 <body>
 <div class="container">
-  <h1>側溝カットガイド <button class="help-icon-btn" id="helpUseBtn" data-i18n-title="tip_help" data-i18n-aria="tip_help" title="使い方を表示" aria-label="使い方を表示">?</button></h1>
-  <div class="subtitle" data-i18n="subtitle">角度カット計算ツール</div>
-  <div class="langRow">
-    <select id="langSel" aria-label="Language" class="langSel">
-      <option value="ja">日本語</option><option value="en">English</option><option value="vi">Tiếng Việt</option><option value="zh">中文</option><option value="pt">Português</option><option value="fil">Filipino</option>
-    </select>
+  <div class="appHeader">
+    <div class="langWrap">
+      <svg class="globeIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18"/></svg>
+      <select id="langSel" aria-label="Language" class="langSel">
+        <option value="ja">日本語</option><option value="en">English</option><option value="vi">Tiếng Việt</option><option value="zh">中文</option><option value="pt">Português</option><option value="fil">Filipino</option>
+      </select>
+    </div>
+    <h1>側溝カットガイド</h1>
+    <button class="help-btn" id="helpUseBtn" data-i18n-title="tip_help" data-i18n-aria="tip_help" title="使い方を表示" aria-label="使い方を表示"><span data-i18n="help_label">ヘルプ</span><span class="qmk">?</span></button>
   </div>
+  <div class="subtitle" data-i18n="subtitle">角度カット計算ツール</div>
   <div class="panel canvasBlock">
     <div class="muted" data-i18n="intro" style="margin-bottom:6px; font-size:12px; line-height:1.5">
-      カメラ起動 → ガイド線を実物（水糸・構造物）に合わせ、角度・切断長を読取り。詳しい使い方は右上の <b>?</b>
+      カメラ起動 → ガイド線を実物（水糸・構造物）に合わせ、角度・切断長を読取り。
     </div>
     <canvas id="angleGuide"></canvas>
     <!--<div class="muted" style="text-align:center; margin-top:6px">スライダーでガイド角度を調整</div>-->
@@ -1087,6 +1100,46 @@
   }
   function setLang(l){ if(!I18N[l]) return; curLang=l; try{ localStorage.setItem('cutcalc_lang', l); }catch(e){} const sel=document.getElementById('langSel'); if(sel) sel.value=l; applyI18n(); }
 
+  var THEMES = [
+    {id:'slate_orange', bg1:'#1e293b', bg2:'#0f172a', ac:'#fb923c'},
+    {id:'ocean',        bg1:'#1e3c72', bg2:'#2a5298', ac:'#00bcd4'},
+    {id:'purple',       bg1:'#667eea', bg2:'#764ba2', ac:'#4caf50'},
+    {id:'teal',         bg1:'#0f766e', bg2:'#134e4a', ac:'#f59e0b'},
+    {id:'slate_green',  bg1:'#1e293b', bg2:'#0f172a', ac:'#22c55e'},
+    {id:'indigo',       bg1:'#312e81', bg2:'#1e1b4b', ac:'#22d3ee'},
+    {id:'sunset',       bg1:'#9a3412', bg2:'#7c2d12', ac:'#38bdf8'},
+    {id:'forest',       bg1:'#14532d', bg2:'#166534', ac:'#a3e635'},
+    {id:'navy',         bg1:'#172554', bg2:'#1e3a8a', ac:'#fcd34d'},
+    {id:'wine',         bg1:'#7f1d1d', bg2:'#581c1c', ac:'#fbbf24'},
+    {id:'midnight',     bg1:'#0f172a', bg2:'#1e293b', ac:'#fb923c'},
+    {id:'plum',         bg1:'#581c87', bg2:'#6b21a8', ac:'#f472b6'},
+    {id:'charcoal',     bg1:'#1f2937', bg2:'#111827', ac:'#06b6d4'},
+    {id:'deepsea',      bg1:'#0c4a6e', bg2:'#082f49', ac:'#34d399'},
+    {id:'grape',        bg1:'#4c1d95', bg2:'#5b21b6', ac:'#2dd4bf'}
+  ];
+  var DEFAULT_THEME = 'slate_orange';
+  function currentTheme(){ try{ return localStorage.getItem('cutcalc_theme') || DEFAULT_THEME; }catch(e){ return DEFAULT_THEME; } }
+  function applyTheme(id){
+    var t=null; for(var i=0;i<THEMES.length;i++){ if(THEMES[i].id===id){ t=THEMES[i]; break; } }
+    if(!t){ t=THEMES[0]; id=t.id; }
+    var r=document.documentElement.style;
+    r.setProperty('--bg1',t.bg1); r.setProperty('--bg2',t.bg2); r.setProperty('--accent',t.ac);
+    try{ localStorage.setItem('cutcalc_theme', id); }catch(e){}
+    var grid=document.getElementById('themeGrid');
+    if(grid){ var bs=grid.querySelectorAll('.theme-sw'); for(var j=0;j<bs.length;j++){ bs[j].classList.toggle('on', bs[j].getAttribute('data-theme')===id); } }
+  }
+  function buildThemeSwatches(){
+    var grid=document.getElementById('themeGrid'); if(!grid) return; grid.innerHTML='';
+    THEMES.forEach(function(t){
+      var b=document.createElement('button'); b.className='theme-sw'; b.setAttribute('data-theme',t.id); b.setAttribute('aria-label',t.id);
+      b.style.background='linear-gradient(135deg,'+t.bg1+','+t.bg2+')';
+      b.innerHTML='<span class="tdot" style="background:'+t.ac+'"></span>';
+      b.addEventListener('click', function(){ applyTheme(t.id); });
+      grid.appendChild(b);
+    });
+    var cur=currentTheme(); var bs=grid.querySelectorAll('.theme-sw'); for(var j=0;j<bs.length;j++){ bs[j].classList.toggle('on', bs[j].getAttribute('data-theme')===cur); }
+  }
+
   // ===== 厳密ケガキ図（切断方法タブ／面の横幅×比率で動的描画・本体値に結線） =====
   var FIG = (function(){
     var MAX_FACES = 2;
@@ -1304,6 +1357,7 @@
     curLang=detectLang();           // 言語を先に確定（初回描画/テストから正しい言語に）
     setup();
     applyI18n();
+    buildThemeSwatches(); applyTheme(currentTheme());
     const langSel=document.getElementById('langSel'); if(langSel){ langSel.value=curLang; langSel.addEventListener('change', ()=>setLang(langSel.value)); }
     document.getElementById('logBtn').addEventListener('click', openLogModal);
     document.getElementById('logCloseBtn').addEventListener('click', closeLogModal);
@@ -1525,6 +1579,10 @@
       <div class="help-note" data-i18n="h_both_note">
         ⚠️ <b>＜後述＞水平・垂直の両方に曲がる場合</b>：コーナー（水平方向の振れ）と勾配（縦方向の振れ）が<b>同時に起きる</b>箇所もあります。その場合は1方向だけでは合いません。<b>水平の角度は「両側モード」</b>、<b>縦の勾配は「片側モード」</b>で別々に測り、両方のケガキ線を合わせて切ってください。
       </div>
+    </div>
+    <div class="theme-picker">
+      <div class="theme-title" data-i18n="theme_label">配色</div>
+      <div class="theme-grid" id="themeGrid"></div>
     </div>
     <button class="btn help-back" id="helpBackBtn" data-i18n="help_back">← メイン画面に戻る</button>
   </div>
