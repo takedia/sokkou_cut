@@ -1,4 +1,4 @@
-/*
+﻿/*
  * i18n.js — 多言語辞書（側溝カットガイド / Cutcalc）
  * 言語を追加するには:
  *   1) このファイルの window.I18N に新しい言語ブロック（例: "ko":{...}）を追加
@@ -20,7 +20,7 @@ window.I18N = {
       btn_camera:'カメラ起動', btn_camera_stop:'カメラ停止', btn_freeze:'静止', btn_unfreeze:'解除', btn_image:'画像読込', btn_log:'記録', remove_ads:'広告を消す',
       ph_angle:'例90', ph_face:'例20',
       tab_use:'使い方', tab_cross:'横断/縦断', tab_cut:'切断方法', tab_about:'アプリ情報',
-      about_version:'バージョン', about_plat_app:'アプリ版', about_plat_web:'ウェブ版',
+      about_version:'バージョン',
       about_contact_h:'不具合のご報告・ご要望', about_contact_p:'不具合や「こんな機能が欲しい」といったご要望をお寄せください。現場で実際に使われている方の声をもとに改善しています。',
       about_contact_hint:'※ ご報告の際は、上のバージョンと、お使いの端末名を添えていただけると助かります。',
       about_mail_subject:'不具合報告・ご要望',
@@ -85,7 +85,7 @@ window.I18N = {
       btn_camera:'Camera', btn_camera_stop:'Stop camera', btn_freeze:'Freeze', btn_unfreeze:'Unfreeze', btn_image:'Load image', btn_log:'Records', remove_ads:'Remove ads',
       ph_angle:'e.g. 90', ph_face:'e.g. 20',
       tab_use:'How to', tab_cross:'Cross/Long.', tab_cut:'Cutting', tab_about:'App info',
-      about_version:'Version', about_plat_app:'app', about_plat_web:'web',
+      about_version:'Version',
       about_contact_h:'Report a problem / Request a feature', about_contact_p:'Please tell us about any problems or features you would like. We improve this app based on feedback from people using it on site.',
       about_contact_hint:'* When reporting, it helps if you include the version above and your device name.',
       about_mail_subject:'Problem report / Feature request',
@@ -150,7 +150,7 @@ window.I18N = {
       btn_camera:'Camera', btn_camera_stop:'Tắt camera', btn_freeze:'Dừng hình', btn_unfreeze:'Bỏ dừng', btn_image:'Tải ảnh', btn_log:'Ghi chép', remove_ads:'Gỡ quảng cáo',
       ph_angle:'vd 90', ph_face:'vd 20',
       tab_use:'Cách dùng', tab_cross:'Ngang/Dọc', tab_cut:'Cách cắt', tab_about:'Thông tin',
-      about_version:'Phiên bản', about_plat_app:'bản ứng dụng', about_plat_web:'bản web',
+      about_version:'Phiên bản',
       about_contact_h:'Báo lỗi / Góp ý tính năng', about_contact_p:'Hãy cho chúng tôi biết lỗi bạn gặp hoặc tính năng bạn mong muốn. Chúng tôi cải tiến dựa trên ý kiến của người dùng thực tế tại công trường.',
       about_contact_hint:'* Khi báo lỗi, vui lòng kèm theo phiên bản ở trên và tên thiết bị của bạn.',
       about_mail_subject:'Báo lỗi / Góp ý',
@@ -215,7 +215,7 @@ window.I18N = {
       btn_camera:'相机', btn_camera_stop:'停止相机', btn_freeze:'冻结', btn_unfreeze:'解冻', btn_image:'读取图片', btn_log:'记录', remove_ads:'去除广告',
       ph_angle:'例90', ph_face:'例20',
       tab_use:'用法', tab_cross:'横断/纵断', tab_cut:'切割方法', tab_about:'应用信息',
-      about_version:'版本', about_plat_app:'应用版', about_plat_web:'网页版',
+      about_version:'版本',
       about_contact_h:'问题反馈・功能建议', about_contact_p:'如遇问题或有希望增加的功能，欢迎告诉我们。本应用根据现场实际使用者的意见持续改进。',
       about_contact_hint:'※ 反馈时请一并注明上方的版本号和您使用的设备型号。',
       about_mail_subject:'问题反馈・功能建议',
@@ -280,7 +280,7 @@ window.I18N = {
       btn_camera:'Câmera', btn_camera_stop:'Parar câmera', btn_freeze:'Congelar', btn_unfreeze:'Descongelar', btn_image:'Carregar imagem', btn_log:'Registros', remove_ads:'Remover anúncios',
       ph_angle:'ex. 90', ph_face:'ex. 20',
       tab_use:'Como usar', tab_cross:'Transv./Long.', tab_cut:'Corte', tab_about:'Info do app',
-      about_version:'Versão', about_plat_app:'app', about_plat_web:'web',
+      about_version:'Versão',
       about_contact_h:'Relatar problema / Sugerir recurso', about_contact_p:'Conte-nos sobre problemas ou recursos que você gostaria de ter. Melhoramos o app com base na opinião de quem o usa em obra.',
       about_contact_hint:'* Ao relatar, ajude incluindo a versão acima e o nome do seu aparelho.',
       about_mail_subject:'Relato de problema / Sugestão',
@@ -345,7 +345,7 @@ window.I18N = {
       btn_camera:'Camera', btn_camera_stop:'Itigil camera', btn_freeze:'I-freeze', btn_unfreeze:'I-unfreeze', btn_image:'Mag-load larawan', btn_log:'Talaan', remove_ads:'Alisin ang ads',
       ph_angle:'hal. 90', ph_face:'hal. 20',
       tab_use:'Paano', tab_cross:'Pahalang/Pahaba', tab_cut:'Pagputol', tab_about:'Impormasyon',
-      about_version:'Bersyon', about_plat_app:'app', about_plat_web:'web',
+      about_version:'Bersyon',
       about_contact_h:'Mag-ulat ng problema / Humiling ng feature', about_contact_p:'Sabihin sa amin ang anumang problema o feature na gusto ninyo. Pinapabuti namin ang app batay sa mga gumagamit nito sa aktwal na site.',
       about_contact_hint:'* Kapag nag-uulat, malaking tulong kung isasama ninyo ang bersyon sa itaas at ang pangalan ng inyong device.',
       about_mail_subject:'Ulat ng problema / Kahilingan',

@@ -132,7 +132,6 @@
     .about-name{ font-size:15px; font-weight:700; color:#333 }
     .about-ver{ font-size:12px; color:#666; margin-top:4px }
     .about-ver b{ color:#333; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
-    .about-plat{ color:#999; margin-left:6px }
     .about-row{ margin:6px 0 }
     .about-link{ color:#1d4ed8; text-decoration:underline; word-break:break-all }
     .about-hint{ font-size:11px; color:#666; margin-top:6px }
@@ -1429,38 +1428,30 @@
   window.onAdsRemoved = function(){ const bar=document.getElementById('proBar'); if(bar) bar.style.display='none'; };
 
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
-  // APP_VERSION は Web版の版数。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
+  // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
   const APP_VERSION = '1.0.2';   // versionCode 10002 と桁を対応させている（取り違え防止）
-  const WEB_UPDATED = '2026.07.31';
   const CONTACT_MAIL = 'contact@hactools.dev';
 
-  function currentVersionInfo(){
-    let ver = APP_VERSION, plat = '';
+  function currentVersion(){
     try{
-      if(window.AndroidApp && window.AndroidApp.version){
-        const v = window.AndroidApp.version();
-        if(v) { ver = v; plat = t('about_plat_app'); }
-      } else {
-        plat = t('about_plat_web') + ' ' + WEB_UPDATED;
-      }
-    }catch(e){ /* 取得できなければ Web 既定のまま */ }
-    return { ver, plat };
+      const v = window.AndroidApp && window.AndroidApp.version && window.AndroidApp.version();
+      if(v) return v;
+    }catch(e){ /* 取得できなければ既定値のまま */ }
+    return APP_VERSION;
   }
 
   function renderAbout(){
     const numEl = document.getElementById('aboutVerNum');
     if(!numEl) return;
-    const info = currentVersionInfo();
-    numEl.textContent = info.ver;
-    const platEl = document.getElementById('aboutVerPlat');
-    if(platEl) platEl.textContent = info.plat ? '（' + info.plat + '）' : '';
+    const ver = currentVersion();
+    numEl.textContent = ver;
     // 件名にバージョンを入れておくと、報告メールだけで版数が分かる
     const a = document.getElementById('aboutMail');
     if(a){
       a.textContent = CONTACT_MAIL;
       a.href = 'mailto:' + CONTACT_MAIL
-             + '?subject=' + encodeURIComponent('[側溝カットガイド ' + info.ver + '] ' + t('about_mail_subject'));
+             + '?subject=' + encodeURIComponent('[側溝カットガイド ' + ver + '] ' + t('about_mail_subject'));
     }
   }
 </script>
@@ -1648,7 +1639,7 @@
     <div class="help-section" data-section="about">
       <div class="about-app">
         <div class="about-name">側溝カットガイド</div>
-        <div class="about-ver"><span data-i18n="about_version">バージョン</span> <b id="aboutVerNum">-</b><span id="aboutVerPlat" class="about-plat"></span></div>
+        <div class="about-ver"><span data-i18n="about_version">バージョン</span> <b id="aboutVerNum">-</b></div>
       </div>
 
       <h4 data-i18n="about_contact_h">不具合のご報告・ご要望</h4>
