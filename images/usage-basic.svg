@@ -36,10 +36,10 @@
   <line x1="217" y1="194" x2="278" y2="194" stroke="#bbb" stroke-width="4"/>
   <circle cx="255" cy="194" r="5" fill="#4CAF50"/>
 
-  <!-- ずらし値 行（面取り・底面用） -->
+  <!-- ケガキ補正値 行（面取り・底面用） -->
   <rect x="142" y="207" width="46" height="14" fill="#fff" stroke="#ccc" rx="3"/>
   <text x="165" y="217" text-anchor="middle" font-size="7" fill="#333">面の横幅</text>
-  <text x="236" y="217" text-anchor="middle" font-size="8" fill="#9a4a10" font-weight="700">→ ずらし値 △mm</text>
+  <text x="238" y="217" text-anchor="middle" font-size="8" fill="#9a4a10" font-weight="700">→ ケガキ補正値 △mm</text>
 
   <!-- Buttons row -->
   <rect x="142" y="232" width="36" height="14" fill="#fff" stroke="#ccc" rx="4"/>
@@ -77,9 +77,9 @@
   <text x="318" y="175" fill="#666" font-size="9">タップで詳細</text>
   <line x1="316" y1="140" x2="200" y2="140" stroke="#2c8c2c" stroke-width="1.2" marker-end="url(#ag)"/>
 
-  <!-- 5. ずらし値（面取り・底面用） -->
+  <!-- 5. ケガキ補正値（面取り・底面用） -->
   <text x="322" y="205" font-weight="700" fill="#9a4a10">⑤</text>
-  <text x="312" y="219" fill="#222" font-size="9">面のずらし値</text>
+  <text x="312" y="219" fill="#222" font-size="9">面のケガキ補正値</text>
   <text x="312" y="230" fill="#666" font-size="8">（厳密時・任意）</text>
   <line x1="310" y1="214" x2="284" y2="214" stroke="#9a4a10" stroke-width="1.2" marker-end="url(#ago)"/>
 </svg>
