@@ -127,6 +127,15 @@
     .help-section figure{ margin:8px 0; text-align:center; }
     .help-section figure img{ max-width:100%; height:auto; border:1px solid #eee; border-radius:6px; background:#fafafa; }
     .help-section figcaption{ font-size:11px; color:#666; margin-top:4px; }
+    /* 情報タブ */
+    .about-app{ text-align:center; padding:14px 8px 12px; border-bottom:1px solid #eee; margin-bottom:4px }
+    .about-name{ font-size:15px; font-weight:700; color:#333 }
+    .about-ver{ font-size:12px; color:#666; margin-top:4px }
+    .about-ver b{ color:#333; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
+    .about-plat{ color:#999; margin-left:6px }
+    .about-row{ margin:6px 0 }
+    .about-link{ color:#1d4ed8; text-decoration:underline; word-break:break-all }
+    .about-hint{ font-size:11px; color:#666; margin-top:6px }
     .help-img-placeholder{ display:flex; align-items:center; justify-content:center; min-height:120px; background:#f3f4f6; border:1px dashed #bbb; border-radius:8px; color:#999; font-size:11px; padding:12px; text-align:center; }
     .help-note{ background:#fff7ed; border-left:3px solid #f59e0b; padding:8px 10px; border-radius:4px; font-size:12px; margin:8px 0; color:#7c2d12; }
     .help-link{ display:inline-block; margin-top:8px; font-size:11px; color:#2563eb; text-decoration:underline; }
@@ -1063,6 +1072,7 @@
     document.querySelectorAll('.help-tab').forEach(b => b.classList.toggle('active', b.dataset.tab===name));
     document.querySelectorAll('.help-section').forEach(s => s.classList.toggle('active', s.dataset.section===name));
     if(name==='cutmethod' && typeof FIG!=='undefined') FIG.render();
+    if(name==='about' && typeof renderAbout==='function') renderAbout();
   }
   // 「切断方法」タブ内のSVGの切断長表示を、現在のアプリ値で書き換え
   function updateHelpCutLen(){
@@ -1107,6 +1117,7 @@
     if(typeof updateHelpCutLen==='function') updateHelpCutLen();    // ＋数mm 等
     if(typeof renderLogModal==='function' && document.getElementById('logModal') && document.getElementById('logModal').classList.contains('show')) renderLogModal();
     if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render();  // 厳密ケガキ図の動的文字列
+    if(typeof renderAbout==='function') renderAbout();               // 情報タブ（プラットフォーム表記・メール件名）
   }
   function setLang(l){ if(!I18N[l]) return; curLang=l; try{ localStorage.setItem('cutcalc_lang', l); }catch(e){} const sel=document.getElementById('langSel'); if(sel) sel.value=l; applyI18n(); }
 
@@ -1416,6 +1427,42 @@
   }
   // 購入完了時にネイティブから呼ばれる
   window.onAdsRemoved = function(){ const bar=document.getElementById('proBar'); if(bar) bar.style.display='none'; };
+
+  // ===== 情報タブ：バージョン表示と問い合わせリンク =====
+  // APP_VERSION は Web版の版数。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
+  // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
+  const APP_VERSION = '1.0.0';
+  const WEB_UPDATED = '2026.07.31';
+  const CONTACT_MAIL = 'contact@hactools.dev';
+
+  function currentVersionInfo(){
+    let ver = APP_VERSION, plat = '';
+    try{
+      if(window.AndroidApp && window.AndroidApp.version){
+        const v = window.AndroidApp.version();
+        if(v) { ver = v; plat = t('about_plat_app'); }
+      } else {
+        plat = t('about_plat_web') + ' ' + WEB_UPDATED;
+      }
+    }catch(e){ /* 取得できなければ Web 既定のまま */ }
+    return { ver, plat };
+  }
+
+  function renderAbout(){
+    const numEl = document.getElementById('aboutVerNum');
+    if(!numEl) return;
+    const info = currentVersionInfo();
+    numEl.textContent = info.ver;
+    const platEl = document.getElementById('aboutVerPlat');
+    if(platEl) platEl.textContent = info.plat ? '（' + info.plat + '）' : '';
+    // 件名にバージョンを入れておくと、報告メールだけで版数が分かる
+    const a = document.getElementById('aboutMail');
+    if(a){
+      a.textContent = CONTACT_MAIL;
+      a.href = 'mailto:' + CONTACT_MAIL
+             + '?subject=' + encodeURIComponent('[側溝カットガイド ' + info.ver + '] ' + t('about_mail_subject'));
+    }
+  }
 </script>
 
 <!-- 使い方モーダル -->
@@ -1429,6 +1476,7 @@
       <button class="help-tab active" data-tab="use" data-i18n="tab_use">使い方</button>
       <button class="help-tab" data-tab="cross" data-i18n="tab_cross">横断/縦断</button>
       <button class="help-tab" data-tab="cutmethod" data-i18n="tab_cut">切断方法</button>
+      <button class="help-tab" data-tab="about" data-i18n="tab_about">アプリ情報</button>
     </div>
 
     <div class="help-section active" data-section="use">
@@ -1595,6 +1643,26 @@
         ⚠️ <b>＜後述＞水平・垂直の両方に曲がる場合</b>：コーナー（水平方向の振れ）と勾配（縦方向の振れ）が<b>同時に起きる</b>箇所もあります。その場合は1方向だけでは合いません。<b>水平の角度は「両側モード」</b>、<b>縦の勾配は「片側モード」</b>で別々に測り、両方のケガキ線を合わせて切ってください。
       </div>
     </div>
+
+    <!-- 情報タブ：バージョン／連絡先／開発元 -->
+    <div class="help-section" data-section="about">
+      <div class="about-app">
+        <div class="about-name">側溝カットガイド</div>
+        <div class="about-ver"><span data-i18n="about_version">バージョン</span> <b id="aboutVerNum">-</b><span id="aboutVerPlat" class="about-plat"></span></div>
+      </div>
+
+      <h4 data-i18n="about_contact_h">不具合のご報告・ご要望</h4>
+      <p data-i18n="about_contact_p">不具合や「こんな機能が欲しい」といったご要望をお寄せください。現場で実際に使われている方の声をもとに改善しています。</p>
+      <p class="about-row"><a id="aboutMail" class="about-link" href="#">contact@hactools.dev</a></p>
+      <p class="about-hint" data-i18n="about_contact_hint">※ ご報告の際は、上のバージョンと、お使いの端末名を添えていただけると助かります。</p>
+
+      <h4 data-i18n="about_dev_h">開発元</h4>
+      <p class="about-row"><b>HacTools</b></p>
+      <p data-i18n="about_dev_p">現場向けのアプリ・業務効率化ツールを開発しています。他のアプリやツールはウェブサイトをご覧ください。</p>
+      <p class="about-row"><a class="about-link" href="https://hactools.dev" target="_blank" rel="noopener noreferrer">hactools.dev</a></p>
+      <p class="about-row"><a class="about-link" href="https://takedia.github.io/sokkou_cut/privacy.html" target="_blank" rel="noopener noreferrer" data-i18n="about_privacy">プライバシーポリシー</a></p>
+    </div>
+
     <button class="btn help-back" id="helpBackBtn" data-i18n="help_back">← メイン画面に戻る</button>
   </div>
 </div>
