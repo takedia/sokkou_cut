@@ -1467,6 +1467,12 @@
     showProMsg('');
     renderPro();
   };
+  // 返金・利用資格の取り消しでネイティブから呼ばれる。
+  // これが無いと「✓ 購入済みです」の表示が取り残される。
+  window.onAdsRestored = function(){
+    showProMsg('');
+    renderPro();   // isAdsRemoved() が false に戻っているので購入セクションが再表示される
+  };
   // 「購入を復元」の結果をネイティブから受け取る（true=復元できた / false=見つからなかった）
   window.onRestoreResult = function(ok){
     if(ok){ showProMsg(t('about_restore_ok')); renderPro(); }
@@ -1476,7 +1482,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.4';   // versionCode 10004 と桁を対応させている（取り違え防止）
+  const APP_VERSION = '1.0.5';   // versionCode 10005 と桁を対応させている（取り違え防止）
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
