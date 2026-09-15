@@ -35,6 +35,9 @@
     .numfield{ width:90px; padding:6px; border-radius:8px; border:1px solid rgba(255,255,255,.35); background:#fff; color:#111; font-size:12px }
     .btn{ appearance:none; border:none; border-radius:10px; padding:8px 10px; font-weight:700; cursor:pointer; background:#fff; color:#333; box-shadow:0 1px 6px rgba(0,0,0,.15); font-size:11px }
     .primary{ background:var(--accent); color:#fff }
+    .btn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none }
+    .btn:focus-visible, label.btn:focus-within{ outline:2px solid var(--accent); outline-offset:2px }
+    .vh{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap }
     .grid-1{ display:flex; gap:8px; flex-wrap:nowrap; align-items:stretch }
     .grid-1 .btn{ flex:1; min-width:0; white-space:normal; line-height:1.15; text-align:center; word-break:break-word; font-size:10px; padding:9px 5px; display:flex; align-items:center; justify-content:center }
     .status{ margin-top:8px; padding:6px; border-radius:8px; text-align:center; font-size:11px; background:rgba(255,255,255,.15) }
@@ -74,8 +77,9 @@
     .faceRow .numfield{ width:56px; font-size:14px }
     .faceRow .offWrap{ white-space:nowrap; font-size:14px }
     .faceRow .offOut{ font-size:15px }
+    .faceRow .offFrom{ display:block; font-size:12px; opacity:.85; white-space:nowrap; text-align:right; line-height:1.3 }
     .rectOpts label{ display:inline-flex; align-items:center; gap:4px; font-size:12px; margin:2px 12px 2px 0; cursor:pointer }
-    .rectOpts .rectChk{ font-weight:700; color:#15436e }
+    .rectOpts .rectChk{ font-weight:700; color:inherit }
     #rectSub{ padding:6px 0 2px; font-size:12px; line-height:1.9 }
     .secMini{ margin:8px 0 0; text-align:center }
     .secMini svg{ max-width:190px; height:auto; border:1px solid #e6e6f0; border-radius:6px; background:#fafafa; font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; cursor:pointer; touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none }
@@ -97,6 +101,7 @@
     .log-entry-info{ flex:1; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     .log-entry-note{ font-family: -apple-system, sans-serif; color:#666; font-size:11px; }
     .log-entry-del{ background:#fee; border:1px solid #fcc; color:#c00; padding:3px 9px; border-radius:5px; cursor:pointer; font-size:11px; }
+    .log-entry-del.armed{ background:#c62828; border-color:#b71c1c; color:#fff; }
     .log-entry-load{ background:#e8f5e9; border:1px solid #a5d6a7; color:#1b5e20; padding:3px 9px; border-radius:5px; cursor:pointer; font-size:11px; margin-right:4px; }
     .log-thumb{ width:58px; height:44px; object-fit:cover; border-radius:5px; border:1px solid #ddd; flex-shrink:0; cursor:pointer; }
     .log-thumb.big{ width:220px; height:auto; }
@@ -173,7 +178,7 @@
     <div class="row" style="justify-content:space-between; gap:12px">
       <label class="toggle" data-i18n-title="tip_mode" title="片側=桝など1本のみカット">
         <span class="muted" data-i18n="mode_dual">両側</span>
-        <input type="checkbox" id="modeToggle" />
+        <input type="checkbox" id="modeToggle" data-i18n-aria="mode_single" aria-label="片側" />
         <span class="muted" data-i18n="mode_single">片側</span>
       </label>
       <span class="pill-sm"><span data-i18n="cutlen">切断長:</span> <span id="inlineCutLenNum" class="num">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="unit"> mm</span></span>
@@ -183,7 +188,7 @@
       <div id="leftWrap" style="flex:1; display:flex; min-width:0">
         <input type="range" id="leftSlider" min="0" max="100" step="any" value="25" data-i18n-aria="aria_left" aria-label="左バー" style="flex:1; min-width:0" />
       </div>
-      <button class="btn" id="flipBtn" data-i18n-title="tip_flip" title="左右反転" style="padding:5px 10px; font-size:14px; flex:none">⇄</button>
+      <button class="btn" id="flipBtn" data-i18n-title="tip_flip" title="左右反転" data-i18n-aria="tip_flip" aria-label="左右反転" style="padding:5px 10px; font-size:14px; flex:none">⇄</button>
       <div id="rightWrap" style="flex:1; display:flex; min-width:0">
         <input type="range" id="rightSlider" min="0" max="100" step="any" value="75" data-i18n-aria="aria_right" aria-label="右バー" style="flex:1; min-width:0" />
       </div>
@@ -193,7 +198,7 @@
     <div class="row" style="flex-direction:column; align-items:flex-start; gap:8px">
       <div class="row-nowrap">
         <span class="field"><span data-i18n="wh">幅/高さ(mm):</span> <input id="productWidth" class="numfield" type="text" inputmode="numeric" maxlength="5" value="520" /></span>
-        <span class="field"><span data-i18n="angle">角度(°):</span> <input id="manualAngle" class="numfield" type="text" inputmode="numeric" maxlength="3" data-i18n-ph="ph_angle" placeholder="例90" /></span>
+        <span class="field"><span data-i18n="angle">角度(°):</span> <input id="manualAngle" class="numfield" type="text" inputmode="decimal" maxlength="5" data-i18n-ph="ph_angle" placeholder="例90" /></span>
       </div>
     </div>
 
@@ -203,7 +208,7 @@
     <div class="grid-1">
       <button class="btn" id="cameraToggleBtn">カメラ起動</button>
       <button class="btn" id="captureBtn" data-i18n-title="tip_freeze" title="カメラ映像を止めて合わせやすくする（もう一度でライブに戻る）" disabled>静止</button>
-      <label class="btn" style="text-align:center; cursor:pointer"><span data-i18n="btn_image">画像読込</span><input id="imageInput" type="file" accept="image/*" style="display:none" /></label>
+      <label class="btn" style="text-align:center; cursor:pointer"><span data-i18n="btn_image">画像読込</span><input id="imageInput" class="vh" type="file" accept="image/*" /></label>
       <button class="btn" id="logBtn" data-i18n="btn_log">記録</button>
     </div>
     <!-- 購入導線は ヘルプ＞アプリ情報 タブへ移設（現場の作業ボタン群の直下に購買導線を常駐させない・誤タップ防止） -->
@@ -215,12 +220,12 @@
     <div id="offsetBody" style="display:none; margin-top:8px">
       <div id="faceRows">
         <div class="faceRow">
-          <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
-          <span class="offWrap"><span data-i18n="arrow_offset">→ ケガキ補正値</span> <b class="offOut">—</b> mm</span>
+          <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="decimal" maxlength="6" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
+          <span class="offWrap"><span data-i18n="arrow_offset">→ ケガキ補正値</span> <b class="offOut">—</b> mm<span class="offFrom"></span></span>
         </div>
         <div class="faceRow">
-          <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="numeric" maxlength="4" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
-          <span class="offWrap"><span data-i18n="arrow_offset">→ ケガキ補正値</span> <b class="offOut">—</b> mm</span>
+          <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="decimal" maxlength="6" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
+          <span class="offWrap"><span data-i18n="arrow_offset">→ ケガキ補正値</span> <b class="offOut">—</b> mm<span class="offFrom"></span></span>
         </div>
       </div>
       <div class="rectOpts" style="margin-top:10px">
@@ -249,6 +254,10 @@
   const isNumericStr = s => /^-?\d+(\.\d+)?$/.test(s);
   // 数値として妥当な文字列のみ数値化（前方一致の緩さ "12abc"→12 等を塞ぐ。不正は NaN）
   const parseNum = v => { const n=zen2han(String(v)).trim(); return isNumericStr(n)?parseFloat(n):NaN; };
+  const fmtLen = x => String(Math.round(x*10)/10);   // 長さの表示（小数1桁まで・「.0」は付けない）
+  const fmtAng = x => String(Math.round(x*10)/10);   // 角度の表示（同上。67.5 を 68 にしない）
+  // 面の横幅の入力整形：全角→半角、数字と小数点1つ、整数4桁・小数1桁まで（「12.5」を「125」にしない）
+  const sanitizeFace = s => { const v=zen2han(s).replace(/[^0-9.]/g,''); const i=v.indexOf('.'); if(i<0) return v.slice(0,4); const ip=v.slice(0,i).slice(0,4), dp=v.slice(i+1).replace(/\./g,'').slice(0,1); return (ip===''?'0':ip)+'.'+dp; };
   const guide=document.getElementById('angleGuide');
   const gtx=guide.getContext('2d');
   // カメラ関連の参照と状態
@@ -257,16 +266,21 @@
   let stream=null, liveRAF=null, isCaptured=false;
 
   // ===== レイアウト =====
+  // 描画はCSS px（CW×CH）で行い、実解像度は画素密度（DPR）倍にする＝高密度の画面でもぼやけない
+  let CW=1, CH=1, DPR=1;
   function fitCanvas(){
-    const w=Math.round(guide.getBoundingClientRect().width);
-    guide.width=w; guide.height=Math.round(w*3/4);
+    const r=guide.getBoundingClientRect();
+    DPR=Math.min(3, Math.max(1, window.devicePixelRatio||1));
+    CW=Math.max(1, Math.round(r.width)); CH=Math.max(1, Math.round(r.height));   // 高さは実寸（max-height で 4:3 が崩れても絵を歪ませない）
+    guide.width=Math.round(CW*DPR); guide.height=Math.round(CH*DPR);
+    gtx.setTransform(DPR,0,0,DPR,0,0);
     requestRender();
   }
   window.addEventListener('resize',fitCanvas);
 
   // ===== 背景（カメラ/静止画） =====
   function drawBackground(){
-    const W=guide.width, H=guide.height;
+    const W=CW, H=CH;
     gtx.clearRect(0,0,W,H);
     // ライブ映像
     if(stream && video.readyState>=2 && liveRAF){
@@ -308,8 +322,8 @@
       : `${t('ci_angle_d')}${padNum(openAngle,3)}°`;
 
     const label=`${t('ci_width')}${padNum(width,4)} mm  ${angleLabel}  ${t('ci_cutlen')}${padNum(cutLen,4)} mm`;
-    const mW = Math.round(guide.width * 0.96); // 常に同じ幅
-    const x  = (guide.width - mW) / 2, y=8;
+    const mW = Math.round(CW * 0.96); // 常に同じ幅
+    const x  = (CW - mW) / 2, y=8;
     // 帯幅に収まるようフォントを自動縮小（狭い画面で端が切れないように）
     const fontFor = px => `${px}px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace`;
     let fontPx = 10; gtx.font = fontFor(fontPx);
@@ -317,7 +331,7 @@
     if (tw > avail){ fontPx = Math.max(7, fontPx * avail / tw); gtx.font = fontFor(fontPx); }
     gtx.fillStyle='rgba(0,0,0,0.55)'; gtx.fillRect(x,y,mW,22);   // 背景を濃くしてコントラスト確保
     gtx.fillStyle='#fff'; gtx.textAlign='center'; gtx.textBaseline='middle';
-    gtx.fillText(label, guide.width/2, y+11);
+    gtx.fillText(label, CW/2, y+11);
 
     const inline=document.getElementById('inlineCutLenNum');
     if(inline){ inline.textContent=padNum(cutLen,4); }
@@ -499,7 +513,7 @@
   // apex(cx,cy) から angleDeg 方向へ伸びる帯。外側エッジは apex から body 方向へ直線（=元の位置合わせ線）。
   // 内側エッジは body 方向に disp だけ進んだ位置から始まり、留め継ぎ形状になる。
   function drawGutterStrip(cx, cy, angleDeg, innerSign, halfW, disp){
-    const W=guide.width, H=guide.height;
+    const W=CW, H=CH;
     const rad=angleDeg*Math.PI/180;
     const dx=Math.cos(rad), dy=Math.sin(rad);
     const nx = dy * innerSign;
@@ -554,7 +568,7 @@
 
   // ===== apex 位置（flip 連動／片側時はケガキ図の下まで上げる） =====
   function getApex(){
-    const W=guide.width, H=guide.height;
+    const W=CW, H=CH;
     let cx, cy;
     if(mode==='single'){
       cx = flipped ? W*0.30 : W*0.70;
@@ -574,7 +588,7 @@
 
   // ===== ガイド描画（カメラ重畳：側溝帯＋∧線＋ケガキ小窓） =====
   function drawGuide(){
-    const W=guide.width, H=guide.height;
+    const W=CW, H=CH;
     const {cx, cy} = getApex();
 
     if(mode==='single'){
@@ -623,7 +637,7 @@
   }
 
   function renderAll(){ drawBackground(); drawGuide(); }
-  function requestRender(){ renderAll(); updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); }
+  function requestRender(){ renderAll(); updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); scheduleSave(); }
   // ずらし量（底面・面取り）= 面の横幅 × 比率（切断長÷幅）
   function currentCutLen(){
     const open=openAngleFromGuide(); const width=getWidth();
@@ -648,11 +662,16 @@
     let cum=0;
     rows.forEach((r)=>{
       if(r.style.display==='none') return;
-      const inp=r.querySelector('.faceW'), out=r.querySelector('.offOut');
+      const inp=r.querySelector('.faceW'), out=r.querySelector('.offOut'), from=r.querySelector('.offFrom');
       if(!inp||!out) return;
       const v=parseNum(inp.value);
-      if(isFinite(v)&&v>0){ let off; if(indep){ off=v*ratio; } else { cum+=v; off=cum*ratio; } out.textContent=Math.round(off); }
-      else { out.textContent='—'; }
+      if(isFinite(v)&&v>0){
+        let off, edge=null;
+        if(indep){ off=v*ratio; } else { cum+=v; off=cum*ratio; if(cum-v>1e-9) edge=cum; }   // 側溝は端から累計＝2面目以降は「端から◯mm」地点のずれ
+        out.textContent=Math.round(off);
+        if(from) from.textContent=(edge===null)?'':t('from_edge').replace('{n}', fmtLen(edge));
+      }
+      else { out.textContent='—'; if(from) from.textContent=''; }
     });
   }
 
@@ -679,27 +698,65 @@
   }
 
   // ===== カメラ機能 =====
-  async function startCamera(){
+  let camGen=0, camStarting=false;   // 起動・停止のたびに camGen を進める。待っている間に止められた起動を、後から有効にしないため
+  async function startCamera(silent){
+    const gen=++camGen; camStarting=true;
     try{
-      stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false});
-      video.srcObject=stream; await video.play().catch(()=>{});   // play中断(AbortError等)はカメラ失敗扱いにしない（getUserMediaは成功済み）
+      const s = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false});
+      if(gen!==camGen){ s.getTracks().forEach(tr=>tr.stop()); return; }   // 許可を待つ間に止められた／裏に回った
+      stream=s; video.srcObject=stream; await video.play().catch(()=>{});   // play中断(AbortError等)はカメラ失敗扱いにしない（getUserMediaは成功済み）
+      if(gen!==camGen) return;   // 再生の開始を待つ間に止められた
+      isCaptured=false; photo.width=photo.height=0;
       startLiveLoop();
-      showStatus(t('st_cam_on'),'success');
+      if(!silent) showStatus(t('st_cam_on'),'success');
       document.getElementById('cameraToggleBtn').textContent=t('btn_camera_stop');
       { const cb=document.getElementById('captureBtn'); cb.disabled=false; cb.textContent=t('btn_freeze'); }
-      isCaptured=false; fitCanvas();
-    }catch(e){ showStatus(t('st_cam_fail')+e.message,'error'); }
+      fitCanvas(); keepAwake(true);
+    }catch(e){
+      if(gen!==camGen) return;   // 止めたあとに届いた失敗は表示しない
+      const n=(e&&e.name)||'';
+      const msg=(n==='NotAllowedError'||n==='SecurityError') ? t('st_cam_denied')
+              : (n==='NotFoundError'||n==='OverconstrainedError') ? t('st_cam_none')
+              : t('st_cam_fail')+((e&&e.message)||n);
+      showStatus(msg,'error');
+    }
+    finally{ if(gen===camGen) camStarting=false; }
   }
   function startLiveLoop(){ if(liveRAF) return; const loop=()=>{ if(!stream){ liveRAF=null; return; } renderAll(); liveRAF=requestAnimationFrame(loop); }; liveRAF=requestAnimationFrame(loop); }
   function stopLiveLoop(){ if(liveRAF){ cancelAnimationFrame(liveRAF); liveRAF=null; } }
-  function stopCamera(){ stopLiveLoop(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.srcObject=null; document.getElementById('cameraToggleBtn').textContent=t('btn_camera'); { const cb=document.getElementById('captureBtn'); cb.disabled=true; cb.textContent=t('btn_freeze'); } isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus(t('st_cam_off'),'info'); }
+  function stopCamera(){ camGen++; camStarting=false; camAutoResume=false; stopLiveLoop(); if(stream){ stream.getTracks().forEach(tr=>tr.stop()); stream=null; } video.pause(); video.srcObject=null; keepAwake(false); document.getElementById('cameraToggleBtn').textContent=t('btn_camera'); { const cb=document.getElementById('captureBtn'); cb.disabled=true; cb.textContent=t('btn_freeze'); } isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus(t('st_cam_off'),'info'); }
+  // 画面を点けたままにする（対応ブラウザのみ。アプリ版はネイティブ側でも指定する）
+  let wakeLock=null;
+  async function keepAwake(on){
+    try{
+      if(on){ if(!wakeLock && navigator.wakeLock){ wakeLock=await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', ()=>{ wakeLock=null; }); } }
+      else if(wakeLock){ const w=wakeLock; wakeLock=null; await w.release(); }
+    }catch(e){ wakeLock=null; }
+  }
+  // 裏に回ったとき：映像だけ止める（静止画と入力は残す）。ライブ中だったら、戻ったときに再開する
+  let camAutoResume=false;
+  function suspendCamera(){
+    if(!stream){ if(camStarting){ camGen++; camStarting=false; camAutoResume=true; } return; }   // 起動待ちの途中なら、その起動を取り消して、戻ったときにやり直す
+    camGen++; camStarting=false;
+    camAutoResume=!isCaptured;
+    stopLiveLoop();
+    stream.getTracks().forEach(tr=>tr.stop()); stream=null;
+    video.pause(); video.srcObject=null; keepAwake(false);
+    document.getElementById('cameraToggleBtn').textContent=t('btn_camera');
+    if(!isCaptured){ const cb=document.getElementById('captureBtn'); cb.disabled=true; cb.textContent=t('btn_freeze'); }
+  }
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){ suspendCamera(); }
+    else if(camAutoResume){ camAutoResume=false; startCamera(true); }
+  });
   function toggleCamera(){ if(stream) stopCamera(); else startCamera(); }
   function capturePhoto(){ if(!(video.videoWidth>0)) return showStatus(t('st_no_video'),'error'); photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const vw=video.videoWidth, vh=video.videoHeight, cw=photo.width, ch=photo.height; const vr=vw/vh, cr=cw/ch; let dw,dh,dx,dy; if(vr>cr){ dh=ch; dw=dh*vr; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/vr; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(video,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus(t('st_frozen'),'success'); }
   function toggleFreeze(){
+    if(isCaptured && !stream){ startCamera(); return; }   // 裏から戻ったあとの「解除」＝カメラを起動し直してライブへ
     if(!stream) return showStatus(t('st_start_cam'),'error');
     const cb=document.getElementById('captureBtn');
     if(isCaptured){ isCaptured=false; photo.width=photo.height=0; startLiveLoop(); cb.textContent=t('btn_freeze'); showStatus(t('st_live'),'info'); }
-    else{ capturePhoto(); cb.textContent=t('btn_unfreeze'); }
+    else{ capturePhoto(); if(isCaptured) cb.textContent=t('btn_unfreeze'); }   // 映像がまだ無く静止できなかったときは「解除」にしない
   }
   function handleImageLoad(ev){ const f=ev.target.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const iw=img.width,ih=img.height,cw=photo.width,ch=photo.height; const ir=iw/ih,cr=cw/ch; let dw,dh,dx,dy; if(ir>cr){ dh=ch; dw=dh*ir; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/ir; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(img,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus(t('st_img_ok'),'success'); try{ URL.revokeObjectURL(img.src); }catch(e){} }; img.onerror=()=>{ showStatus(t('st_img_fail'),'error'); try{ URL.revokeObjectURL(img.src); }catch(e){} }; img.src=URL.createObjectURL(f); }
 
@@ -729,7 +786,7 @@
     syncSliderPositions();
     if(commit){
       const open=openAngleFromGuide();
-      el.value=(mode==='single')?Math.round(Math.abs(open-90)):Math.round(open);
+      el.value=(mode==='single')?fmtAng(Math.abs(open-90)):fmtAng(open);   // 小数（例 67.5）を丸めて書き戻さない
       if(raw<lo||raw>hi) showStatus((mode==='dual'?t('mode_dual'):t('mode_single'))+' '+lo+'–'+hi+'°','info');
     }
     requestRender();
@@ -767,10 +824,12 @@
     updateFromSliders();
   }
 
+  let statusTimer=null;
   function showStatus(msg,type='info'){
     const el=document.getElementById('statusMsg');
     el.textContent=msg; el.className='status '+(type==='error'?'error':''); el.style.display='block';
-    if(type!=='error') setTimeout(()=>el.style.display='none',1500);
+    clearTimeout(statusTimer); statusTimer=null;   // 前のお知らせのタイマーが、新しい表示（エラー等）を消さないように
+    if(type!=='error') statusTimer=setTimeout(()=>{ el.style.display='none'; statusTimer=null; },1500);
   }
 
   // ===== テスト =====
@@ -810,6 +869,50 @@
     console.assert(mode===prev.mode,'T5 restore mode');
   }
 
+  // ===== 入力の保存と復元（再読み込み・回転・アプリの再起動で消えないように） =====
+  const STATE_KEY='cutcalc_state_v1';
+  let saveTimer=null, restoring=false;
+  function scheduleSave(){ if(restoring) return; clearTimeout(saveTimer); saveTimer=setTimeout(saveState, 250); }
+  function saveState(){
+    try{
+      const pe=document.querySelector('input[name=rectPos]:checked');
+      const st={ v:1, mode, flipped, left:leftAngle, right:rightAngle,
+        width:document.getElementById('productWidth').value,
+        faces:faceRowEls().map(r=>{ const i=r.querySelector('.faceW'); return i?i.value:''; }),
+        rect:!!document.getElementById('rectMode').checked, rectPos:pe?pe.value:'top',
+        taper:!!document.getElementById('offTaper').checked,
+        offsetOpen:document.getElementById('offsetBody').style.display!=='none' };
+      localStorage.setItem(STATE_KEY, JSON.stringify(st));
+    }catch(e){}
+  }
+  function restoreState(){
+    let st=null;
+    try{ st=JSON.parse(localStorage.getItem(STATE_KEY)||'null'); }catch(e){ st=null; }
+    if(!st || st.v!==1) return false;
+    restoring=true;
+    try{
+      mode=(st.mode==='single')?'single':'dual';
+      flipped=!!st.flipped;
+      const fb=document.getElementById('flipBtn'); if(fb) fb.style.background = flipped ? '#cfc' : '#fff';
+      const w=parseNum(st.width);
+      if(isFinite(w)&&w>0){ document.getElementById('productWidth').value=String(st.width); lastValidWidth=Math.max(10, Math.min(9999, Math.round(w))); }
+      faceRowEls().forEach((r,i)=>{ const inp=r.querySelector('.faceW'); if(inp) inp.value=(Array.isArray(st.faces)&&typeof st.faces[i]==='string')?sanitizeFace(st.faces[i]):''; });
+      document.getElementById('rectMode').checked=!!st.rect;
+      if(st.rectPos){ const rp=document.querySelector('input[name=rectPos][value="'+st.rectPos+'"]'); if(rp) rp.checked=true; }
+      document.getElementById('offTaper').checked=!!st.taper;
+      if(st.offsetOpen){ const b=document.getElementById('offsetBody'), ot=document.getElementById('offsetToggle'); b.style.display='block'; const tri=ot.querySelector('.tri'); if(tri) tri.textContent='▾'; ot.setAttribute('aria-expanded','true'); }
+      if(typeof st.left==='number' && isFinite(st.left)) leftAngle=st.left;
+      if(typeof st.right==='number' && isFinite(st.right)) rightAngle=st.right;
+      syncSliderPositions();
+      applyModeUI();   // スライダー位置から角度を計算し直す（直前に合わせた位置なので同じ値）
+      { const open=openAngleFromGuide(); document.getElementById('manualAngle').value=(mode==='single')?fmtAng(Math.abs(open-90)):fmtAng(open); }
+      syncRectUI();
+      requestRender();
+    }catch(e){ console.warn('restoreState failed:', e); }
+    finally{ restoring=false; }
+    return true;
+  }
+
   // ===== 初期化 =====
   function setup(){
     fitCanvas();
@@ -827,11 +930,11 @@
     toggle.addEventListener('change',()=>{ mode=toggle.checked?'single':'dual'; applyModeUI(); });
     const flipBtn=document.getElementById('flipBtn');
     if(flipBtn) flipBtn.addEventListener('click',()=>{ flipped=!flipped; flipBtn.style.background = flipped ? '#cfc' : '#fff'; requestRender(); });
-    // 起動時は必ず両側モード＆トグル未チェックに同期
-    mode='dual'; if(toggle) toggle.checked=false; applyModeUI(); requestRender();
+    // 前回の入力（モード・角度・幅・面など）を復元。保存が無ければ両側モードで開始
+    if(!restoreState()){ mode='dual'; if(toggle) toggle.checked=false; applyModeUI(); requestRender(); }
     // 直接ドラッグで角度調整
     setupCanvasDrag();
-    try{ runTests(); }catch(e){ console.warn('Tests failed:', e); }
+    if(/[?&]selftest\b/.test(location.search)){ try{ runTests(); }catch(e){ console.warn('Tests failed:', e); } }   // 自己テストは ?selftest の時だけ（配布版の起動時に状態を書き換えない）
   }
 
   // ===== キャンバス直接ドラッグで角度調整 =====
@@ -841,10 +944,10 @@
     const rect = guide.getBoundingClientRect();
     const cx = (ev.touches && ev.touches[0]) ? ev.touches[0].clientX : ev.clientX;
     const cy = (ev.touches && ev.touches[0]) ? ev.touches[0].clientY : ev.clientY;
-    return { x:(cx - rect.left) * (guide.width / rect.width), y:(cy - rect.top) * (guide.height / rect.height) };
+    return { x:(cx - rect.left) * (CW / rect.width), y:(cy - rect.top) * (CH / rect.height) };
   }
   function isInInset(p){
-    const W=guide.width, H=guide.height;
+    const W=CW, H=CH;
     const insetW = Math.min(160, W * 0.42);
     const insetH = 64;
     const ix = flipped ? (W - insetW - 8) : 8;
@@ -967,7 +1070,7 @@
     const ot=document.getElementById('offTaper'); const taper=!!(ot&&ot.checked);
     const indep = rect;   // updateOffsetと同一モデル：四角=各面独立、側溝=同側累計
     let cum=0; const offsets=facesRaw.map(f=>{ if(indep){ return Math.round(f*ratioVal); } cum+=f; return Math.round(cum*ratioVal); });
-    return { timestamp:new Date().toISOString(), mode, angle:Math.round(displayAngle), width:Math.round(width), cutLen:Math.round(cutLen), faces:facesRaw.map(v=>Math.round(v)), offsets, rect, rectPos, taper };
+    return { timestamp:new Date().toISOString(), mode, angle:Math.round(displayAngle*10)/10, width:Math.round(width), cutLen:Math.round(cutLen), faces:facesRaw.map(v=>Math.round(v*10)/10), offsets, rect, rectPos, taper };
   }
   function formatLogEntry(e){
     const d=new Date(e.timestamp);
@@ -996,7 +1099,14 @@
       const load=document.createElement('button'); load.className='log-entry-load'; load.textContent=t('log_load');
       load.addEventListener('click', ()=>restoreEntry(entry));
       const del=document.createElement('button'); del.className='log-entry-del'; del.textContent=t('log_del');
-      del.addEventListener('click', ()=>{ const lg=loadLog(); lg.splice(idx,1); saveLogToStorage(lg); renderLogModal(); });
+      del.addEventListener('click', ()=>{
+        if(del.dataset.armed!=='1'){   // 1回目は確認の表示だけ（押し間違いで消さない）。3秒で元に戻る
+          del.dataset.armed='1'; del.classList.add('armed'); del.textContent=t('log_del_confirm');
+          setTimeout(()=>{ if(del.isConnected && del.dataset.armed==='1'){ del.dataset.armed=''; del.classList.remove('armed'); del.textContent=t('log_del'); } }, 3000);
+          return;
+        }
+        const lg=loadLog(); lg.splice(idx,1); saveLogToStorage(lg); renderLogModal();
+      });
       if(entry.thumb){ const im=document.createElement('img'); im.className='log-thumb'; im.src=entry.thumb; im.alt=''; im.addEventListener('click',()=>im.classList.toggle('big')); row.appendChild(im); }
       row.appendChild(info); row.appendChild(load); row.appendChild(del);
       listEl.appendChild(row);
@@ -1004,6 +1114,12 @@
   }
   function openLogModal(){ renderLogModal(); document.getElementById('logModal').classList.add('show'); }
   function closeLogModal(){ document.getElementById('logModal').classList.remove('show'); }
+  // 端末の「戻る」から呼ぶ：開いている画面があれば閉じて true、何も無ければ false（アプリ版のネイティブ側が使う）
+  window.cutcalcBack = function(){
+    const lm=document.getElementById('logModal'); if(lm && lm.classList.contains('show')){ closeLogModal(); return true; }
+    const hm=document.getElementById('helpModal'); if(hm && hm.classList.contains('show')){ closeHelpModal(); return true; }
+    return false;
+  };
   // 静止/読込画像がある時だけ、ガイド画面(画像＋ガイド線)を320px JPEGサムネイルで取得
   function captureThumb(){
     if(!(isCaptured && photo.width>0)) return null;
@@ -1020,10 +1136,12 @@
     if(note) entry.note=note;
     const thumb=captureThumb(); if(thumb) entry.thumb=thumb;             // 静止/読込画像があればサムネイル同梱
     const log=loadLog(); log.push(entry);
-    if(!safeSaveLog(log) && entry.thumb){ delete entry.thumb; safeSaveLog(log); }  // 容量超過時は画像を外して保存
+    let ok=safeSaveLog(log), noPhoto=false;
+    if(!ok && entry.thumb){ delete entry.thumb; ok=safeSaveLog(log); noPhoto=ok; }  // 容量超過時は画像を外して保存
+    if(!ok){ showStatus(t('st_log_full'),'error'); return; }                        // 入らなかったのに「保存しました」と出さない
     document.getElementById('logNoteInput').value='';
     renderLogModal();
-    showStatus(t('st_log_saved'),'success');
+    showStatus(t(noPhoto?'st_log_nophoto':'st_log_saved'),'success');
   }
   // 記録の復元（読込）：モード・幅・角度・面を再現
   function restoreFaces(arr){
@@ -1046,7 +1164,7 @@
     if(!e) return;
     mode = (e.mode==='single') ? 'single' : 'dual';
     applyModeUI();
-    const pw=document.getElementById('productWidth'); if(pw && e.width) pw.value=e.width;
+    const pw=document.getElementById('productWidth'); if(pw && e.width){ pw.value=e.width; lastValidWidth=Math.max(10, Math.min(9999, Math.round(+e.width)||520)); }
     const ma=document.getElementById('manualAngle'); if(ma && (e.angle||e.angle===0)) ma.value=e.angle;
     applyManualAngle(true);          // 角度をガイドへ反映
     // 四角モード設定を復元（古い記録はrect未保存→側溝扱い）
@@ -1224,13 +1342,13 @@
       topFaces.forEach(function(fw){ if(fw<=0) return; var x1=X0+Math.min(tcum,topW)*sx(), x2=X0+Math.min(tcum+fw,topW)*sx(); tcum+=fw; if(x2-x1<0.5) return;
         s+='<line x1="'+F(x1)+'" y1="'+ty+'" x2="'+F(x2)+'" y2="'+ty+'" stroke="#b3261e" stroke-width="1" marker-start="url(#figDDr)" marker-end="url(#figDDr)"/>'
          +'<line x1="'+F(x1)+'" y1="'+ty+'" x2="'+F(x1)+'" y2="'+Y_TOP+'" stroke="#e3a3a0" stroke-width="0.6"/><line x1="'+F(x2)+'" y1="'+ty+'" x2="'+F(x2)+'" y2="'+Y_TOP+'" stroke="#e3a3a0" stroke-width="0.6"/>'
-         +'<text x="'+F((x1+x2)/2)+'" y="'+(ty-3)+'" text-anchor="middle" font-size="9.5" fill="#b3261e" font-weight="700">'+fmt(fw,0)+'</text>'; });
+         +'<text x="'+F((x1+x2)/2)+'" y="'+(ty-3)+'" text-anchor="middle" font-size="9.5" fill="#b3261e" font-weight="700">'+fmt(fw,1)+'</text>'; });
       var by=yBot+12, rightAnchor=(st.taper&&pos==='both'), bcum=0;
       botFaces.forEach(function(fw){ if(fw<=0) return; var d1=Math.min(bcum,botW), d2=Math.min(bcum+fw,botW); bcum+=fw; var x1,x2;
         if(rightAnchor){ x1=X1-d2*sx(); x2=X1-d1*sx(); } else { x1=X0+d1*sx(); x2=X0+d2*sx(); } if(Math.abs(x2-x1)<0.5) return;
         s+='<line x1="'+F(x1)+'" y1="'+by+'" x2="'+F(x2)+'" y2="'+by+'" stroke="#b3261e" stroke-width="1" marker-start="url(#figDDr)" marker-end="url(#figDDr)"/>'
          +'<line x1="'+F(x1)+'" y1="'+F(yBot)+'" x2="'+F(x1)+'" y2="'+by+'" stroke="#e3a3a0" stroke-width="0.6"/><line x1="'+F(x2)+'" y1="'+F(yBot)+'" x2="'+F(x2)+'" y2="'+by+'" stroke="#e3a3a0" stroke-width="0.6"/>'
-         +'<text x="'+F((x1+x2)/2)+'" y="'+(by+11)+'" text-anchor="middle" font-size="9.5" fill="#b3261e" font-weight="700">'+fmt(fw,0)+'</text>'; });
+         +'<text x="'+F((x1+x2)/2)+'" y="'+(by+11)+'" text-anchor="middle" font-size="9.5" fill="#b3261e" font-weight="700">'+fmt(fw,1)+'</text>'; });
       setSec(s);
     }
 
@@ -1290,7 +1408,7 @@
         s+='<g stroke="#555" stroke-width="0.8">';
         seg.forEach(function(g){ s+='<line x1="'+F(g[0])+'" y1="'+y+'" x2="'+F(g[1])+'" y2="'+y+'" marker-start="url(#figDD)" marker-end="url(#figDD)"/>'; });
         s+='</g>';
-        seg.forEach(function(g){ s+='<text x="'+F((g[0]+g[1])/2)+'" y="'+(y-5)+'" text-anchor="middle" font-size="10" fill="#333">'+fmt(g[2],0)+'</text>'; });
+        seg.forEach(function(g){ s+='<text x="'+F((g[0]+g[1])/2)+'" y="'+(y-5)+'" text-anchor="middle" font-size="10" fill="#333">'+fmt(g[2],1)+'</text>'; });
       }
       s+='<line x1="'+X0+'" y1="288" x2="'+X1+'" y2="288" stroke="#333" stroke-width="0.8" marker-start="url(#figDD)" marker-end="url(#figDD)"/>';
       s+='<text x="180" y="284" text-anchor="middle" font-size="10" fill="#333">'+fmt(st.W,0)+'</text>';
@@ -1343,7 +1461,7 @@
                            : [0].concat(C, C.slice().reverse().map(function(c){ return st.W-c; }), [st.W]);
       var html='<tr><th>'+t('tbl_cum')+'</th><th>'+t('tbl_calc')+'</th><th>'+t('tbl_offset')+'</th></tr>';
       var rD=Number(r.toFixed(4));
-      depths.forEach(function(dp){ html+='<tr><td>'+fmt(dp,0)+'</td><td class="f">'+fmt(dp,0)+' × '+r.toFixed(4)+' = '+fmt(dp*rD,1)+'</td><td><b>'+Math.round(dp*r)+'</b></td></tr>'; });  // 計算列は表示比率で自己整合・確定値は実比率で底面図と一致
+      depths.forEach(function(dp){ html+='<tr><td>'+fmt(dp,1)+'</td><td class="f">'+fmt(dp,1)+' × '+r.toFixed(4)+' = '+fmt(dp*rD,1)+'</td><td><b>'+Math.round(dp*r)+'</b></td></tr>'; });  // 計算列は表示比率で自己整合・確定値は実比率で底面図と一致
       $('figCalcTable').innerHTML=html;
     }
 
@@ -1399,14 +1517,15 @@
       const tri=t.querySelector('.tri'); if(tri) tri.textContent = show?'▾':'▸';
       t.setAttribute('aria-expanded', show);
       if(show) updateOffset();
+      scheduleSave();
     });
     const faceRows=document.getElementById('faceRows');
-    faceRows.addEventListener('input', (e)=>{ if(e.target.classList.contains('faceW')){ var cv=zen2han(e.target.value).replace(/[^0-9]/g,'').slice(0,4); if(cv!==e.target.value) e.target.value=cv; updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); } });
+    faceRows.addEventListener('input', (e)=>{ if(e.target.classList.contains('faceW')){ var cv=sanitizeFace(e.target.value); if(cv!==e.target.value) e.target.value=cv; updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); scheduleSave(); } });
     const reRender=()=>{ if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); };
-    const offTaper=document.getElementById('offTaper'); if(offTaper) offTaper.addEventListener('change', reRender);
+    const offTaper=document.getElementById('offTaper'); if(offTaper) offTaper.addEventListener('change', ()=>{ reRender(); scheduleSave(); });
     const rectMode=document.getElementById('rectMode');
-    if(rectMode) rectMode.addEventListener('change', ()=>{ syncRectUI(); reRender(); updateOffset(); });
-    document.querySelectorAll('input[name=rectPos]').forEach(r=> r.addEventListener('change', ()=>{ syncRectUI(); reRender(); updateOffset(); }));
+    if(rectMode) rectMode.addEventListener('change', ()=>{ syncRectUI(); reRender(); updateOffset(); scheduleSave(); });
+    document.querySelectorAll('input[name=rectPos]').forEach(r=> r.addEventListener('change', ()=>{ syncRectUI(); reRender(); updateOffset(); scheduleSave(); }));
     syncRectUI();
     // 埋め込み断面図：タップで切断方法へ（静的な図なので長押し不要）。上部カメラの「ケガキ図」はドラッグ操作と競合するため長押しのまま。
     const secMain=document.getElementById('figSecSvgMain');
@@ -1482,7 +1601,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.5';   // versionCode 10005 と桁を対応させている（取り違え防止）
+  const APP_VERSION = '1.0.8-a';   // 1.0.8（versionCode 10008）の準備中。-a＝段階A。★署名AABの前に '1.0.8' にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){

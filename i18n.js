@@ -35,7 +35,7 @@ window.I18N = {
       extra_mm:'＋ 数mm',
       st_cam_on:'カメラ起動', st_cam_fail:'カメラ起動失敗: ', st_cam_off:'カメラ停止', st_frozen:'静止しました', st_live:'ライブに戻しました',
       st_no_video:'映像がありません', st_start_cam:'先にカメラを起動してください', st_img_ok:'画像読込完了', st_img_fail:'画像読込失敗',
-      st_angle_num:'角度は半角数字で入力してください', st_log_saved:'記録を保存しました', st_log_loaded:'記録を読込みました',
+      st_angle_num:'角度は半角数字で入力してください', st_log_saved:'記録を保存しました', st_log_loaded:'記録を読込みました', from_edge:'（端から {n} mm）', st_cam_denied:'カメラが許可されていません。端末の設定で、このアプリのカメラを許可してください', st_cam_none:'カメラが見つかりません', st_log_full:'保存できませんでした。記録の容量がいっぱいです。古い記録を削除してください', st_log_nophoto:'記録を保存しました（容量が足りないため、写真は保存していません）', log_del_confirm:'もう一度で削除',
       st_w_empty:'幅/高さが空です。前の値に戻しました', st_w_num:'幅/高さは半角数字で入力してください',
       st_w_def:'幅/高さを既定値 520mm に補正しました', st_w_min:'幅/高さの最小は 10mm です', st_w_max:'幅/高さの最大は 9999mm です',
       // --- Stage2: 使い方/解説 本文 ---
@@ -101,7 +101,7 @@ window.I18N = {
       extra_mm:'+ a few mm',
       st_cam_on:'Camera started', st_cam_fail:'Camera failed: ', st_cam_off:'Camera stopped', st_frozen:'Frozen', st_live:'Back to live',
       st_no_video:'No video', st_start_cam:'Start the camera first', st_img_ok:'Image loaded', st_img_fail:'Image load failed',
-      st_angle_num:'Enter a number for the angle', st_log_saved:'Saved', st_log_loaded:'Loaded',
+      st_angle_num:'Enter a number for the angle', st_log_saved:'Saved', st_log_loaded:'Loaded', from_edge:' ({n} mm from the edge)', st_cam_denied:'Camera access is not allowed. Allow the camera for this app in your device settings.', st_cam_none:'No camera found.', st_log_full:'Could not save: storage for records is full. Delete old records.', st_log_nophoto:'Saved (the photo was not saved because storage is low).', log_del_confirm:'Tap again to delete',
       st_w_empty:'Width/Height was empty. Restored previous value', st_w_num:'Enter a number for Width/Height',
       st_w_def:'Width/Height set to default 520mm', st_w_min:'Minimum Width/Height is 10mm', st_w_max:'Maximum Width/Height is 9999mm',
       // --- Stage2: help / explanation body ---
@@ -167,7 +167,7 @@ window.I18N = {
       extra_mm:'+ vài mm',
       st_cam_on:'Đã bật camera', st_cam_fail:'Lỗi camera: ', st_cam_off:'Đã tắt camera', st_frozen:'Đã dừng hình', st_live:'Trở lại trực tiếp',
       st_no_video:'Không có hình', st_start_cam:'Hãy bật camera trước', st_img_ok:'Đã tải ảnh', st_img_fail:'Tải ảnh thất bại',
-      st_angle_num:'Nhập góc bằng chữ số', st_log_saved:'Đã lưu', st_log_loaded:'Đã tải',
+      st_angle_num:'Nhập góc bằng chữ số', st_log_saved:'Đã lưu', st_log_loaded:'Đã tải', from_edge:' (cách mép {n} mm)', st_cam_denied:'Chưa cho phép dùng camera. Hãy cho phép camera cho ứng dụng này trong cài đặt của máy.', st_cam_none:'Không tìm thấy camera.', st_log_full:'Không lưu được: bộ nhớ ghi chép đã đầy. Hãy xóa ghi chép cũ.', st_log_nophoto:'Đã lưu (không lưu ảnh vì không đủ dung lượng).', log_del_confirm:'Nhấn lần nữa để xóa',
       st_w_empty:'Rộng/Cao trống. Đã khôi phục giá trị trước', st_w_num:'Nhập Rộng/Cao bằng chữ số',
       st_w_def:'Đã đặt Rộng/Cao về mặc định 520mm', st_w_min:'Rộng/Cao tối thiểu 10mm', st_w_max:'Rộng/Cao tối đa 9999mm',
       // --- Stage2: hướng dẫn / giải thích ---
@@ -233,7 +233,7 @@ window.I18N = {
       extra_mm:'＋ 几mm',
       st_cam_on:'相机已启动', st_cam_fail:'相机启动失败: ', st_cam_off:'相机已停止', st_frozen:'已冻结', st_live:'已恢复实时',
       st_no_video:'没有画面', st_start_cam:'请先启动相机', st_img_ok:'图片读取完成', st_img_fail:'图片读取失败',
-      st_angle_num:'角度请输入半角数字', st_log_saved:'已保存记录', st_log_loaded:'已读取记录',
+      st_angle_num:'角度请输入半角数字', st_log_saved:'已保存记录', st_log_loaded:'已读取记录', from_edge:'（距边缘 {n} mm）', st_cam_denied:'未允许使用相机。请在设备设置中允许此应用使用相机。', st_cam_none:'未找到相机。', st_log_full:'无法保存：记录存储空间已满。请删除旧记录。', st_log_nophoto:'已保存记录（存储空间不足，未保存照片）。', log_del_confirm:'再按一次删除',
       st_w_empty:'宽/高为空，已恢复上一个值', st_w_num:'宽/高请输入半角数字',
       st_w_def:'宽/高已修正为默认520mm', st_w_min:'宽/高最小为10mm', st_w_max:'宽/高最大为9999mm',
       // --- Stage2: 使用说明 / 解说正文 ---
@@ -299,7 +299,7 @@ window.I18N = {
       extra_mm:'+ alguns mm',
       st_cam_on:'Câmera ligada', st_cam_fail:'Falha na câmera: ', st_cam_off:'Câmera parada', st_frozen:'Congelado', st_live:'De volta ao vivo',
       st_no_video:'Sem vídeo', st_start_cam:'Ligue a câmera primeiro', st_img_ok:'Imagem carregada', st_img_fail:'Falha ao carregar imagem',
-      st_angle_num:'Digite o ângulo em números', st_log_saved:'Salvo', st_log_loaded:'Carregado',
+      st_angle_num:'Digite o ângulo em números', st_log_saved:'Salvo', st_log_loaded:'Carregado', from_edge:' (a {n} mm da borda)', st_cam_denied:'O acesso à câmera não foi permitido. Permita a câmera para este app nas configurações do aparelho.', st_cam_none:'Nenhuma câmera encontrada.', st_log_full:'Não foi possível salvar: o espaço para registros está cheio. Exclua registros antigos.', st_log_nophoto:'Salvo (a foto não foi salva por falta de espaço).', log_del_confirm:'Toque de novo para excluir',
       st_w_empty:'Larg./Alt. vazia. Valor anterior restaurado', st_w_num:'Digite Larg./Alt. em números',
       st_w_def:'Larg./Alt. definida no padrão 520mm', st_w_min:'Larg./Alt. mínima é 10mm', st_w_max:'Larg./Alt. máxima é 9999mm',
       // --- Stage2: ajuda / explicação ---
@@ -365,7 +365,7 @@ window.I18N = {
       extra_mm:'+ ilang mm',
       st_cam_on:'Bukas ang camera', st_cam_fail:'Nabigo ang camera: ', st_cam_off:'Sarado ang camera', st_frozen:'Naka-freeze', st_live:'Balik sa live',
       st_no_video:'Walang video', st_start_cam:'Buksan muna ang camera', st_img_ok:'Na-load ang larawan', st_img_fail:'Nabigo ang pag-load',
-      st_angle_num:'Ilagay ang anggulo sa numero', st_log_saved:'Na-save', st_log_loaded:'Na-load',
+      st_angle_num:'Ilagay ang anggulo sa numero', st_log_saved:'Na-save', st_log_loaded:'Na-load', from_edge:' ({n} mm mula sa gilid)', st_cam_denied:'Hindi pinapayagan ang camera. Pahintulutan ang camera para sa app na ito sa settings ng device.', st_cam_none:'Walang nakitang camera.', st_log_full:'Hindi na-save: puno na ang espasyo para talaan. Burahin ang mga lumang talaan.', st_log_nophoto:'Na-save (hindi na-save ang larawan dahil kulang ang espasyo).', log_del_confirm:'I-tap muli para burahin',
       st_w_empty:'Walang laman ang Lapad/Taas. Naibalik ang dating halaga', st_w_num:'Ilagay ang Lapad/Taas sa numero',
       st_w_def:'Lapad/Taas na-set sa default 520mm', st_w_min:'Pinakamababang Lapad/Taas ay 10mm', st_w_max:'Pinakamataas na Lapad/Taas ay 9999mm',
       // --- Stage2: gabay / paliwanag ---
