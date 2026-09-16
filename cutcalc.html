@@ -163,6 +163,28 @@
     table.calc th, table.calc td{ border:1px solid #d7dde3; padding:4px 6px; text-align:center; color:#222; }
     table.calc th{ background:#eef2f6; font-weight:700; }
     table.calc td.f{ font-family:ui-monospace,Consolas,monospace; }
+    /* ヘルプの図・設定 */
+    .help-section figure svg.helpFig{ max-width:100%; height:auto; border:1px solid #eee; border-radius:6px; background:#fafafa; font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif }
+    .help-small{ font-size:12px; color:#555; margin:6px 0; line-height:1.5 }
+    .help-note.info{ background:#eef5fc; border-left-color:#3a7fc0; color:#15436e }
+    .help-inline{ display:block; width:100%; margin:14px 0 4px }
+    .optRow{ display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 12px }
+    .optBtn{ appearance:none; border:1px solid #cbd5e1; background:#fff; color:#1f2937; border-radius:9px; min-width:68px; min-height:42px; padding:0 14px; font-weight:700; font-size:13.5px; cursor:pointer }
+    .optBtn[aria-pressed="true"]{ background:#172554; color:#fff; border-color:#172554 }
+    .optBtn:focus-visible{ outline:2px solid #1d4ed8; outline-offset:2px }
+    /* はじめての案内 */
+    .ob-panel{ max-width:340px; background:linear-gradient(160deg,var(--bg1),var(--bg2)); color:var(--txt); text-align:center; padding:18px 16px 14px }
+    .ob-art svg{ width:100%; max-width:240px; height:auto; display:block; margin:0 auto }
+    .ob-step{ margin:8px 0 0; font-size:12px; opacity:.78 }
+    .ob-title{ margin:4px 0 6px; font-size:18px; line-height:1.35 }
+    .ob-text{ margin:0 0 12px; font-size:14px; line-height:1.6; min-height:4.8em }
+    .ob-dots{ display:flex; justify-content:center; gap:7px; margin-bottom:12px }
+    .ob-dots span{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.35) }
+    .ob-dots span.on{ background:var(--accent) }
+    .ob-nav{ display:flex; gap:10px }
+    .ob-nav .btn{ flex:1; min-height:44px }
+    .ob-skip{ background:transparent; color:var(--txt); box-shadow:none; border:1px solid rgba(255,255,255,.4) }
+    .light-theme .ob-skip{ border-color:rgba(0,0,0,.25) }
   
   </style>
 </head>
@@ -1201,6 +1223,7 @@
   function closeLogModal(){ document.getElementById('logModal').classList.remove('show'); }
   // 端末の「戻る」から呼ぶ：開いている画面があれば閉じて true、何も無ければ false（アプリ版のネイティブ側が使う）
   window.cutcalcBack = function(){
+    const ob=document.getElementById('onboard'); if(ob && ob.classList.contains('show')){ closeOnboard(); return true; }
     const lm=document.getElementById('logModal'); if(lm && lm.classList.contains('show')){ closeLogModal(); return true; }
     const hm=document.getElementById('helpModal'); if(hm && hm.classList.contains('show')){ closeHelpModal(); return true; }
     return false;
@@ -1253,6 +1276,24 @@
     showStatus(t('st_log_loaded'),'success');
   }
 
+  // ===== はじめての案内（3枚・初回だけ。?noonboard で出さない） =====
+  const ONBOARD_KEY='cutcalc_onboarded_v1';
+  const OB_ART=['<svg viewBox="0 0 240 112" xmlns="http://www.w3.org/2000/svg"><rect x="44" y="34" width="156" height="42" rx="3" fill="#dfe3e8" stroke="#334155" stroke-width="1.5"/><line x1="30" y1="36" x2="30" y2="74" stroke="#7cc4ff" stroke-width="2.2"/><path d="M25 42 L30 34 L35 42 M25 68 L30 76 L35 68" fill="none" stroke="#7cc4ff" stroke-width="2.2"/><rect x="132" y="86" width="84" height="22" rx="11" fill="#fcd34d"/><text x="174" y="101" text-anchor="middle" font-size="12" font-weight="700" fill="#172554" font-family="sans-serif">mm | in</text></svg>','<svg viewBox="0 0 240 112" xmlns="http://www.w3.org/2000/svg"><path d="M36 92 L120 34 L204 92" fill="none" stroke="#0a0f1c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M36 92 L120 34 L204 92" fill="none" stroke="#c8ff5a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="168" cy="69" r="10" fill="none" stroke="#ffffff" stroke-width="2.2"/><path d="M180 82 q9 8 20 5" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/><text x="120" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="#fcd34d" font-family="sans-serif">−  0.5°  ＋</text></svg>','<svg viewBox="0 0 240 112" xmlns="http://www.w3.org/2000/svg"><rect x="30" y="18" width="180" height="76" rx="12" fill="rgba(255,255,255,.12)" stroke="#fcd34d" stroke-width="2"/><text x="52" y="74" font-size="42" font-weight="700" fill="#fcd34d" font-family="ui-monospace,monospace">215</text><text x="146" y="74" font-size="15" font-weight="700" fill="#ffffff" font-family="sans-serif">mm</text></svg>'];
+  let obStep=0;
+  function renderOnboard(){
+    const n=obStep+1, $=id=>document.getElementById(id);
+    $('obStepNum').textContent=n+' / 3';
+    $('obTitle').textContent=t('ob_'+n+'_t');
+    $('obText').textContent=t('ob_'+n+'_p');
+    $('obArt').innerHTML=OB_ART[obStep];   // 固定の図（入力は入らない）
+    document.querySelectorAll('.ob-dots span').forEach((d,i)=>d.classList.toggle('on', i===obStep));
+    $('obNext').textContent=t(obStep===2?'ob_start':'ob_next');
+  }
+  function showOnboard(){ obStep=0; renderOnboard(); document.getElementById('onboard').classList.add('show'); }
+  function closeOnboard(){ document.getElementById('onboard').classList.remove('show'); try{ localStorage.setItem(ONBOARD_KEY,'1'); }catch(e){} }
+  function nextOnboard(){ if(obStep<2){ obStep++; renderOnboard(); } else closeOnboard(); }
+  function maybeShowOnboard(){ if(/[?&]noonboard\b/.test(location.search)) return; let done=false; try{ done=!!localStorage.getItem(ONBOARD_KEY); }catch(e){} if(!done) showOnboard(); }
+
   // ===== 使い方モーダル =====
   function openHelpModal(tab){
     document.getElementById('helpModal').classList.add('show');
@@ -1264,19 +1305,21 @@
     document.querySelectorAll('.help-tab').forEach(b => b.classList.toggle('active', b.dataset.tab===name));
     document.querySelectorAll('.help-section').forEach(s => s.classList.toggle('active', s.dataset.section===name));
     if(name==='cutmethod' && typeof FIG!=='undefined') FIG.render();
+    if(name==='settings') applyUnitUI();
     if(name==='about'){
       if(typeof renderAbout==='function') renderAbout();
       if(typeof renderPro==='function') renderPro();   // 商品取得は非同期なので、開くたびに状態を取り直す
     }
   }
-  // 「切断方法」タブ内のSVGの切断長表示を、現在のアプリ値で書き換え
+  // ヘルプの図の数字（今の入力値／図の例）を、単位に合わせて書き換える
   function updateHelpCutLen(){
     const clTxt = fmtLenFull(currentCutLen(),0), extra = t(unit==='in'?'extra_in':'extra_mm');
-    // 上面（ケガキ図）も側面も同じ切断長でおろす。±補正は表示しない（各面の向き・量はメイン欄のケガキ補正値で確認）
-    const mEl = document.getElementById('markingCutLenText');
-    if(mEl) mEl.textContent = clTxt + ' ' + extra;
-    const sEl = document.getElementById('sideScribeCutLenText');
-    if(sEl) sEl.textContent = clTxt + ' ' + extra;
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('markingCutLenText', clTxt + ' ' + extra);
+    set('sideScribeCutLenText', clTxt + ' ' + extra);
+    set('markExtraText', extra);
+    set('figDualNote', t('fig_dual_note').replace('{w}', fmtLenFull(520,0)).replace('{c}', fmtLenFull(215.39,0)));      // 例：520・135°
+    set('figSingleNote', t('fig_single_note').replace('{w}', fmtLenFull(300,0)).replace('{c}', fmtLenFull(173.21,0)));  // 例：300・60°
   }
 
   // ===== 多言語（i18n）: 辞書は i18n.js（window.I18N）。エンジンは下に残す =====
@@ -1312,6 +1355,7 @@
     if(typeof renderLogModal==='function' && document.getElementById('logModal') && document.getElementById('logModal').classList.contains('show')) renderLogModal();
     if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render();  // 厳密ケガキ図の動的文字列
     if(typeof renderAbout==='function') renderAbout();               // 情報タブ（メール件名）
+    { const ob=document.getElementById('onboard'); if(ob && ob.classList.contains('show')) renderOnboard(); }
     if(typeof renderPro==='function') renderPro();                   // 購入セクション（ボタン文言・価格）
   }
   function setLang(l){ if(!I18N[l]) return; curLang=l; try{ localStorage.setItem('cutcalc_lang', l); }catch(e){} const sel=document.getElementById('langSel'); if(sel) sel.value=l; applyI18n(); }
@@ -1606,6 +1650,14 @@
     const secMain=document.getElementById('figSecSvgMain');
     if(secMain) secMain.addEventListener('click', ()=>{ if(typeof openHelpModal==='function') openHelpModal('cutmethod'); });
     initRemoveAds();
+    // 設定タブ（単位・インチの細かさ）と、はじめての案内
+    document.querySelectorAll('[data-unit-opt]').forEach(b=>b.addEventListener('click', ()=>setUnit(b.getAttribute('data-unit-opt'))));
+    document.querySelectorAll('[data-frac-opt]').forEach(b=>b.addEventListener('click', ()=>setFrac(b.getAttribute('data-frac-opt'))));
+    { const rb=document.getElementById('replayOnboardBtn'); if(rb) rb.addEventListener('click', ()=>{ closeHelpModal(); showOnboard(); }); }
+    document.getElementById('obNext').addEventListener('click', nextOnboard);
+    document.getElementById('obSkip').addEventListener('click', closeOnboard);
+    applyUnitUI();
+    maybeShowOnboard();
   });
 
   // ===== 広告除去(IAP) UI 制御 =====
@@ -1706,178 +1758,213 @@
 <div id="helpModal" class="modal-overlay">
   <div class="modal-panel">
     <div class="modal-header">
-      <span data-i18n="help_header">📘 使い方・解説</span>
+      <span data-i18n="help_header">使い方・解説</span>
       <button class="modal-close" id="helpCloseBtn" data-i18n-aria="aria_close" aria-label="閉じる">×</button>
     </div>
     <div class="help-tabs">
       <button class="help-tab active" data-tab="use" data-i18n="tab_use">使い方</button>
-      <button class="help-tab" data-tab="cross" data-i18n="tab_cross">横断/縦断</button>
-      <button class="help-tab" data-tab="cutmethod" data-i18n="tab_cut">切断方法</button>
+      <button class="help-tab" data-tab="cutmethod" data-i18n="tab_cut">切り方</button>
+      <button class="help-tab" data-tab="settings" data-i18n="tab_settings">設定</button>
       <button class="help-tab" data-tab="about" data-i18n="tab_about">アプリ情報</button>
     </div>
 
     <div class="help-section active" data-section="use">
-      <h4 data-i18n="h_use_flow">基本の流れ</h4>
+      <h4 data-i18n="h_start_h">はじめかた</h4>
       <ol>
-        <li data-i18n="h_use_li1"><b>カメラ起動</b> または <b>画像読込</b> で対象（水糸/側溝/構造物）を表示</li>
-        <li data-i18n="h_use_li2"><b>両側/片側</b> モードを選択。コーナーは両側、桝接続は片側</li>
-        <li data-i18n="h_use_li3"><b>スライダー</b> または <b>図を直接ドラッグ</b> でガイドを基準物のラインに合わせる</li>
-        <li data-i18n="h_use_li4">図内の <b>ケガキ図</b> を長押しで切断方法、必要なら <b>記録</b> に保存</li>
-        <li data-i18n="h_use_li5">（任意）<b>厳密に角面（底面・面取り）も考慮してケガキ線を引く</b>場合は、<b>厳密に角面を考慮してケガキ</b> に面の横幅を入れ、表示される<b>ケガキ補正値</b>だけ各面でずらしてケガく</li>
+        <li data-i18n="h_start_li1"><b>材料の幅</b>を入れます</li>
+        <li data-i18n="h_start_li2"><b>カメラ</b>で材料を写し、線を縁に合わせます</li>
+        <li data-i18n="h_start_li3"><b>切る長さ</b>を読みます</li>
       </ol>
-      <figure>
-        <img src="images/usage-basic.svg" data-i18n-alt="h_use_cap" alt="基本操作の流れ" />
-        <figcaption data-i18n="h_use_cap">基本操作の流れ</figcaption>
-      </figure>
-      <p data-i18n="h_use_other" style="font-size:12px; color:#555; margin-top:8px">縁石・ブロック・幅木・タイル・額縁などの角度カットも、同様の手順で行えます。断面が四角形の材料でも、切断長・ケガキ補正値の計算はそのまま使えます。</p>
-      <div class="theme-picker">
-        <div class="theme-title" data-i18n="theme_label">配色</div>
-        <div class="theme-desc" data-i18n="theme_desc">お好みの配色を選べます。選んだ色は次回も保持されます。</div>
-        <div class="theme-grid" id="themeGrid"></div>
-      </div>
-    </div>
+      <h4 data-i18n="h_hidden_h">見ただけでは分からない操作</h4>
+      <ul>
+        <li data-i18n="h_hidden_li1"></li>
+        <li data-i18n="h_hidden_li2"></li>
+        <li data-i18n="h_hidden_li3"></li>
+        <li data-i18n="h_hidden_li4"></li>
+      </ul>
 
-    <div class="help-section" data-section="cross">
-      <h4 data-i18n="h_cross_h">横断方向（コーナー）</h4>
-      <p data-i18n="h_cross_p">2本の側溝を角度をつけて接続する場合。両側モードで2本とも同じ角度に斜めカットします。</p>
+      <h4 data-i18n="h_dual_h">2本をつなぐ</h4>
+      <p data-i18n="h_dual_p"></p>
       <figure>
-        <img src="images/cross-section.svg" data-i18n-alt="h_cross_cap" alt="横断方向（コーナー）上から見た図" />
-        <figcaption data-i18n="h_cross_cap">2本を斜めカットで接続（コーナー）</figcaption>
+        <svg class="helpFig" viewBox="0 0 420 212" xmlns="http://www.w3.org/2000/svg" role="img" data-i18n-aria="h_dual_cap" aria-label="">
+          <defs><marker id="hfA1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d67a2a"/></marker><marker id="hfB1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3a7fc0"/></marker></defs>
+          <polygon points="210,55 224.55,90.11 95.19,143.73 80.64,108.62" fill="#dadada" stroke="#1a1a1a" stroke-width="1.4"/>
+          <polygon points="210,55 224.55,90.11 210.01,96.14" fill="#cc2c2c" opacity="0.3" stroke="#cc2c2c" stroke-width="0.8" stroke-dasharray="3,2"/>
+          <polygon points="210,55 195.45,90.11 324.81,143.73 339.36,108.62" fill="#dadada" stroke="#1a1a1a" stroke-width="1.4"/>
+          <polygon points="210,55 195.45,90.11 209.99,96.14" fill="#cc2c2c" opacity="0.3" stroke="#cc2c2c" stroke-width="0.8" stroke-dasharray="3,2"/>
+          <line x1="210" y1="55" x2="210" y2="96.14" stroke="#2c8c2c" stroke-width="2.6"/>
+          <circle cx="210" cy="55" r="3" fill="#cc2c2c"/>
+          <text x="210" y="45" text-anchor="middle" fill="#666" font-size="10" data-i18n="fig_corner">角（外側）</text>
+          <line x1="248" y1="55" x2="248" y2="96.14" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#hfA1)" marker-end="url(#hfA1)"/>
+          <text x="256" y="80" fill="#9a4a10" font-weight="700" font-size="11" data-i18n="fig_cutlen">切る長さ</text>
+          <line x1="60" y1="118" x2="86" y2="151" stroke="#3a7fc0" stroke-width="1.2" marker-start="url(#hfB1)" marker-end="url(#hfB1)"/>
+          <text x="48" y="168" fill="#3a7fc0" font-weight="700" font-size="11" data-i18n="fig_width">幅</text>
+          <path d="M228.5,62.7 Q210,82 191.5,62.7" fill="none" stroke="#555" stroke-width="1.2"/>
+          <text x="198" y="80" text-anchor="middle" fill="#333" font-weight="700" font-size="11">θ</text>
+          <rect x="286" y="152" width="10" height="10" fill="#cc2c2c" opacity="0.3" stroke="#cc2c2c" stroke-width="0.8" stroke-dasharray="2,2"/>
+          <text x="301" y="161" font-size="10" fill="#444" data-i18n="fig_cutoff">切り落とす部分</text>
+          <text x="210" y="196" text-anchor="middle" fill="#222" font-size="11.5" id="figDualNote"></text>
+        </svg>
+        <figcaption data-i18n="h_dual_cap">上から見た図：開き角と切る長さ</figcaption>
       </figure>
-      <h4 data-i18n="h_long_h">縦断方向（勾配/方向）</h4>
-      <p data-i18n="h_long_p">側溝の長手方向で角度を変える場合。基本的な測定方法は横断と同じ。</p>
+
+      <h4 data-i18n="h_single_h">1本を線に当てる</h4>
+      <p data-i18n="h_single_p"></p>
       <figure>
-        <img src="images/longitudinal.svg" data-i18n-alt="h_long_cap" alt="縦断方向：横から見た図" />
-        <figcaption data-i18n="h_long_cap">勾配/方向調整のための端部カット</figcaption>
+        <svg class="helpFig" viewBox="0 0 460 244" xmlns="http://www.w3.org/2000/svg" role="img" data-i18n-aria="h_single_cap" aria-label="">
+          <defs><marker id="hfA2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d67a2a"/></marker><marker id="hfB2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3a7fc0"/></marker></defs>
+          <rect x="300" y="26" width="34" height="204" fill="#ececec"/>
+          <line x1="300" y1="26" x2="300" y2="230" stroke="#555" stroke-width="1.4" stroke-dasharray="5,3"/>
+          <text x="296" y="20" text-anchor="end" fill="#555" font-size="10.5" font-weight="700" data-i18n="fig_line">基準の線（壁など）</text>
+          <polygon points="300,89.21 300,130.79 170.78,205.39 152.78,174.21" fill="#dadada" stroke="#1a1a1a" stroke-width="1.4"/>
+          <polygon points="300,89.21 318,120.39 300,130.79" fill="#cc2c2c" opacity="0.3" stroke="#cc2c2c" stroke-width="0.8" stroke-dasharray="3,2"/>
+          <line x1="300" y1="89.21" x2="300" y2="130.79" stroke="#2c8c2c" stroke-width="2.8"/>
+          <path d="M300,152.79 A22,22 0 0 1 280.95,141.79" fill="none" stroke="#555" stroke-width="1.2"/>
+          <text x="281" y="166" text-anchor="middle" fill="#333" font-weight="700" font-size="11">α</text>
+          <line x1="305" y1="139.45" x2="323" y2="129.05" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#hfA2)" marker-end="url(#hfA2)"/>
+          <text x="330" y="150" fill="#9a4a10" font-weight="700" font-size="10.5" data-i18n="fig_cutlen">切る長さ</text>
+          <line x1="142.4" y1="180.2" x2="160.4" y2="211.4" stroke="#3a7fc0" stroke-width="1.2" marker-start="url(#hfB2)" marker-end="url(#hfB2)"/>
+          <text x="138" y="206" text-anchor="end" fill="#3a7fc0" font-weight="700" font-size="11" data-i18n="fig_width">幅</text>
+          <text x="230" y="238" text-anchor="middle" fill="#222" font-size="11.5" id="figSingleNote"></text>
+        </svg>
+        <figcaption data-i18n="h_single_cap">上から見た図：線との角度と切る長さ</figcaption>
       </figure>
-      <figure style="text-align:center">
-        <img src="images/longitudinal-slope.svg" data-i18n-alt="h_long_cap2" alt="縦断方向：法面/勾配での設置例" style="max-width:78%" />
-        <figcaption data-i18n="h_long_cap2">法面・勾配での施工例（天端→法面の変化点でカット）</figcaption>
+
+      <h4 data-i18n="h_slope_h">勾配で切る</h4>
+      <p data-i18n="h_slope_p"></p>
+      <figure>
+        <svg class="helpFig" viewBox="0 0 420 196" xmlns="http://www.w3.org/2000/svg" role="img" data-i18n-aria="h_slope_cap" aria-label="">
+          <defs><marker id="hfA3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d67a2a"/></marker><marker id="hfB3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3a7fc0"/></marker></defs>
+          <polygon points="40,70 360,70 360,130 40,130" fill="none" stroke="#888" stroke-width="0.8" stroke-dasharray="3,2"/>
+          <polygon points="40,70 360,70 290,130 40,130" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1.4"/>
+          <polygon points="360,70 360,130 290,130" fill="#ef4444" opacity="0.2" stroke="#cc2c2c" stroke-width="1" stroke-dasharray="3,2"/>
+          <line x1="360" y1="70" x2="290" y2="130" stroke="#2c8c2c" stroke-width="2.6"/>
+          <text x="200" y="58" text-anchor="middle" fill="#666" font-size="10" data-i18n="fig_orig">もとの形（破線）</text>
+          <line x1="290" y1="150" x2="360" y2="150" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#hfA3)" marker-end="url(#hfA3)"/>
+          <text x="325" y="167" text-anchor="middle" fill="#9a4a10" font-weight="700" font-size="11" data-i18n="fig_cutlen">切る長さ</text>
+          <line x1="25" y1="70" x2="25" y2="130" stroke="#3a7fc0" stroke-width="1.2" marker-start="url(#hfB3)" marker-end="url(#hfB3)"/>
+          <text x="48" y="104" fill="#3a7fc0" font-weight="700" font-size="11" data-i18n="fig_height">高さ（幅）</text>
+          <rect x="40" y="176" width="10" height="10" fill="#ef4444" opacity="0.2" stroke="#cc2c2c" stroke-width="0.8" stroke-dasharray="2,2"/>
+          <text x="55" y="185" font-size="10" fill="#444" data-i18n="fig_cutoff">切り落とす部分</text>
+        </svg>
+        <figcaption data-i18n="h_slope_cap">横から見た図：勾配の変わり目で切る</figcaption>
       </figure>
-      <h4 data-i18n="h_oneside_h">片側モード</h4>
-      <p data-i18n="h_oneside_p">集水桝など、片側だけ構造物に接続する場合に使用。</p>
+      <div class="help-note" data-i18n="h_both_note"></div>
+      <p class="help-small" data-i18n="h_use_other"></p>
+      <button class="btn help-inline" id="replayOnboardBtn" data-i18n="set_onboard">はじめての案内をもう一度見る</button>
     </div>
 
     <div class="help-section" data-section="cutmethod">
       <h4 data-i18n="h_shoot_h">撮影のコツ</h4>
       <ul>
-        <li data-i18n="h_shoot_li1">横断方向は <b>真上から</b>、縦断方向は <b>真横から</b> 撮影すると正確</li>
-        <li data-i18n="h_shoot_li2">水糸や直線の構造物を画面に入れ、ガイド線と重ねる</li>
+        <li data-i18n="h_shoot_li1"></li>
+        <li data-i18n="h_shoot_li2"></li>
+        <li data-i18n="h_shoot_li3"></li>
       </ul>
 
       <h4 data-i18n="h_scribe_h">ケガキの注意</h4>
-      <div class="help-note" data-i18n="h_scribe_note">
-        ⚠️ ケガキ線は数mm〜1cm 余裕を持って描き、切断後に目地で微調整してください
-      </div>
+      <div class="help-note" data-i18n="h_scribe_note"></div>
 
-      <!-- 上から見た図（マーキング実例、切断長は動的） -->
       <figure>
-        <svg viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;font-size:11px">
-          <defs>
-            <marker id="amInline" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="#d67a2a"/>
-            </marker>
-            <marker id="axInline" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="#3a7fc0"/>
-            </marker>
-          </defs>
-          <text x="210" y="18" text-anchor="middle" font-weight="700" font-size="13" fill="#222">ケガキの実例（上から見た図）</text>
+        <svg class="helpFig" viewBox="0 0 420 196" xmlns="http://www.w3.org/2000/svg" role="img" data-i18n-aria="fig_mark_title" aria-label="">
+          <defs><marker id="amInline" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d67a2a"/></marker><marker id="axInline" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3a7fc0"/></marker></defs>
+          <text x="210" y="18" text-anchor="middle" font-weight="700" font-size="13" fill="#222" data-i18n="fig_mark_title">ケガキの実例（上から見た図）</text>
           <rect x="40" y="50" width="320" height="90" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1.6"/>
-          <rect x="40" y="66" width="320" height="58" fill="#444" opacity="0.45"/>
-          <rect x="40" y="50" width="320" height="90" fill="none" stroke="#1a1a1a" stroke-width="1.6"/>
+          <polygon points="360,50 360,140 280,140" fill="#ef4444" opacity="0.2"/>
           <line x1="360" y1="50" x2="280" y2="140" stroke="#2c8c2c" stroke-width="3"/>
           <circle cx="360" cy="50" r="3" fill="#2c8c2c"/>
           <circle cx="280" cy="140" r="3" fill="#2c8c2c"/>
-          <!-- 上端の余裕（下の「+数mm」と対応：始点側にも数mmのばす） -->
           <line x1="360" y1="50" x2="373" y2="35" stroke="#2c8c2c" stroke-width="3" stroke-dasharray="4,2"/>
-          <text x="378" y="33" data-i18n="extra_mm" fill="#cc2c2c" font-weight="700" font-size="11">＋ 数mm</text>
+          <text x="352" y="36" text-anchor="end" id="markExtraText" fill="#cc2c2c" font-weight="700" font-size="11">＋ 数mm</text>
           <line x1="360" y1="46" x2="360" y2="54" stroke="#d67a2a" stroke-width="1.4"/>
           <line x1="280" y1="136" x2="280" y2="144" stroke="#d67a2a" stroke-width="1.4"/>
-          <polygon points="360,50 360,140 280,140" fill="#ef4444" opacity="0.2"/>
-          <text x="335" y="115" fill="#cc2c2c" font-weight="700" font-size="11">切除</text>
-          <line x1="280" y1="160" x2="360" y2="160" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#amInline)" marker-end="url(#amInline)"/>
-          <rect x="240" y="167" width="140" height="18" fill="#fff7ed" stroke="#d67a2a" stroke-width="0.6" rx="3"/>
-          <text id="markingCutLenText" x="310" y="180" text-anchor="middle" fill="#cc2c2c" font-weight="700" font-size="12">— mm + 数mm</text>
+          <line x1="280" y1="158" x2="360" y2="158" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#amInline)" marker-end="url(#amInline)"/>
+          <rect x="190" y="166" width="220" height="20" fill="#fff7ed" stroke="#d67a2a" stroke-width="0.6" rx="3"/>
+          <text id="markingCutLenText" x="300" y="180" text-anchor="middle" fill="#cc2c2c" font-weight="700" font-size="12">—</text>
           <line x1="25" y1="50" x2="25" y2="140" stroke="#3a7fc0" stroke-width="1.2" marker-start="url(#axInline)" marker-end="url(#axInline)"/>
-          <text x="14" y="98" fill="#3a7fc0" font-weight="700">幅 W</text>
+          <text x="48" y="99" fill="#3a7fc0" font-weight="700" font-size="11" data-i18n="fig_width">幅</text>
         </svg>
-        <figcaption data-i18n="h_marking_cap">切断長 = アプリ算出値 ＋ 数mm余裕</figcaption>
+        <figcaption data-i18n="h_marking_cap">切る長さ ＝ アプリの値 ＋ 少し余裕</figcaption>
       </figure>
 
-      <!-- 側面ケガキの方法（インライン・切断長動的） -->
       <figure>
-        <svg viewBox="0 0 360 268" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;font-size:11px">
-          <defs>
-            <marker id="ssa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="#d67a2a"/>
-            </marker>
-          </defs>
-          <text x="180" y="14" text-anchor="middle" font-weight="700" font-size="12" fill="#222">側面のケガキ — 上面の印を真下に降ろす</text>
-
-          <!-- TOP VIEW (height matches side view) -->
-          <text x="20" y="36" font-size="9" fill="#666">上から見た図</text>
+        <svg class="helpFig" viewBox="0 0 360 262" xmlns="http://www.w3.org/2000/svg" role="img" data-i18n-aria="fig_side_title" aria-label="">
+          <defs><marker id="ssa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d67a2a"/></marker></defs>
+          <text x="180" y="14" text-anchor="middle" font-weight="700" font-size="12" fill="#222" data-i18n="fig_side_title">側面のケガキ：上面の印を真下に降ろす</text>
+          <text x="40" y="36" font-size="9.5" fill="#666" data-i18n="fig_top_view">上から見た図</text>
           <rect x="40" y="40" width="280" height="58" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1"/>
-          <rect x="40" y="53" width="280" height="32" fill="#3a3a3a" opacity="0.55"/>
-          <line x1="280" y1="40" x2="240" y2="98" stroke="#2c8c2c" stroke-width="2.2"/>
           <polygon points="280,40 320,40 320,98 240,98" fill="#cc2c2c" opacity="0.25"/>
+          <line x1="280" y1="40" x2="240" y2="98" stroke="#2c8c2c" stroke-width="2.2"/>
           <circle cx="280" cy="40" r="3" fill="#2c8c2c"/>
           <circle cx="240" cy="98" r="3" fill="#2c8c2c"/>
-
-          <!-- Drop arrows -->
-          <g stroke="#888" stroke-width="0.8" stroke-dasharray="3,2">
-            <line x1="280" y1="100" x2="280" y2="132"/>
-            <line x1="240" y1="100" x2="240" y2="132"/>
-          </g>
-          <text x="260" y="120" text-anchor="middle" font-size="9" fill="#888">↓ 90°で真下</text>
-
-          <!-- SIDE VIEW -->
-          <text x="20" y="148" font-size="9" fill="#666">側面から見た図</text>
+          <g stroke="#888" stroke-width="0.8" stroke-dasharray="3,2"><line x1="280" y1="100" x2="280" y2="132"/><line x1="240" y1="100" x2="240" y2="132"/></g>
+          <text x="232" y="120" text-anchor="end" font-size="9.5" fill="#777" data-i18n="fig_drop">↓ 直角に真下へ</text>
+          <text x="40" y="148" font-size="9.5" fill="#666" data-i18n="fig_side_view">横から見た図</text>
           <rect x="40" y="152" width="280" height="58" fill="#cdcdcd" stroke="#1a1a1a" stroke-width="1"/>
           <line x1="40" y1="152" x2="320" y2="152" stroke="#1a1a1a" stroke-width="1.5"/>
+          <rect x="240" y="152" width="80" height="58" fill="#cc2c2c" opacity="0.2"/>
           <line x1="280" y1="152" x2="280" y2="210" stroke="#2c8c2c" stroke-width="2.2"/>
           <line x1="240" y1="152" x2="240" y2="210" stroke="#2c8c2c" stroke-width="2.2"/>
-          <rect x="240" y="152" width="80" height="58" fill="#cc2c2c" opacity="0.2"/>
           <circle cx="280" cy="152" r="3" fill="#2c8c2c"/>
           <circle cx="240" cy="152" r="3" fill="#2c8c2c"/>
-          <!-- 90° markers -->
           <path d="M283,155 L283,162 L290,162" fill="none" stroke="#cc2c2c" stroke-width="0.8"/>
           <path d="M243,155 L243,162 L250,162" fill="none" stroke="#cc2c2c" stroke-width="0.8"/>
-
-          <!-- Cut length dimension between the 2 vertical scribes -->
-          <line x1="240" y1="226" x2="280" y2="226" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#ssa)" marker-end="url(#ssa)"/>
-          <rect x="174" y="234" width="172" height="18" fill="#fff7ed" stroke="#d67a2a" stroke-width="0.6" rx="3"/>
-          <text id="sideScribeCutLenText" x="260" y="247" text-anchor="middle" fill="#cc2c2c" font-weight="700" font-size="11.5">— mm + 数mm</text>
+          <line x1="240" y1="224" x2="280" y2="224" stroke="#d67a2a" stroke-width="1.2" marker-start="url(#ssa)" marker-end="url(#ssa)"/>
+          <rect x="92" y="232" width="256" height="20" fill="#fff7ed" stroke="#d67a2a" stroke-width="0.6" rx="3"/>
+          <text id="sideScribeCutLenText" x="220" y="246" text-anchor="middle" fill="#cc2c2c" font-weight="700" font-size="11.5">—</text>
         </svg>
       </figure>
 
-      <!-- 側面ケガキの注意 -->
-      <div class="help-note" data-i18n="h_side_note">
-        ⚠️ 側面へのケガキは、切断長を下図のように同じ寸法でおろせば、ほとんどの場合（後述）は大丈夫です。目地などで調整できるからです。<b>面を厳密に考慮する</b>場合は、各面で「<b>ケガキ補正値</b>」（面の横幅 × 比率）だけずらしてケガきます。<b>→ 下の「面がある場合の厳密なケガキ方法」を参照</b>
-      </div>
+      <div class="help-note" data-i18n="h_side_note"></div>
 
-      <!-- さしがね使用例 -->
       <figure>
-        <img src="images/sashigane.svg" data-i18n-alt="h_sashigane_cap" alt="さしがね（曲尺）等で90°に転写" />
-        <figcaption data-i18n="h_sashigane_cap" style="font-size:10px">さしがね（曲尺）を上面に当てて垂直方向にケガく（鉛直な面はこれでOK）</figcaption>
+        <svg class="helpFig" viewBox="0 0 360 164" xmlns="http://www.w3.org/2000/svg" role="img" data-i18n-aria="fig_sq_title" aria-label="">
+          <text x="180" y="16" text-anchor="middle" font-weight="700" font-size="12" fill="#222" data-i18n="fig_sq_title">さしがねで直角に写す</text>
+          <rect x="40" y="70" width="280" height="58" fill="#cdcdcd" stroke="#1a1a1a" stroke-width="1.2"/>
+          <line x1="40" y1="70" x2="320" y2="70" stroke="#1a1a1a" stroke-width="1.6"/>
+          <g fill="#d4a574" stroke="#7a5a3a" stroke-width="0.9"><rect x="160" y="62" width="160" height="8"/><rect x="232" y="70" width="8" height="58"/></g>
+          <g stroke="#5e4530" stroke-width="0.5"><line x1="170" y1="65" x2="170" y2="68"/><line x1="190" y1="65" x2="190" y2="68"/><line x1="210" y1="65" x2="210" y2="68"/><line x1="250" y1="65" x2="250" y2="68"/><line x1="270" y1="65" x2="270" y2="68"/><line x1="290" y1="65" x2="290" y2="68"/><line x1="310" y1="65" x2="310" y2="68"/></g>
+          <text x="196" y="56" text-anchor="middle" font-size="9.5" fill="#5e4530" font-weight="700" data-i18n="fig_sq_label">さしがね</text>
+          <circle cx="240" cy="70" r="3.2" fill="#2c8c2c"/>
+          <line x1="240" y1="70" x2="240" y2="128" stroke="#2c8c2c" stroke-width="2.4"/>
+          <path d="M232,76 L226,76 L226,82" fill="none" stroke="#cc2c2c" stroke-width="1"/>
+          <text x="222" y="92" text-anchor="end" fill="#cc2c2c" font-size="10" font-weight="700">90°</text>
+          <text x="180" y="152" text-anchor="middle" font-size="10.5" fill="#222" font-weight="700" data-i18n="fig_sq_note">上面の印にさしがねを当て、真下に線を引く</text>
+        </svg>
+        <figcaption data-i18n="h_sashigane_cap" style="font-size:10.5px"></figcaption>
       </figure>
 
       <h4 data-i18n="h_strict_h">面がある場合の厳密なケガキ方法</h4>
-      <!-- テーパー切替はメイン欄「厳密に角面を考慮してケガキ」内に統一 -->
       <figure>
         <svg id="figSecSvg" viewBox="0 0 360 312" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"></svg>
       </figure>
       <figure>
         <svg id="figBotSvg" viewBox="0 0 360 412" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;background:#fafafa;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"></svg>
-        <figcaption data-i18n="h_bottom_cap">赤がケガキ補正値、緑が切断線</figcaption>
+        <figcaption data-i18n="h_bottom_cap">赤がケガキ補正値、緑が切る線</figcaption>
       </figure>
       <h4 data-i18n="h_calc_h">ケガキ補正値の計算（自動）</h4>
       <table class="calc" id="figCalcTable"></table>
-      <div class="help-note" data-i18n="h_taper_note" style="background:#eef5fc; border-left-color:#3a7fc0; color:#15436e">
-        📐 斜め壁（テーパー）も「面」と同じ扱い。横への倒れ幅を面の横幅として入力してください（メイン欄の「テーパー」チェックで図も切替）。
+      <div class="help-note info" data-i18n="h_taper_note"></div>
+      <p class="help-small" data-i18n="h_practical"></p>
+    </div>
+
+    <div class="help-section" data-section="settings">
+      <h4 data-i18n="set_unit_h">長さの単位</h4>
+      <div class="optRow" role="group" data-i18n-aria="set_unit_h" aria-label="長さの単位">
+        <button type="button" class="optBtn" data-unit-opt="mm" aria-pressed="true">mm</button>
+        <button type="button" class="optBtn" data-unit-opt="in" aria-pressed="false" data-i18n="unit_in">インチ</button>
       </div>
-      <p data-i18n="h_practical" style="font-size:11px; color:#666; margin-top:8px">※ 実用上は、数mm〜1cmの余裕と切断後の目地での微調整で吸収できるため、垂直に降ろすだけでも問題ありません。</p>
-      <div class="help-note" data-i18n="h_both_note">
-        ⚠️ <b>＜後述＞水平・垂直の両方に曲がる場合</b>：コーナー（水平方向の振れ）と勾配（縦方向の振れ）が<b>同時に起きる</b>箇所もあります。その場合は1方向だけでは合いません。<b>水平の角度は「両側モード」</b>、<b>縦の勾配は「片側モード」</b>で別々に測り、両方のケガキ線を合わせて切ってください。
+      <h4 data-i18n="set_frac_h">インチの細かさ</h4>
+      <p class="help-small" data-i18n="set_frac_p"></p>
+      <div class="optRow" role="group" data-i18n-aria="set_frac_h" aria-label="インチの細かさ">
+        <button type="button" class="optBtn" data-frac-opt="8" aria-pressed="false">1/8</button>
+        <button type="button" class="optBtn" data-frac-opt="16" aria-pressed="true">1/16</button>
+        <button type="button" class="optBtn" data-frac-opt="32" aria-pressed="false">1/32</button>
+      </div>
+      <div class="theme-picker">
+        <div class="theme-title" data-i18n="theme_label">配色</div>
+        <div class="theme-desc" data-i18n="theme_desc">お好みの配色を選べます。選んだ色は次回も保持されます。</div>
+        <div class="theme-grid" id="themeGrid"></div>
       </div>
     </div>
 
@@ -1893,7 +1980,7 @@
         <h4 data-i18n="about_ads_h">広告の非表示</h4>
         <p id="proOwned" style="display:none" class="about-owned" data-i18n="about_ads_owned">✓ 購入済みです。広告は表示されません。</p>
         <div id="proOffer">
-          <p data-i18n="about_ads_p">広告を非表示にする買い切りのオプションです。一度購入すれば、同じ Google アカウントなら機種変更や再インストール後も引き継げます。</p>
+          <p data-i18n="about_ads_p">広告を非表示にする買い切りのオプションです。</p>
           <p class="about-row"><button class="btn" id="removeAdsBtn" data-i18n="remove_ads">広告を消す</button></p>
           <p class="about-row"><a class="about-link" id="restoreBtn" href="#" data-i18n="about_restore">購入を復元</a></p>
           <p class="about-hint" data-i18n="about_restore_hint">※ 以前に購入された方は「購入を復元」をお試しください。</p>
@@ -1902,18 +1989,33 @@
       </div>
 
       <h4 data-i18n="about_contact_h">不具合のご報告・ご要望</h4>
-      <p data-i18n="about_contact_p">不具合や「こんな機能が欲しい」といったご要望をお寄せください。現場で実際に使われている方の声をもとに改善しています。</p>
+      <p data-i18n="about_contact_p">機能のご要望・不具合のご報告は、下記までご連絡ください。</p>
       <p class="about-row"><a id="aboutMail" class="about-link" href="#">contact@hactools.dev</a></p>
       <p class="about-hint" data-i18n="about_contact_hint">※ ご報告の際は、上のバージョンと、お使いの端末名を添えていただけると助かります。</p>
 
       <h4 data-i18n="about_dev_h">開発元</h4>
       <p class="about-row"><b>HacTools</b></p>
-      <p data-i18n="about_dev_p">現場向けのアプリ・業務効率化ツールを開発しています。他のアプリやツールはウェブサイトをご覧ください。</p>
+      <p data-i18n="about_dev_p">使いやすい道具アプリを作っています。</p>
       <p class="about-row"><a class="about-link" href="https://hactools.dev" target="_blank" rel="noopener noreferrer">hactools.dev</a></p>
       <p class="about-row"><a class="about-link" href="https://hactools.dev/cutcalc/privacy" target="_blank" rel="noopener noreferrer" data-i18n="about_privacy">プライバシーポリシー</a></p>
     </div>
 
     <button class="btn help-back" id="helpBackBtn" data-i18n="help_back">← メイン画面に戻る</button>
+  </div>
+</div>
+
+<!-- はじめての案内（初回だけ・3枚） -->
+<div id="onboard" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="obTitle">
+  <div class="modal-panel ob-panel">
+    <div class="ob-art" id="obArt" aria-hidden="true"></div>
+    <p class="ob-step" id="obStepNum">1 / 3</p>
+    <h3 class="ob-title" id="obTitle"></h3>
+    <p class="ob-text" id="obText"></p>
+    <div class="ob-dots" aria-hidden="true"><span class="on"></span><span></span><span></span></div>
+    <div class="ob-nav">
+      <button type="button" class="btn ob-skip" id="obSkip" data-i18n="ob_skip">スキップ</button>
+      <button type="button" class="btn primary" id="obNext" data-i18n="ob_next">次へ</button>
+    </div>
   </div>
 </div>
 
