@@ -3,89 +3,107 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>側溝カットガイド</title>
+  <title>角度カットガイド</title>
   <style>
     :root { --bg1:#172554; --bg2:#1e3a8a; --panel:rgba(255,255,255,.10); --txt:#fff; --accent:#fcd34d; --rightLine:#ffcc33 }
     *{ box-sizing:border-box }
-    body{ margin:0; padding:12px; min-height:100vh; color:var(--txt); background:linear-gradient(135deg,var(--bg1),var(--bg2)); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif }
-    .container{ position:relative; max-width:460px; margin:0 auto; background:var(--panel); backdrop-filter:blur(10px); border-radius:16px; padding:12px; box-shadow:0 10px 24px rgba(0,0,0,.2) }
-    .appHeader{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; column-gap:6px }
-    h1{ font-size:16px; margin:0; text-align:center; white-space:nowrap }
-    .subtitle{ text-align:center; font-size:11px; opacity:.75; letter-spacing:.06em; margin:0 0 6px }
-    .langWrap{ justify-self:start; display:inline-flex; align-items:center; gap:2px }
-    .langWrap .globeIco{ width:14px; height:14px; flex:none; color:var(--accent) }
-    .langSel{ font-size:10px; padding:0 1px; border:none; background:transparent; color:var(--txt); cursor:pointer; max-width:88px; -webkit-appearance:none; appearance:none; text-align:left }
-    .help-btn{ justify-self:end; display:inline-flex; align-items:center; gap:3px; padding:2px 9px; border-radius:12px; border:1.5px solid var(--accent); background:rgba(255,255,255,.10); color:#fff; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap; transition:background .15s }
-    .help-btn:hover{ background:rgba(255,255,255,.24) }
-    .help-btn .qmk{ color:var(--accent); font-weight:800; font-size:13px; line-height:1 }
-    .disclosure{ appearance:none; border:none; background:none; color:#fff; cursor:pointer; font-size:13px; font-weight:700; padding:2px 0; text-align:left; width:100%; opacity:.92 }
-    .panel{ background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25); border-radius:14px; padding:10px; margin-top:12px }
-    #angleGuide{ width:100%; aspect-ratio:4/3; background:rgba(0,0,0,.15); border-radius:12px; display:block; max-height:260px; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
-    #angleGuide.dragging{ cursor:grabbing; }
-    .canvasBlock{ margin-bottom:16px }
-    .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap}
-    .muted{ opacity:.85; font-size:12px }
-    input[type="range"]{ flex:1; min-width:140px; height:32px; background:transparent; -webkit-appearance:none }
-    input[type="range"]::-webkit-slider-runnable-track{ height:6px; background:#fff; border-radius:7px }
-    input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--accent); margin-top:-6px }
-    input[type="range"]::-moz-range-track{ height:6px; background:#fff; border-radius:7px }
-    input[type="range"]::-moz-range-thumb{ width:18px; height:18px; border:none; border-radius:50%; background:var(--accent) }
-    .disabledWrap{ opacity:.55 }
-    .disabledWrap input[type="range"]{ pointer-events:none; filter:grayscale(100%) }
-    .numfield{ width:90px; padding:6px; border-radius:8px; border:1px solid rgba(255,255,255,.35); background:#fff; color:#111; font-size:12px }
-    .btn{ appearance:none; border:none; border-radius:10px; padding:8px 10px; font-weight:700; cursor:pointer; background:#fff; color:#333; box-shadow:0 1px 6px rgba(0,0,0,.15); font-size:11px }
-    .primary{ background:var(--accent); color:#fff }
-    .btn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none }
-    .btn:focus-visible, label.btn:focus-within{ outline:2px solid var(--accent); outline-offset:2px }
-    .vh{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap }
-    .grid-1{ display:flex; gap:8px; flex-wrap:nowrap; align-items:stretch }
-    .grid-1 .btn{ flex:1; min-width:0; white-space:normal; line-height:1.15; text-align:center; word-break:break-word; font-size:10px; padding:9px 5px; display:flex; align-items:center; justify-content:center }
-    .status{ margin-top:8px; padding:6px; border-radius:8px; text-align:center; font-size:11px; background:rgba(255,255,255,.15) }
-    .error{ background:rgba(255,87,87,.85); color:#fff }
-    .toggle{ display:inline-flex; align-items:center; gap:8px }
-    .toggle input{ appearance:none; width:46px; height:26px; border-radius:999px; background:#bbb; position:relative; outline:none; cursor:pointer; transition:.2s; margin:0 6px }
-    .toggle input:checked{ background:var(--accent) }
-    .toggle input::after{ content:""; position:absolute; top:4px; left:4px; width:18px; height:18px; border-radius:50%; background:#fff; transition:.2s }
-    .toggle input:checked::after{ transform:translateX(20px) }
-    .pill-sm{ display:inline-flex; align-items:center; gap:6px; background:#fff; color:#111; border-radius:999px; padding:4px 8px; font-weight:700; font-size:12px; box-shadow:0 1px 6px rgba(0,0,0,.15); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    html{ -webkit-text-size-adjust:100% }
+    body{ margin:0; padding:10px 10px calc(86px + env(safe-area-inset-bottom)); min-height:100vh; color:var(--txt); background:linear-gradient(135deg,var(--bg1),var(--bg2)) fixed; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif }
+    .container{ position:relative; max-width:460px; margin:0 auto; display:flex; flex-direction:column; gap:10px }
     canvas, span, input, button { font-variant-numeric: tabular-nums; }
-    .pill-sm .num { display:inline-block; width:4ch; text-align:right; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
-    .pill-sm .unit { display:inline-block; }
-    .row-nowrap {
-       display: flex;
-       flex-wrap: wrap;           /* 入らない時は折返し（スマホ縦対応） */
-       align-items: center;
-       justify-content: space-between;   /* 幅/高さを左・角度を右へ振り分け、間隔を最大化 */
-       gap: 6px 10px;
-       font-size: 11px;
-       width: 100%;
-    }
-    .row-nowrap .field {        /* ラベル＋入力を1組として扱い、組ごとに折返す */
-       display: inline-flex;
-       align-items: center;
-       gap: 5px;
-       white-space: nowrap;
-    }
-    .row-nowrap .numfield {
-       flex-shrink: 0;
-       width: 54px;              /* 54px: en/vi/pt/fil の placeholder(例 "e.g. 90")が切れない幅。6言語とも1行維持を確認済 */
-       font-size: 13px;
-    }
-    /* ケガキ補正値（厳密時）の面入力行 */
-    .faceRow{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; font-size:13px; margin-bottom:6px }
+    /* ヘッダー */
+    .appHeader{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; column-gap:6px; padding:0 2px }
+    h1{ font-size:17px; margin:0; text-align:center; white-space:nowrap; letter-spacing:.02em }
+    .langWrap{ justify-self:start; display:inline-flex; align-items:center; gap:3px; min-height:36px }
+    .langWrap .globeIco{ width:15px; height:15px; flex:none; color:var(--accent) }
+    .langSel{ font-size:11px; padding:2px 1px; border:none; background:transparent; color:var(--txt); cursor:pointer; max-width:92px; -webkit-appearance:none; appearance:none; text-align:left }
+    .langSel option{ color:#111 }
+    .help-btn{ justify-self:end; display:inline-flex; align-items:center; gap:4px; min-height:36px; padding:3px 12px; border-radius:18px; border:1.5px solid var(--accent); background:rgba(255,255,255,.10); color:var(--txt); cursor:pointer; font-size:12.5px; font-weight:700; white-space:nowrap }
+    .help-btn .qmk{ color:var(--accent); font-weight:800; font-size:14px; line-height:1 }
+    /* カード */
+    .card{ background:var(--panel); border:1px solid rgba(255,255,255,.16); border-radius:14px; padding:10px }
+    .viewCard{ padding:6px }
+    #angleGuide{ width:100%; aspect-ratio:4/3; max-height:62vh; background:rgba(0,0,0,.22); border-radius:10px; display:block; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none }
+    #angleGuide.dragging{ cursor:grabbing }
+    .hint{ margin:6px 4px 2px; font-size:12px; line-height:1.45; opacity:.85 }
+    /* 結果 */
+    .resultCard{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:8px 12px; padding:12px 14px }
+    .resMain{ min-width:0 }
+    .resLabel{ display:block; font-size:12px; opacity:.85; margin-bottom:3px }
+    .resValue{ display:flex; align-items:baseline; gap:5px; flex-wrap:nowrap; white-space:nowrap }
+    .resValue b{ font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:44px; line-height:1; font-weight:700; color:var(--accent); letter-spacing:-.01em }
+    .resValue small{ font-size:15px; font-weight:700 }
+    .resultCard.inch .resValue b{ font-size:36px }
+    .resMm{ display:block; font-size:12.5px; opacity:.85; margin-top:4px; min-height:1em }
+    .resMm.need{ opacity:1; color:var(--accent); font-weight:700 }
+    .resSub{ margin:0 0 0 auto; display:grid; gap:4px; flex:none }
+    .resSub div{ display:flex; gap:8px; justify-content:flex-end; align-items:baseline }
+    .resSub dt{ font-size:11.5px; opacity:.85; white-space:nowrap }
+    .resSub dd{ margin:0; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:14px; font-weight:700; min-width:5.2em; text-align:right; white-space:nowrap }
+    /* 切り方・断面の選択 */
+    .seg{ display:grid; grid-template-columns:1fr 1fr; background:rgba(0,0,0,.22); border-radius:11px; padding:3px; gap:3px }
+    .segBtn{ appearance:none; border:0; background:transparent; color:var(--txt); opacity:.8; display:flex; align-items:center; justify-content:center; gap:6px; min-height:46px; padding:4px 6px; border-radius:9px; font:inherit; font-size:12.5px; font-weight:700; line-height:1.2; cursor:pointer; text-align:left }
+    .segBtn svg{ width:26px; height:18px; flex:none }
+    .segBtn[aria-pressed="true"]{ opacity:1; background:rgba(255,255,255,.16); box-shadow:inset 0 0 0 1.5px var(--accent) }
+    .seg.small .segBtn{ min-height:40px; font-size:12px; text-align:center }
+    /* スライダー */
+    .sliderRow{ display:flex; align-items:center; gap:10px; margin-top:10px }
+    .sliderRow .sWrap{ flex:1; display:flex; min-width:0 }
+    input[type="range"]{ flex:1; min-width:0; height:36px; background:transparent; -webkit-appearance:none; appearance:none }
+    input[type="range"]::-webkit-slider-runnable-track{ height:6px; background:#fff; border-radius:7px }
+    input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; width:22px; height:22px; border-radius:50%; background:var(--accent); margin-top:-8px; box-shadow:0 0 0 2px rgba(0,0,0,.25) }
+    input[type="range"]::-moz-range-track{ height:6px; background:#fff; border-radius:7px }
+    input[type="range"]::-moz-range-thumb{ width:22px; height:22px; border:none; border-radius:50%; background:var(--accent) }
+    .disabledWrap{ opacity:.45 }
+    .disabledWrap input[type="range"]{ pointer-events:none; filter:grayscale(100%) }
+    .iconBtn{ appearance:none; border:0; background:#fff; color:#1f2937; border-radius:10px; min-width:44px; min-height:42px; padding:0 10px; font-size:18px; font-weight:700; line-height:1; cursor:pointer; box-shadow:0 1px 5px rgba(0,0,0,.18) }
+    .iconBtn.on{ background:#d9f99d }
+    /* 入力 */
+    .fieldRow{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 10px; margin-top:10px }
+    .fld{ display:flex; align-items:center; gap:6px }
+    .fldLabel{ font-size:13px; font-weight:700; white-space:nowrap }
+    .numfield{ width:92px; min-height:42px; padding:6px 8px; border-radius:9px; border:1px solid rgba(0,0,0,.2); background:#fff; color:#111; font-size:17px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
+    .numfield::placeholder{ color:#98a2b3; font-size:13px; font-family:-apple-system,"Noto Sans JP",sans-serif }
+    .angleField{ width:74px; text-align:center }
+    .degSign{ font-size:15px; font-weight:700; margin-left:-2px }
+    .unitSeg{ display:inline-grid; grid-auto-flow:column; background:rgba(0,0,0,.22); border-radius:10px; padding:2px; gap:2px }
+    .unitSeg button{ appearance:none; border:0; background:transparent; color:var(--txt); opacity:.8; min-width:42px; min-height:38px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer }
+    .unitSeg button[aria-pressed="true"]{ opacity:1; background:var(--accent); color:#172554 }
+    .status{ margin-top:10px; padding:7px; border-radius:9px; text-align:center; font-size:12.5px; background:rgba(255,255,255,.15) }
+    .error{ background:rgba(220,53,53,.92); color:#fff }
+    /* 下の操作バー */
+    .actionBar{ position:fixed; left:0; right:0; bottom:0; z-index:50; padding:6px 8px calc(6px + env(safe-area-inset-bottom)); background:rgba(8,12,24,.88); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border-top:1px solid rgba(255,255,255,.12) }
+    .actionInner{ max-width:460px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); gap:6px }
+    .actBtn{ appearance:none; border:0; background:transparent; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:58px; border-radius:12px; font:inherit; font-size:11.5px; font-weight:700; line-height:1.1; text-align:center; padding:4px 2px; cursor:pointer; position:relative }
+    .actBtn svg{ width:25px; height:25px; flex:none }
+    .actBtn:active{ background:rgba(255,255,255,.12) }
+    .actBtn:disabled{ opacity:.38; cursor:not-allowed }
+    .actBtn.on{ color:var(--accent) }
+    /* 面取り・底面 */
+    .disclosure{ appearance:none; border:none; background:none; color:var(--txt); cursor:pointer; font-size:14px; font-weight:700; padding:6px 2px; text-align:left; width:100%; min-height:42px }
+    .disclosure .tri{ color:var(--accent); font-size:18px; font-weight:900; vertical-align:-2px; margin-right:4px; display:inline-block }
+    #offsetBody .seg{ margin:4px 0 8px }
+    .faceRow{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; font-size:13px; margin-bottom:8px }
     .faceRow .field{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap }
-    .faceRow .numfield{ width:56px; font-size:14px }
+    .faceRow .numfield{ width:84px; font-size:16px }
     .faceRow .offWrap{ white-space:nowrap; font-size:14px }
-    .faceRow .offOut{ font-size:15px }
+    .faceRow .offOut{ font-size:16px }
     .faceRow .offFrom{ display:block; font-size:12px; opacity:.85; white-space:nowrap; text-align:right; line-height:1.3 }
-    .rectOpts label{ display:inline-flex; align-items:center; gap:4px; font-size:12px; margin:2px 12px 2px 0; cursor:pointer }
-    .rectOpts .rectChk{ font-weight:700; color:inherit }
-    #rectSub{ padding:6px 0 2px; font-size:12px; line-height:1.9 }
+    .rectOpts label{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; margin:2px 14px 2px 0; min-height:34px; cursor:pointer }
+    #rectSub{ padding:0 0 4px; font-size:12.5px }
     .secMini{ margin:8px 0 0; text-align:center }
-    .secMini svg{ max-width:190px; height:auto; border:1px solid #e6e6f0; border-radius:6px; background:#fafafa; font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; cursor:pointer; touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none }
-    .secCap{ font-size:12.5px; color:#ffd24a; font-weight:700; margin-top:5px }
-    .faceW::placeholder{ color:#c7ccd6; opacity:1 }
-    .disclosure .tri{ color:#ffd24a; font-size:19px; font-weight:900; vertical-align:-2px; margin-right:3px; display:inline-block }
+    .secMini svg{ max-width:200px; height:auto; border:1px solid #e6e6f0; border-radius:6px; background:#fafafa; font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; cursor:pointer; touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none }
+    .secCap{ font-size:12.5px; color:var(--accent); font-weight:700; margin-top:5px }
+    .vh{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap }
+    .btn{ appearance:none; border:none; border-radius:10px; padding:8px 12px; font-weight:700; cursor:pointer; background:#fff; color:#333; box-shadow:0 1px 6px rgba(0,0,0,.15); font-size:13px; min-height:40px }
+    .primary{ background:var(--accent); color:#172554 }
+    .btn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none }
+    .btn:focus-visible, .iconBtn:focus-visible, .segBtn:focus-visible, .unitSeg button:focus-visible, .disclosure:focus-visible, .help-btn:focus-visible, .actBtn:focus-visible, label.actBtn:focus-within{ outline:2px solid var(--accent); outline-offset:2px }
+    /* 明るい配色 */
+    .light-theme .card{ border-color:rgba(0,0,0,.10) }
+    .light-theme .seg, .light-theme .unitSeg{ background:rgba(0,0,0,.08) }
+    .light-theme .segBtn[aria-pressed="true"]{ background:rgba(255,255,255,.75) }
+    .light-theme .unitSeg button[aria-pressed="true"]{ color:#fff }
     /* 計測ログ モーダル */
     .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:100; padding:14px; }
     .modal-overlay.show{ display:flex; }
@@ -113,13 +131,6 @@
     .theme-sw{ width:44px; height:32px; border-radius:8px; border:2px solid #ddd; cursor:pointer; position:relative; padding:0; }
     .theme-sw.on{ border-color:#333; box-shadow:0 0 0 2px rgba(0,0,0,.18); }
     .theme-sw .tdot{ position:absolute; right:3px; bottom:3px; width:11px; height:11px; border-radius:50%; border:1px solid rgba(255,255,255,.85); }
-    .light-theme .panel{ border-color:rgba(0,0,0,.10) }
-    .light-theme .subtitle{ opacity:.6 }
-    .light-theme .muted{ color:var(--txt); opacity:.8 }
-    .light-theme .help-btn{ color:var(--txt) }
-    .light-theme .disclosure{ color:var(--txt) }
-    .light-theme .toggle input{ background:#cbd5e1 }
-    .light-theme .canvasBlock .muted b{ color:var(--txt) }
     /* ヘルプモーダル */
     .help-tabs{ display:flex; gap:4px; margin-bottom:10px; border-bottom:1px solid #ddd; }
     .help-tab{ flex:1; padding:6px 4px; background:none; border:none; cursor:pointer; font-size:12px; font-weight:600; color:#555; border-bottom:2px solid transparent; }
@@ -152,112 +163,163 @@
     table.calc th, table.calc td{ border:1px solid #d7dde3; padding:4px 6px; text-align:center; color:#222; }
     table.calc th{ background:#eef2f6; font-weight:700; }
     table.calc td.f{ font-family:ui-monospace,Consolas,monospace; }
+  
   </style>
 </head>
 <body>
 <div class="container">
-  <div class="appHeader">
+  <header class="appHeader">
     <div class="langWrap">
       <svg class="globeIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18"/></svg>
       <select id="langSel" aria-label="Language" class="langSel">
         <option value="ja">日本語</option><option value="en">English</option><option value="vi">Tiếng Việt</option><option value="zh">中文</option><option value="pt">Português</option><option value="fil">Filipino</option>
       </select>
     </div>
-    <h1>側溝カットガイド</h1>
+    <h1 data-i18n="app_name">角度カットガイド</h1>
     <button class="help-btn" id="helpUseBtn" data-i18n-title="tip_help" data-i18n-aria="tip_help" title="使い方を表示" aria-label="使い方を表示"><span data-i18n="help_label">ヘルプ</span><span class="qmk">?</span></button>
-  </div>
-  <div class="subtitle" data-i18n="subtitle">角度カット計算ツール</div>
-  <div class="panel canvasBlock">
-    <div class="muted" data-i18n="intro" style="margin-bottom:6px; font-size:12px; line-height:1.5">
-      カメラ起動 → ガイド線を基準物（水糸・構造物等）に合わせ、角度・切断長を読取り。
-    </div>
-    <canvas id="angleGuide"></canvas>
-    <!--<div class="muted" style="text-align:center; margin-top:6px">スライダーでガイド角度を調整</div>-->
-  </div>
-  <div class="panel">
-    <div class="row" style="justify-content:space-between; gap:12px">
-      <label class="toggle" data-i18n-title="tip_mode" title="片側=桝など1本のみカット">
-        <span class="muted" data-i18n="mode_dual">両側</span>
-        <input type="checkbox" id="modeToggle" data-i18n-aria="mode_single" aria-label="片側" />
-        <span class="muted" data-i18n="mode_single">片側</span>
-      </label>
-      <span class="pill-sm"><span data-i18n="cutlen">切断長:</span> <span id="inlineCutLenNum" class="num">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="unit"> mm</span></span>
-    </div>
-    <!-- スライダー（左右バー＋中央に左右反転ボタン） -->
-    <div class="row" style="margin-top:12px; gap:10px; flex-wrap:nowrap">
-      <div id="leftWrap" style="flex:1; display:flex; min-width:0">
-        <input type="range" id="leftSlider" min="0" max="100" step="any" value="25" data-i18n-aria="aria_left" aria-label="左バー" style="flex:1; min-width:0" />
-      </div>
-      <button class="btn" id="flipBtn" data-i18n-title="tip_flip" title="左右反転" data-i18n-aria="tip_flip" aria-label="左右反転" style="padding:5px 10px; font-size:14px; flex:none">⇄</button>
-      <div id="rightWrap" style="flex:1; display:flex; min-width:0">
-        <input type="range" id="rightSlider" min="0" max="100" step="any" value="75" data-i18n-aria="aria_right" aria-label="右バー" style="flex:1; min-width:0" />
-      </div>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="row" style="flex-direction:column; align-items:flex-start; gap:8px">
-      <div class="row-nowrap">
-        <span class="field"><span data-i18n="wh">幅/高さ(mm):</span> <input id="productWidth" class="numfield" type="text" inputmode="numeric" maxlength="5" value="520" /></span>
-        <span class="field"><span data-i18n="angle">角度(°):</span> <input id="manualAngle" class="numfield" type="text" inputmode="decimal" maxlength="5" data-i18n-ph="ph_angle" placeholder="例90" /></span>
-      </div>
-    </div>
+  </header>
 
-    <div id="statusMsg" class="status" style="display:none"></div>
-  </div>
-  <div class="panel">
-    <div class="grid-1">
-      <button class="btn" id="cameraToggleBtn">カメラ起動</button>
-      <button class="btn" id="captureBtn" data-i18n-title="tip_freeze" title="カメラ映像を止めて合わせやすくする（もう一度でライブに戻る）" disabled>静止</button>
-      <label class="btn" style="text-align:center; cursor:pointer"><span data-i18n="btn_image">画像読込</span><input id="imageInput" class="vh" type="file" accept="image/*" /></label>
-      <button class="btn" id="logBtn" data-i18n="btn_log">記録</button>
+  <section class="card viewCard">
+    <canvas id="angleGuide" role="img" data-i18n-aria="aria_guide" aria-label="ガイド線の図"></canvas>
+    <p class="hint" data-i18n="intro">線をドラッグして材料の縁に合わせると、切る長さが出ます。</p>
+  </section>
+
+  <section class="card resultCard" aria-live="polite">
+    <div class="resMain">
+      <span class="resLabel" data-i18n="res_cut">切る長さ</span>
+      <span class="resValue"><b id="resCut">—</b><small id="resUnit">mm</small></span>
+      <span class="resMm" id="resCutMm"></span>
     </div>
-    <!-- 購入導線は ヘルプ＞アプリ情報 タブへ移設（現場の作業ボタン群の直下に購買導線を常駐させない・誤タップ防止） -->
-    <video id="video" playsinline style="display:none"></video>
-    <canvas id="photoCanvas" style="display:none"></canvas>
-  </div>
-  <div class="panel">
-    <button class="disclosure" id="offsetToggle" aria-expanded="false"><span class="tri">▸</span> 厳密に角面を考慮してケガキ</button>
-    <div id="offsetBody" style="display:none; margin-top:8px">
+    <dl class="resSub">
+      <div><dt id="resAngLabel">開き角</dt><dd id="resAng">—</dd></div>
+      <div><dt data-i18n="res_saw">のこの角度</dt><dd id="resSaw">—</dd></div>
+      <div><dt data-i18n="res_slope">さしがね</dt><dd id="resSlope">—</dd></div>
+    </dl>
+  </section>
+
+  <section class="card">
+    <div class="seg" role="group" data-i18n-aria="aria_mode" aria-label="切り方">
+      <button type="button" class="segBtn" id="modeDualBtn" aria-pressed="true"><svg viewBox="0 0 26 18" aria-hidden="true"><path d="M2 15 L13 4 L24 15" fill="none" stroke="currentColor" stroke-width="3"/></svg><span data-i18n="mode_dual">2本をつなぐ</span></button>
+      <button type="button" class="segBtn" id="modeSingleBtn" aria-pressed="false"><svg viewBox="0 0 26 18" aria-hidden="true"><path d="M21 1 V17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2 2"/><path d="M3 15 L19 5" fill="none" stroke="currentColor" stroke-width="3"/></svg><span data-i18n="mode_single">1本を線に当てる</span></button>
+    </div>
+    <input type="checkbox" id="modeToggle" class="vh" tabindex="-1" aria-hidden="true" />
+    <div class="sliderRow">
+      <div id="leftWrap" class="sWrap"><input type="range" id="leftSlider" min="0" max="100" step="any" value="25" data-i18n-aria="aria_left" aria-label="左の線" /></div>
+      <button type="button" class="iconBtn" id="flipBtn" data-i18n-title="tip_flip" title="左右反転" data-i18n-aria="tip_flip" aria-label="左右反転">⇄</button>
+      <div id="rightWrap" class="sWrap"><input type="range" id="rightSlider" min="0" max="100" step="any" value="75" data-i18n-aria="aria_right" aria-label="右の線" /></div>
+    </div>
+    <div class="fieldRow">
+      <label class="fldLabel" for="productWidth" data-i18n="wh">材料の幅</label>
+      <div class="fld">
+        <input id="productWidth" class="numfield" type="text" inputmode="decimal" maxlength="9" autocomplete="off" placeholder="例 300" />
+        <div class="unitSeg" role="group" data-i18n-aria="aria_unit" aria-label="長さの単位">
+          <button type="button" id="unitMmBtn" aria-pressed="true">mm</button><button type="button" id="unitInBtn" aria-pressed="false">in</button>
+        </div>
+      </div>
+    </div>
+    <div class="fieldRow">
+      <label class="fldLabel" for="manualAngle" id="angleLabel">開き角</label>
+      <div class="fld">
+        <button type="button" class="iconBtn" id="angleMinus" data-i18n-aria="aria_minus" aria-label="0.5度小さく">−</button>
+        <input id="manualAngle" class="numfield angleField" type="text" inputmode="decimal" maxlength="5" autocomplete="off" data-i18n-ph="ph_angle" placeholder="例 90" /><span class="degSign">°</span>
+        <button type="button" class="iconBtn" id="anglePlus" data-i18n-aria="aria_plus" aria-label="0.5度大きく">＋</button>
+      </div>
+    </div>
+    <div id="statusMsg" class="status" style="display:none" role="status"></div>
+  </section>
+
+  <section class="card">
+    <button class="disclosure" id="offsetToggle" aria-expanded="false" aria-controls="offsetBody"><span class="tri">▸</span> 面取り・底面のずれも出す</button>
+    <div id="offsetBody" style="display:none">
+      <div class="seg small" role="group" data-i18n-aria="shape_label" aria-label="断面の形">
+        <button type="button" class="segBtn" id="shapeRectBtn" aria-pressed="true"><span data-i18n="shape_rect">四角（角材・ブロック等）</span></button>
+        <button type="button" class="segBtn" id="shapeUBtn" aria-pressed="false"><span data-i18n="shape_u">U字（側溝など）</span></button>
+      </div>
+      <input type="checkbox" id="rectMode" class="vh" tabindex="-1" aria-hidden="true" checked />
+      <div id="rectSub" class="rectOpts">
+        <span data-i18n="rect_pos">面取り位置:</span>
+        <label><input type="radio" name="rectPos" value="top" checked> <span data-i18n="rect_top">上のみ</span></label>
+        <label><input type="radio" name="rectPos" value="bottom"> <span data-i18n="rect_bottom">下のみ</span></label>
+        <label><input type="radio" name="rectPos" value="both"> <span data-i18n="rect_both">上下</span></label>
+      </div>
       <div id="faceRows">
         <div class="faceRow">
-          <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="decimal" maxlength="6" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
-          <span class="offWrap"><span data-i18n="arrow_offset">→ ケガキ補正値</span> <b class="offOut">—</b> mm<span class="offFrom"></span></span>
+          <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="decimal" maxlength="9" autocomplete="off" placeholder="例 20" /> <span class="lenUnit">mm</span></span>
+          <span class="offWrap"><span data-i18n="arrow_offset">→ ケガキ補正値</span> <b class="offOut">—</b> <span class="lenUnit">mm</span><span class="offFrom"></span></span>
         </div>
         <div class="faceRow">
-          <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="decimal" maxlength="6" data-i18n-ph="ph_face" placeholder="例20" /> mm</span>
-          <span class="offWrap"><span data-i18n="arrow_offset">→ ケガキ補正値</span> <b class="offOut">—</b> mm<span class="offFrom"></span></span>
+          <span class="field"><span data-i18n="face_w">面の横幅:</span> <input class="numfield faceW" type="text" inputmode="decimal" maxlength="9" autocomplete="off" placeholder="例 20" /> <span class="lenUnit">mm</span></span>
+          <span class="offWrap"><span data-i18n="arrow_offset">→ ケガキ補正値</span> <b class="offOut">—</b> <span class="lenUnit">mm</span><span class="offFrom"></span></span>
         </div>
       </div>
-      <div class="rectOpts" style="margin-top:10px">
-        <label class="rectChk"><input type="checkbox" id="rectMode"> <span data-i18n="rect_mode">断面は四角形（角材・ブロック・面木等）</span></label>
-        <div id="rectSub" style="display:none">
-          <span data-i18n="rect_pos">面取り位置:</span>
-          <label><input type="radio" name="rectPos" value="top" checked> <span data-i18n="rect_top">上のみ</span></label>
-          <label><input type="radio" name="rectPos" value="bottom"> <span data-i18n="rect_bottom">下のみ</span></label>
-          <label><input type="radio" name="rectPos" value="both"> <span data-i18n="rect_both">上下</span></label>
-        </div>
+      <div class="rectOpts">
         <label><input type="checkbox" id="offTaper"> <span data-i18n="rect_taper">テーパー（斜め壁）</span></label>
-        <figure class="secMini"><svg id="figSecSvgMain" viewBox="0 0 360 312" xmlns="http://www.w3.org/2000/svg"></svg>
-          <figcaption class="secCap" data-i18n="offset_note">タップで切断方法へ（参考用イメージ図）</figcaption>
-        </figure>
       </div>
+      <figure class="secMini"><svg id="figSecSvgMain" viewBox="0 0 360 312" xmlns="http://www.w3.org/2000/svg" role="img" data-i18n-aria="fig_sec_title" aria-label="断面図"></svg>
+        <figcaption class="secCap" data-i18n="offset_note">タップで切り方の説明へ（イメージ図）</figcaption>
+      </figure>
     </div>
-  </div>
+  </section>
 </div>
+
+<nav class="actionBar" data-i18n-aria="aria_actions" aria-label="操作">
+  <div class="actionInner">
+    <button type="button" class="actBtn" id="cameraToggleBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7l1.5-2.5h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg><span class="actLbl">カメラ</span></button>
+    <button type="button" class="actBtn" id="captureBtn" data-i18n-title="tip_freeze" title="画面を止めて合わせやすくする" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span class="actLbl">止める</span></button>
+    <label class="actBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg><span class="actLbl" data-i18n="btn_image">写真</span><input id="imageInput" class="vh" type="file" accept="image/*" /></label>
+    <button type="button" class="actBtn" id="logBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7M9 16h7"/></svg><span class="actLbl" data-i18n="btn_log">記録</span></button>
+  </div>
+</nav>
+<video id="video" playsinline muted style="display:none"></video>
+<canvas id="photoCanvas" style="display:none"></canvas>
 <script src="i18n.js"></script>
 <script>
   // ===== 状態 =====
   let leftAngle=135.0,rightAngle=45.0,mode='dual',flipped=false;
-  let lastValidWidth=520;
+  let widthMm=null;          // 材料の幅（mm）。未入力は null（既定の幅は持たない＝入れ忘れで答えが狂わないように）
+  let faceMm=[null,null];    // 面の横幅（mm）。単位を切り替えても丸めがたまらないよう mm を正とする
+  const UNIT_KEY='cutcalc_unit', FRAC_KEY='cutcalc_frac', W_MIN_MM=1, W_MAX_MM=9999;
+  let unit=(function(){ try{ const v=localStorage.getItem(UNIT_KEY); if(v==='mm'||v==='in') return v; }catch(e){} return ((navigator.language||'').toLowerCase()==='en-us')?'in':'mm'; })();
+  let fracDen=(function(){ try{ const v=+localStorage.getItem(FRAC_KEY); if(v===8||v===16||v===32) return v; }catch(e){} return 16; })();
   // 全角数字・記号を半角へ正規化／数値文字列の判定
   const zen2han = s => String(s).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[．。]/g,'.').replace(/[－ー―−]/g,'-').replace(/\s+/g,'');
+  const zen2hanSp = s => String(s).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[．。]/g,'.').replace(/[－ー―−]/g,'-').replace(/／/g,'/').replace(/\s+/g,' ');   // 空白を1つ残す（インチの「3 1/2」用）
   const isNumericStr = s => /^-?\d+(\.\d+)?$/.test(s);
   // 数値として妥当な文字列のみ数値化（前方一致の緩さ "12abc"→12 等を塞ぐ。不正は NaN）
   const parseNum = v => { const n=zen2han(String(v)).trim(); return isNumericStr(n)?parseFloat(n):NaN; };
   const fmtLen = x => String(Math.round(x*10)/10);   // 長さの表示（小数1桁まで・「.0」は付けない）
   const fmtAng = x => String(Math.round(x*10)/10);   // 角度の表示（同上。67.5 を 68 にしない）
-  // 面の横幅の入力整形：全角→半角、数字と小数点1つ、整数4桁・小数1桁まで（「12.5」を「125」にしない）
-  const sanitizeFace = s => { const v=zen2han(s).replace(/[^0-9.]/g,''); const i=v.indexOf('.'); if(i<0) return v.slice(0,4); const ip=v.slice(0,i).slice(0,4), dp=v.slice(i+1).replace(/\./g,'').slice(0,1); return (ip===''?'0':ip)+'.'+dp; };
+  const q05 = x => Math.round(x*2)/2;                // 角度を 0.5° 刻みに（ドラッグ・スライダー）
+  // 長さの入力 → mm（空=null、読めない=NaN）。mm は小数、インチは「3.5」「3 1/2」「3-1/2」「1/2」
+  function parseLen(v, u){
+    u=u||unit;
+    const str=zen2hanSp(v).trim().toLowerCase().replace(/\s*(mm|inch|in|″|"|”)$/,'').trim();
+    if(str==='') return null;
+    if(u!=='in') return isNumericStr(str)?parseFloat(str):NaN;
+    let m;
+    if(isNumericStr(str)) return parseFloat(str)*25.4;
+    if((m=/^(\d+)(?:\s+|\s*-\s*)(\d+)\/(\d+)$/.exec(str))) return (+m[3]>0)?(+m[1] + (+m[2])/(+m[3]))*25.4:NaN;
+    if((m=/^(\d+)\/(\d+)$/.exec(str))) return (+m[2]>0)?((+m[1])/(+m[2]))*25.4:NaN;
+    return NaN;
+  }
+  // インチを分数に（いちばん近い 1/fracDen。約分する）
+  function fracStr(inches){
+    const n=Math.round(inches*fracDen), whole=Math.floor(n/fracDen); let num=n-whole*fracDen, d=fracDen;
+    while(num>0 && num%2===0){ num/=2; d/=2; }
+    if(num===0) return String(whole);
+    return (whole>0?whole+' ':'')+num+'/'+d;
+  }
+  // 長さの表示。fmtLenU＝数字だけ（mm は dec 桁まで／インチは分数）、fmtLenFull＝単位つき
+  function fmtLenU(mm, dec){ if(mm==null||!isFinite(mm)) return '—'; if(unit==='in') return fracStr(mm/25.4); const p=Math.pow(10,dec||0); return String(Math.round(mm*p)/p); }
+  function fmtLenFull(mm, dec){ const v=fmtLenU(mm,dec); if(v==='—') return v; return (unit==='in')?(v+'″'):(v+' mm'); }
+  function fmtLenInput(mm){ return (mm==null||!isFinite(mm))?'':(unit==='in'?fracStr(mm/25.4):String(Math.round(mm*10)/10)); }
+  // 入力中の文字の整形（mm＝数字と小数点1つ・小数1桁／インチ＝数字・空白・/・-・.）
+  function sanitizeLenInput(v){
+    if(unit==='in') return zen2hanSp(v).replace(/[^0-9 ./-]/g,'').replace(/^\s+/,'').slice(0,9);
+    const x=zen2han(v).replace(/[^0-9.]/g,''); const i=x.indexOf('.'); if(i<0) return x.slice(0,4);
+    const ip=x.slice(0,i).slice(0,4), dp=x.slice(i+1).replace(/\./g,'').slice(0,1); return (ip===''?'0':ip)+'.'+dp;
+  }
+  const sanitizeFace = v => sanitizeLenInput(v);
   const guide=document.getElementById('angleGuide');
   const gtx=guide.getContext('2d');
   // カメラ関連の参照と状態
@@ -311,39 +373,43 @@
   // ===== パディング数値 =====
   function padNum(num,width){ let s=Math.round(num).toString(); return s.padStart(width,' '); }
 
-  // ===== 上部表示（角度/切断長） =====
-  function drawTopInfo(openAngle,width){
-    const isSingle=(mode==='single');
-    // 切断長は calcCutLenMm に一元化（pill/上部バーとケガキ図/ログ/FIGを常に一致させる）
-    const angDeg = isSingle ? Math.abs(openAngle-90) : (openAngle/2);
-    const cutLen = calcCutLenMm(angDeg, width);
-    const angleLabel = isSingle
-      ? `${t('ci_angle_s')}${padNum(Math.abs(openAngle-90),3)}°`
-      : `${t('ci_angle_d')}${padNum(openAngle,3)}°`;
-
-    const label=`${t('ci_width')}${padNum(width,4)} mm  ${angleLabel}  ${t('ci_cutlen')}${padNum(cutLen,4)} mm`;
-    const mW = Math.round(CW * 0.96); // 常に同じ幅
-    const x  = (CW - mW) / 2, y=8;
-    // 帯幅に収まるようフォントを自動縮小（狭い画面で端が切れないように）
-    const fontFor = px => `${px}px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace`;
-    let fontPx = 10; gtx.font = fontFor(fontPx);
-    const avail = mW - 10, tw = gtx.measureText(label).width;
-    if (tw > avail){ fontPx = Math.max(7, fontPx * avail / tw); gtx.font = fontFor(fontPx); }
-    gtx.fillStyle='rgba(0,0,0,0.55)'; gtx.fillRect(x,y,mW,22);   // 背景を濃くしてコントラスト確保
+  // ===== 上部表示（角度/切る長さ）と結果カード =====
+  function drawTopInfo(){
+    const angleLabel=(mode==='single'?t('ci_angle_s'):t('ci_angle_d'))+fmtAng(shownAngle())+'°';
+    const label=t('ci_width')+fmtLenFull(widthMm,1)+'   '+angleLabel+'   '+t('ci_cutlen')+fmtLenFull(currentCutLen(),0);
+    const mW=Math.round(CW*0.96), x=(CW-mW)/2, y=8;
+    const fontFor=px=>px+'px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace';
+    let fontPx=10.5; gtx.font=fontFor(fontPx);
+    const avail=mW-10, tw=gtx.measureText(label).width;
+    if(tw>avail){ fontPx=Math.max(7, fontPx*avail/tw); gtx.font=fontFor(fontPx); }   // 帯に収まるよう縮める
+    gtx.fillStyle='rgba(0,0,0,0.58)'; gtx.fillRect(x,y,mW,22);
     gtx.fillStyle='#fff'; gtx.textAlign='center'; gtx.textBaseline='middle';
     gtx.fillText(label, CW/2, y+11);
-
-    const inline=document.getElementById('inlineCutLenNum');
-    if(inline){ inline.textContent=padNum(cutLen,4); }
+    updateResultCard();
   }
-
-  function getWidth(){
-    const norm=zen2han(document.getElementById('productWidth').value).trim();
-    if(!isNumericStr(norm)) return lastValidWidth;            // 数字以外（空/混在/小数点先頭等）は前回有効値
-    let v=Math.round(parseFloat(norm));
-    if(v<=0) return 520;                                       // 0/負は既定値
-    return Math.max(10, Math.min(9999, v));                    // sanitizeWidth と同じ範囲にクランプ
+  let lastResKey='';
+  function updateResultCard(){
+    const $=id=>document.getElementById(id);
+    if(!$('resCut')) return;
+    const cut=currentCutLen(), ratio=cutRatio();
+    const vals=[fmtLenU(cut,0), unit, (cut==null?'need':(unit==='in'?Math.round(cut):'')), t(mode==='single'?'angle_line':'angle_open'), fmtAng(shownAngle()), fmtAng(sawDeg()), (unit==='in'?'12 : '+(12*ratio).toFixed(2):'10 : '+(10*ratio).toFixed(2)), curLang];
+    const key=vals.join('|'); if(key===lastResKey) return; lastResKey=key;   // カメラ中は毎フレーム呼ばれるので、変わったときだけ書き換える
+    $('resCut').textContent=vals[0];
+    $('resUnit').textContent=(unit==='in')?'in':'mm';
+    $('resCut').closest('.resultCard').classList.toggle('inch', unit==='in');   // 分数は幅を取るので少し小さく
+    const rm=$('resCutMm');
+    if(cut==null){ rm.textContent=t('res_need_width'); rm.classList.add('need'); }
+    else { rm.textContent=(unit==='in')?('('+Math.round(cut)+' mm)'):''; rm.classList.remove('need'); }
+    $('resAngLabel').textContent=vals[3];
+    $('resAng').textContent=vals[4]+'°';
+    $('resSaw').textContent=vals[5]+'°';
+    $('resSlope').textContent=vals[6];
   }
+  function shownAngle(){ const open=openAngleFromGuide(); return (mode==='single')?Math.abs(open-90):open; }       // 画面に出す角度（2本＝開き角／1本＝線との角度）
+  function currentAngDeg(){ const open=openAngleFromGuide(); return (mode==='dual')?open/2:Math.abs(open-90); }     // 材料の縁と切り口の角度
+  function sawDeg(){ return 90-currentAngDeg(); }                          // のこの角度（直角切り＝0°）
+  function cutRatio(){ return calcCutLenMm(currentAngDeg(), 1); }          // 切る長さ ÷ 幅
+  function currentCutLen(){ return (widthMm==null)?null:widthMm*cutRatio(); }
   function openAngleFromGuide(){
     if(mode==='dual') return Math.abs(leftAngle-rightAngle);
     const a=((leftAngle%360)+360)%360; // 0..360 正規化
@@ -359,7 +425,8 @@
   }
 
   // ===== ケガキ図インセット（カメラの邪魔にならない隅に小窓） =====
-  function drawCutMarkingInset(canvasW, canvasH, cutLenMm, productWidthMm){
+  function drawCutMarkingInset(canvasW, canvasH){
+    const ratio=cutRatio(), cutLenMm=currentCutLen();
     const insetW = Math.min(160, canvasW * 0.42);
     const insetH = 64; // 縦を圧縮して apex を上に持っていく余裕を作る
     const insetX = flipped ? (canvasW - insetW - 8) : 8;
@@ -390,7 +457,7 @@
     const pY = insetY + padT;
     const pW = insetW - padL - padR;
     const pH = insetH - padT - padB; // 64-12-24 = 28
-    const cutDispPx = Math.min(pH * (cutLenMm / productWidthMm), pW - 4);
+    const cutDispPx = Math.min(pH * ratio, pW - 4);
 
     // 反転(flip)時は図全体を左右ミラー。切断側がガイドのapex方向（中央側）を向く
     const K = 2*insetX + insetW;
@@ -405,10 +472,8 @@
     // ===== 幾何（flip時は座標系を左右ミラー） =====
     gtx.save();
     if(flipped){ gtx.translate(K, 0); gtx.scale(-1, 1); }
-    // 本体（コンクリート）
-    gtx.fillStyle='rgba(200,200,200,0.7)'; gtx.fillRect(pX, pY, pW, pH);
-    // チャネル
-    gtx.fillStyle='rgba(40,40,40,0.55)'; gtx.fillRect(pX, pY + pH*0.225, pW, pH*0.55);
+    // 材料（無地の板）
+    gtx.fillStyle='rgba(205,205,205,0.75)'; gtx.fillRect(pX, pY, pW, pH);
     // 外縁
     gtx.strokeStyle='rgba(0,0,0,0.95)'; gtx.lineWidth=1; gtx.strokeRect(pX, pY, pW, pH);
     // 幅寸法線＋三角矢印
@@ -437,14 +502,24 @@
 
     // ===== 文字（正立のまま、位置だけミラー） =====
     // 幅数値
-    gtx.font='bold 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
-    gtx.textAlign = flipped ? 'left' : 'right'; gtx.textBaseline='middle';
-    gtx.fillStyle=WIDTH_COLOR;
-    gtx.fillText(Math.round(productWidthMm), mirX(wDimX - 3), pY + pH/2);
+    const wTxt=(widthMm==null)?'W':fmtLenU(widthMm,0);
+    const monoF=px=>'bold '+px+'px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    gtx.font=monoF(11); gtx.textBaseline='middle';
+    if(gtx.measureText(wTxt).width <= padL+2){   // 短い（mm など）＝今までどおり寸法線の外側に
+      gtx.textAlign = flipped ? 'left' : 'right';
+      gtx.fillStyle=WIDTH_COLOR;
+      gtx.fillText(wTxt, mirX(wDimX - 3), pY + pH/2);
+    }else{   // 長い（インチの分数など）＝板の上に濃い色で。入りきらなければ縮める
+      let wf=10; gtx.font=monoF(wf);
+      while(wf>7 && gtx.measureText(wTxt).width > pW*0.6){ wf-=1; gtx.font=monoF(wf); }
+      gtx.textAlign = flipped ? 'right' : 'left';
+      gtx.fillStyle='rgba(10,40,80,0.95)';
+      gtx.fillText(wTxt, mirX(pX + 4), pY + pH/2);
+    }
     // 切断長数値
     gtx.font='bold 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
     gtx.textAlign='center'; gtx.textBaseline='top';
-    const txt = Math.round(cutLenMm) + ' mm';
+    const txt = fmtLenFull(cutLenMm,0);
     const m = gtx.measureText(txt);
     let labelX;
     if(cutDispPx > 10){
@@ -468,10 +543,10 @@
     let a, b, label;
     if(mode==='dual'){
       a = rightAngle; b = leftAngle;                 // 2本の腕の間（開き角）
-      label = Math.round(Math.abs(leftAngle - rightAngle));
+      label = fmtAng(Math.abs(leftAngle - rightAngle));
     }else{
       a = 90; b = renderAngle(leftAngle);            // 縦の基準線 と ガイド腕 の間
-      label = Math.round(Math.abs(openAngleFromGuide() - 90));
+      label = fmtAng(Math.abs(openAngleFromGuide() - 90));
     }
     const lo = Math.min(a,b), hi = Math.max(a,b);
     const rr = Math.min(W, H) * 0.10;   // 分度器マーク：アイコン/フィーチャー風・小さめ
@@ -509,7 +584,7 @@
     gtx.restore();
   }
 
-  // ===== 側溝帯（ミタージョイント・カメラ重畳用） =====
+  // ===== 材料の帯（留め継ぎ・カメラ重畳用） =====
   // apex(cx,cy) から angleDeg 方向へ伸びる帯。外側エッジは apex から body 方向へ直線（=元の位置合わせ線）。
   // 内側エッジは body 方向に disp だけ進んだ位置から始まり、留め継ぎ形状になる。
   function drawGutterStrip(cx, cy, angleDeg, innerSign, halfW, disp){
@@ -534,25 +609,13 @@
     const cIF = {x: cx + nx*fullW + dx*L,                 y: cy + ny*fullW + dy*L};
     const cOF = {x: cx + dx*L,                             y: cy + dy*L};
 
-    // チャネル開口
-    const tOut=0.225, tIn=0.775;
-    const chON={x:cx+nx*tOut*fullW+dx*tOut*effDisp,y:cy+ny*tOut*fullW+dy*tOut*effDisp};
-    const chIN={x:cx+nx*tIn*fullW +dx*tIn*effDisp, y:cy+ny*tIn*fullW +dy*tIn*effDisp};
-    const chIF={x:cx+nx*tIn*fullW +dx*L,            y:cy+ny*tIn*fullW +dy*L};
-    const chOF={x:cx+nx*tOut*fullW+dx*L,            y:cy+ny*tOut*fullW+dy*L};
 
-    // コンクリート本体（薄め、カメラが透けるよう低透明度）
-    gtx.fillStyle='rgba(225,225,225,0.30)';
+    // 材料（無地の板・カメラが透けるよう薄め）
+    gtx.fillStyle='rgba(225,225,225,0.34)';
     gtx.beginPath(); gtx.moveTo(cON.x,cON.y); gtx.lineTo(cIN.x,cIN.y); gtx.lineTo(cIF.x,cIF.y); gtx.lineTo(cOF.x,cOF.y); gtx.closePath(); gtx.fill();
-    // チャネル
-    gtx.fillStyle='rgba(60,60,60,0.30)';
-    gtx.beginPath(); gtx.moveTo(chON.x,chON.y); gtx.lineTo(chIN.x,chIN.y); gtx.lineTo(chIF.x,chIF.y); gtx.lineTo(chOF.x,chOF.y); gtx.closePath(); gtx.fill();
     // 遠端（背中）— 黒の薄線
     gtx.strokeStyle='rgba(0,0,0,0.75)'; gtx.lineWidth=1.2;
     gtx.beginPath(); gtx.moveTo(cIF.x, cIF.y); gtx.lineTo(cOF.x, cOF.y); gtx.stroke();
-    // チャネル輪郭
-    gtx.strokeStyle='rgba(0,0,0,0.45)'; gtx.lineWidth=1;
-    gtx.beginPath(); gtx.moveTo(chON.x,chON.y); gtx.lineTo(chIN.x,chIN.y); gtx.lineTo(chIF.x,chIF.y); gtx.lineTo(chOF.x,chOF.y); gtx.closePath(); gtx.stroke();
     // 切断面（apex→内側終点）— 薄黒の細線
     gtx.strokeStyle='rgba(0,0,0,0.85)'; gtx.lineWidth=1.4;
     gtx.beginPath(); gtx.moveTo(cON.x, cON.y); gtx.lineTo(cIN.x, cIN.y); gtx.stroke();
@@ -603,7 +666,6 @@
     const halfW = Math.min(W,H)*0.078;
     const fullW = halfW*2;
     const open  = openAngleFromGuide();
-    const productWidthMm = getWidth();
     const clampMax = Math.max(W,H)*3;
 
     function calcDispPx(miterHalfDeg){
@@ -625,25 +687,18 @@
     }
 
     // 上部情報バー
-    drawTopInfo(open, productWidthMm);
+    drawTopInfo();
 
     // 内角アーク（apex に角度の弧＋数値を表示）
     drawAngleArc(W, H);
 
     // ケガキ図インセット（flip 連動で左下↔右下）
-    const angDeg  = (mode==='dual') ? open/2 : Math.abs(open - 90);
-    const cutLenMm = calcCutLenMm(angDeg, productWidthMm);
-    drawCutMarkingInset(W, H, cutLenMm, productWidthMm);
+    drawCutMarkingInset(W, H);
   }
 
   function renderAll(){ drawBackground(); drawGuide(); }
   function requestRender(){ renderAll(); updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); scheduleSave(); }
-  // ずらし量（底面・面取り）= 面の横幅 × 比率（切断長÷幅）
-  function currentCutLen(){
-    const open=openAngleFromGuide(); const width=getWidth();
-    const angDeg=(mode==='dual')? open/2 : Math.abs(open-90);
-    return calcCutLenMm(angDeg, width);
-  }
+  // ケガキ補正値（底面・面取り）＝ 面の横幅 × 比率（切る長さ ÷ 幅）
   function faceRowEls(){ return [].slice.call(document.querySelectorAll('#faceRows .faceRow')); }
   function syncRectUI(){   // 四角チェックで面取り位置(rectSub)を開閉。面は最大2固定・テーパーはメイン欄offTaperに統一
     const c=document.getElementById('rectMode'); if(!c) return;
@@ -653,23 +708,26 @@
     const pe=document.querySelector('input[name=rectPos]:checked'); const pos=pe?pe.value:'top';
     const rws=faceRowEls();
     if(rws[1]) rws[1].style.display = ((!on)||(pos==='both')) ? '' : 'none';
+    const a=document.getElementById('shapeRectBtn'), b=document.getElementById('shapeUBtn');
+    if(a) a.setAttribute('aria-pressed', on); if(b) b.setAttribute('aria-pressed', !on);
   }
+  function visibleFacesMm(){ const arr=[]; faceRowEls().forEach((r,i)=>{ if(r.style.display==='none') return; const v=faceMm[i]; if(v!=null&&isFinite(v)&&v>0) arr.push(v); }); return arr; }
   function updateOffset(){
     const rows=faceRowEls(); if(!rows.length) return;
-    const width=getWidth(); const ratio = width>0 ? currentCutLen()/width : 0;
-    // 四角モードは各面独立（上のみ/下のみ=1面、上下=上面/下面）。側溝=同じ側で累計。
+    const ratio=cutRatio();
+    // 四角は各面独立（上のみ/下のみ=1面、上下=上面/下面）。U字（側溝など）=同じ側で累計。
     const rc=document.getElementById('rectMode'); const indep=!!(rc&&rc.checked);
     let cum=0;
-    rows.forEach((r)=>{
+    rows.forEach((r,i)=>{
       if(r.style.display==='none') return;
-      const inp=r.querySelector('.faceW'), out=r.querySelector('.offOut'), from=r.querySelector('.offFrom');
-      if(!inp||!out) return;
-      const v=parseNum(inp.value);
-      if(isFinite(v)&&v>0){
+      const out=r.querySelector('.offOut'), from=r.querySelector('.offFrom');
+      if(!out) return;
+      const v=faceMm[i];
+      if(v!=null&&isFinite(v)&&v>0){
         let off, edge=null;
-        if(indep){ off=v*ratio; } else { cum+=v; off=cum*ratio; if(cum-v>1e-9) edge=cum; }   // 側溝は端から累計＝2面目以降は「端から◯mm」地点のずれ
-        out.textContent=Math.round(off);
-        if(from) from.textContent=(edge===null)?'':t('from_edge').replace('{n}', fmtLen(edge));
+        if(indep){ off=v*ratio; } else { cum+=v; off=cum*ratio; if(cum-v>1e-9) edge=cum; }   // U字は端から累計＝2面目以降は「端から◯」地点のずれ
+        out.textContent=fmtLenU(off,0);
+        if(from) from.textContent=(edge===null)?'':t('from_edge').replace('{n}', fmtLenFull(edge,1));
       }
       else { out.textContent='—'; if(from) from.textContent=''; }
     });
@@ -681,23 +739,18 @@
     const lv=+document.getElementById('leftSlider').value;
     const rv=+document.getElementById('rightSlider').value;
     if(mode==='dual'){
-      leftAngle  = lerp(lv,180,120); // 左:180→120（最大60°の偏角）
-      rightAngle = lerp(rv, 60,  0); // 右: 60→0
+      leftAngle  = q05(lerp(lv,180,120)); // 左:180→120（最大60°の偏角）
+      rightAngle = q05(lerp(rv, 60,  0)); // 右: 60→0
     }else{
-      rightAngle = 90;              // 片側は右固定
-      leftAngle  = lerp(lv,180,120);// 左:180→120（破線右側へのはみ出し防止）
+      rightAngle = 90;                   // 1本は右固定
+      leftAngle  = q05(lerp(lv,180,120));// 左:180→120（破線右側へのはみ出し防止）
     }
-    const ang=openAngleFromGuide();
-    if(mode==='single'){
-      const disp=Math.abs(ang-90); // 0..90
-      document.getElementById('manualAngle').value=Math.round(disp);
-    }else{
-      document.getElementById('manualAngle').value=Math.round(ang); // 0..180
-    }
+    document.getElementById('manualAngle').value=fmtAng(shownAngle());
     requestRender();
   }
 
   // ===== カメラ機能 =====
+  function setActLabel(id, text){ const el=document.getElementById(id); if(!el) return; const lb=el.querySelector('.actLbl'); if(lb) lb.textContent=text; else el.textContent=text; }
   let camGen=0, camStarting=false;   // 起動・停止のたびに camGen を進める。待っている間に止められた起動を、後から有効にしないため
   async function startCamera(silent){
     const gen=++camGen; camStarting=true;
@@ -709,8 +762,8 @@
       isCaptured=false; photo.width=photo.height=0;
       startLiveLoop();
       if(!silent) showStatus(t('st_cam_on'),'success');
-      document.getElementById('cameraToggleBtn').textContent=t('btn_camera_stop');
-      { const cb=document.getElementById('captureBtn'); cb.disabled=false; cb.textContent=t('btn_freeze'); }
+      setActLabel('cameraToggleBtn', t('btn_camera_stop')); document.getElementById('cameraToggleBtn').classList.add('on');
+      { const cb=document.getElementById('captureBtn'); cb.disabled=false; setActLabel('captureBtn', t('btn_freeze')); }
       fitCanvas(); keepAwake(true);
     }catch(e){
       if(gen!==camGen) return;   // 止めたあとに届いた失敗は表示しない
@@ -724,7 +777,7 @@
   }
   function startLiveLoop(){ if(liveRAF) return; const loop=()=>{ if(!stream){ liveRAF=null; return; } renderAll(); liveRAF=requestAnimationFrame(loop); }; liveRAF=requestAnimationFrame(loop); }
   function stopLiveLoop(){ if(liveRAF){ cancelAnimationFrame(liveRAF); liveRAF=null; } }
-  function stopCamera(){ camGen++; camStarting=false; camAutoResume=false; stopLiveLoop(); if(stream){ stream.getTracks().forEach(tr=>tr.stop()); stream=null; } video.pause(); video.srcObject=null; keepAwake(false); document.getElementById('cameraToggleBtn').textContent=t('btn_camera'); { const cb=document.getElementById('captureBtn'); cb.disabled=true; cb.textContent=t('btn_freeze'); } isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus(t('st_cam_off'),'info'); }
+  function stopCamera(){ camGen++; camStarting=false; camAutoResume=false; stopLiveLoop(); if(stream){ stream.getTracks().forEach(tr=>tr.stop()); stream=null; } video.pause(); video.srcObject=null; keepAwake(false); setActLabel('cameraToggleBtn', t('btn_camera')); document.getElementById('cameraToggleBtn').classList.remove('on'); { const cb=document.getElementById('captureBtn'); cb.disabled=true; setActLabel('captureBtn', t('btn_freeze')); } isCaptured=false; photo.width=photo.height=0; renderAll(); showStatus(t('st_cam_off'),'info'); }
   // 画面を点けたままにする（対応ブラウザのみ。アプリ版はネイティブ側でも指定する）
   let wakeLock=null;
   async function keepAwake(on){
@@ -742,8 +795,8 @@
     stopLiveLoop();
     stream.getTracks().forEach(tr=>tr.stop()); stream=null;
     video.pause(); video.srcObject=null; keepAwake(false);
-    document.getElementById('cameraToggleBtn').textContent=t('btn_camera');
-    if(!isCaptured){ const cb=document.getElementById('captureBtn'); cb.disabled=true; cb.textContent=t('btn_freeze'); }
+    setActLabel('cameraToggleBtn', t('btn_camera')); document.getElementById('cameraToggleBtn').classList.remove('on');
+    if(!isCaptured){ const cb=document.getElementById('captureBtn'); cb.disabled=true; setActLabel('captureBtn', t('btn_freeze')); }
   }
   document.addEventListener('visibilitychange', ()=>{
     if(document.hidden){ suspendCamera(); }
@@ -755,8 +808,8 @@
     if(isCaptured && !stream){ startCamera(); return; }   // 裏から戻ったあとの「解除」＝カメラを起動し直してライブへ
     if(!stream) return showStatus(t('st_start_cam'),'error');
     const cb=document.getElementById('captureBtn');
-    if(isCaptured){ isCaptured=false; photo.width=photo.height=0; startLiveLoop(); cb.textContent=t('btn_freeze'); showStatus(t('st_live'),'info'); }
-    else{ capturePhoto(); if(isCaptured) cb.textContent=t('btn_unfreeze'); }   // 映像がまだ無く静止できなかったときは「解除」にしない
+    if(isCaptured){ isCaptured=false; photo.width=photo.height=0; startLiveLoop(); setActLabel('captureBtn', t('btn_freeze')); showStatus(t('st_live'),'info'); }
+    else{ capturePhoto(); if(isCaptured) setActLabel('captureBtn', t('btn_unfreeze')); }   // 映像がまだ無く静止できなかったときは「解除」にしない
   }
   function handleImageLoad(ev){ const f=ev.target.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ photo.width=guide.width; photo.height=guide.height; const p=photo.getContext('2d'); const iw=img.width,ih=img.height,cw=photo.width,ch=photo.height; const ir=iw/ih,cr=cw/ch; let dw,dh,dx,dy; if(ir>cr){ dh=ch; dw=dh*ir; dx=(cw-dw)/2; dy=0; } else { dw=cw; dh=dw/ir; dx=0; dy=(ch-dh)/2; } p.clearRect(0,0,cw,ch); p.drawImage(img,dx,dy,dw,dh); isCaptured=true; stopLiveLoop(); renderAll(); showStatus(t('st_img_ok'),'success'); try{ URL.revokeObjectURL(img.src); }catch(e){} }; img.onerror=()=>{ showStatus(t('st_img_fail'),'error'); try{ URL.revokeObjectURL(img.src); }catch(e){} }; img.src=URL.createObjectURL(f); }
 
@@ -787,23 +840,48 @@
     if(commit){
       const open=openAngleFromGuide();
       el.value=(mode==='single')?fmtAng(Math.abs(open-90)):fmtAng(open);   // 小数（例 67.5）を丸めて書き戻さない
-      if(raw<lo||raw>hi) showStatus((mode==='dual'?t('mode_dual'):t('mode_single'))+' '+lo+'–'+hi+'°','info');
+      if(raw<lo||raw>hi) showStatus(t('st_angle_range').replace('{lo}',lo).replace('{hi}',hi),'info');
     }
     requestRender();
   }
-  // ===== 幅/高さの妥当性チェック（全角→半角・不当な数値を補正/警告） =====
-  function sanitizeWidth(){
+  // ===== 材料の幅・面の横幅の入力（mm／インチ） =====
+  function onWidthInput(){
     const el=document.getElementById('productWidth');
-    const norm=zen2han(el.value).trim();
-    if(norm===''){ el.value=lastValidWidth; showStatus(t('st_w_empty'),'info'); requestRender(); return; }
-    if(!isNumericStr(norm)){                                   // 数字以外 → 警告し前の値へ
-      el.value=lastValidWidth; showStatus(t('st_w_num'),'error'); requestRender(); return;
-    }
-    let v=Math.round(parseFloat(norm));
-    if(v<=0){ v=520; showStatus(t('st_w_def'),'info'); }
-    else if(v<10){ v=10; showStatus(t('st_w_min'),'info'); }
-    else if(v>9999){ v=9999; showStatus(t('st_w_max'),'info'); }
-    el.value=v; lastValidWidth=v; requestRender();
+    const cv=sanitizeLenInput(el.value); if(cv!==el.value) el.value=cv;
+    const v=parseLen(cv);
+    if(v===null) widthMm=null;
+    else if(isFinite(v)&&v>0) widthMm=Math.max(W_MIN_MM, Math.min(W_MAX_MM, v));   // 打ちかけ（「3 1/」など）は前の値のまま
+    requestRender();
+  }
+  function onWidthCommit(){
+    const el=document.getElementById('productWidth');
+    const v=parseLen(el.value);
+    if(v===null){ widthMm=null; el.value=''; requestRender(); return; }
+    if(!isFinite(v)||v<=0){ showStatus(t('st_w_num'),'error'); el.value=fmtLenInput(widthMm); requestRender(); return; }
+    if(v<W_MIN_MM) showStatus(t('st_w_min').replace('{v}', fmtLenFull(W_MIN_MM,1)),'info');
+    else if(v>W_MAX_MM) showStatus(t('st_w_max').replace('{v}', fmtLenFull(W_MAX_MM,0)),'info');
+    widthMm=Math.max(W_MIN_MM, Math.min(W_MAX_MM, v));
+    el.value=fmtLenInput(widthMm);
+    requestRender();
+  }
+  function onFaceCommit(el){
+    const i=faceRowEls().indexOf(el.closest('.faceRow')); if(i<0) return;
+    const v=parseLen(el.value);
+    if(v===null||!isFinite(v)||v<=0){ faceMm[i]=null; el.value=''; }
+    else { faceMm[i]=Math.min(W_MAX_MM, v); el.value=fmtLenInput(faceMm[i]); }
+    requestRender();
+  }
+  function setUnit(u){ if(u!=='mm'&&u!=='in') return; unit=u; try{ localStorage.setItem(UNIT_KEY,u); }catch(e){} applyUnitUI(); requestRender(); }
+  function setFrac(d){ d=+d; if(d!==8&&d!==16&&d!==32) return; fracDen=d; try{ localStorage.setItem(FRAC_KEY,String(d)); }catch(e){} applyUnitUI(); requestRender(); }
+  function applyUnitUI(){
+    const $=id=>document.getElementById(id), inch=(unit==='in');
+    const mmB=$('unitMmBtn'), inB=$('unitInBtn'); if(mmB) mmB.setAttribute('aria-pressed', !inch); if(inB) inB.setAttribute('aria-pressed', inch);
+    const w=$('productWidth');
+    if(w){ if(document.activeElement!==w) w.value=fmtLenInput(widthMm); w.setAttribute('inputmode', inch?'text':'decimal'); w.setAttribute('placeholder', t(inch?'ph_width_in':'ph_width')); }
+    faceRowEls().forEach((r,i)=>{ const inp=r.querySelector('.faceW'); if(!inp) return; if(document.activeElement!==inp) inp.value=fmtLenInput(faceMm[i]); inp.setAttribute('inputmode', inch?'text':'decimal'); inp.setAttribute('placeholder', t(inch?'ph_face_in':'ph_face')); });
+    document.querySelectorAll('.lenUnit').forEach(el=>{ el.textContent=inch?'in':'mm'; });
+    document.querySelectorAll('[data-unit-opt]').forEach(b=>b.setAttribute('aria-pressed', b.getAttribute('data-unit-opt')===unit));
+    document.querySelectorAll('[data-frac-opt]').forEach(b=>b.setAttribute('aria-pressed', +b.getAttribute('data-frac-opt')===fracDen));
   }
 
   // ===== UI補助 =====
@@ -813,6 +891,7 @@
     const rightSlider=document.getElementById('rightSlider');
     const toggle=document.getElementById('modeToggle');
     if(toggle) toggle.checked = single; // UIと状態の同期
+    syncModeLabels();
     if(single){
       rightWrap.classList.add('disabledWrap');
       rightSlider.setAttribute('disabled','disabled');
@@ -823,6 +902,30 @@
     }
     updateFromSliders();
   }
+  function syncModeLabels(){
+    const single=(mode==='single');
+    const dB=document.getElementById('modeDualBtn'), sB=document.getElementById('modeSingleBtn');
+    if(dB) dB.setAttribute('aria-pressed', !single); if(sB) sB.setAttribute('aria-pressed', single);
+    const al=document.getElementById('angleLabel'); if(al) al.textContent=t(single?'angle_line':'angle_open');
+  }
+  function setMode(m){ if(m!=='dual'&&m!=='single') return; if(mode===m){ syncModeLabels(); return; } mode=m; applyModeUI(); }
+  // −／＋：0.5°ずつ。2本のときは線の向き（二等分線）を保ったまま開き角だけ変える＝カメラで合わせた向きを崩さない
+  function nudgeAngle(d){
+    const open=openAngleFromGuide();
+    if(mode==='dual'){
+      const nv=Math.max(60, Math.min(180, q05(open)+d));
+      const lo=Math.max(120-nv/2, nv/2), hi=Math.min(180-nv/2, 60+nv/2);
+      const bis=Math.max(lo, Math.min(hi, (leftAngle+rightAngle)/2));
+      leftAngle=bis+nv/2; rightAngle=bis-nv/2;
+    }else{
+      const nv=Math.max(30, Math.min(90, q05(Math.abs(open-90))+d));
+      leftAngle=90+nv; rightAngle=90;
+    }
+    syncSliderPositions();
+    document.getElementById('manualAngle').value=fmtAng(shownAngle());
+    requestRender();
+  }
+  function setShape(rect){ const c=document.getElementById('rectMode'); if(!c) return; if(c.checked===!!rect){ syncRectUI(); return; } c.checked=!!rect; c.dispatchEvent(new Event('change',{bubbles:true})); }
 
   let statusTimer=null;
   function showStatus(msg,type='info'){
@@ -832,41 +935,26 @@
     if(type!=='error') statusTimer=setTimeout(()=>{ el.style.display='none'; statusTimer=null; },1500);
   }
 
-  // ===== テスト =====
+  // ===== 自己テスト（?selftest のときだけ。状態は書き換えない） =====
   function runTests(){
-    const approx=(a,b,eps=1e-6)=>Math.abs(a-b)<=eps;
-    const W=520;
-    // 現在状態を保存
-    const prev={
-      mode,
-      left:leftAngle,
-      right:rightAngle,
-      widthVal:document.getElementById('productWidth').value,
-      toggleChecked: document.getElementById('modeToggle')?.checked || false
-    };
-
-    // padNum 桁固定
-    console.assert(padNum(5,3)==='  5' && padNum(520,4)===' 520','T0 padNum');
-    // single: 135°(disp) → |135-90|=45 → 長=幅
-    (function(){
-      mode='single'; leftAngle=135;
-      const ang=openAngleFromGuide(); const disp090=Math.abs(ang-90);
-      const len=W/Math.tan((disp090)*Math.PI/180);
-      const clamp=Math.min(len,W*2); drawTopInfo(ang,W);
-      console.assert(approx(clamp,W),'T1 single 135° len=width');
-    })();
-    // single: 90° → 0mm
-    (function(){ mode='single'; leftAngle=90; const ang=openAngleFromGuide(); drawTopInfo(ang,W); const t=document.getElementById('inlineCutLenNum').textContent; console.assert(t.trim().length>0,'T2 inline exists'); })();
-    // dual: 開き角90 → 長=幅
-    (function(){ mode='dual'; leftAngle=135; rightAngle=45; const ang=openAngleFromGuide(); const half=ang/2; const len=W/Math.tan(half*Math.PI/180); console.assert(approx(len,W),'T3 dual 90° len=width'); })();
-    // clamp: single 89°相当 → 2W 上限
-    (function(){ mode='single'; leftAngle=91; const ang=openAngleFromGuide(); drawTopInfo(ang,W); const text=document.getElementById('inlineCutLenNum').textContent; console.assert(parseInt(text,10)<=W*2,'T4 clamp<=2W'); })();
-
-    // 復元＋確認
-    mode=prev.mode; leftAngle=prev.left; rightAngle=prev.right; document.getElementById('productWidth').value=prev.widthVal;
-    const toggle=document.getElementById('modeToggle'); if(toggle) toggle.checked=(mode==='single');
-    applyModeUI(); requestRender();
-    console.assert(mode===prev.mode,'T5 restore mode');
+    const out=[]; const eq=(a,b,m)=>{ const ok=(a===b); out.push((ok?'ok  ':'NG  ')+m+' = '+a); if(!ok) console.warn('selftest NG:', m, a, 'expected', b); };
+    const u0=unit, f0=fracDen;
+    try{
+      unit='in'; fracDen=16;
+      eq(fracStr(215.39/25.4), '8 1/2', '215.39mm → in');
+      eq(fracStr(36.87/25.4), '1 7/16', '36.87mm → in');
+      eq(fracStr(0.5/25.4), '0', '0.5mm → in');
+      eq(Math.round(parseLen('3 1/2')*100)/100, 88.9, '3 1/2in');
+      eq(Math.round(parseLen('3-1/2')*100)/100, 88.9, '3-1/2in');
+      eq(Math.round(parseLen('１/２')*100)/100, 12.7, '全角1/2in');
+      eq(Number.isNaN(parseLen('3 1/0')), true, '1/0 は読めない');
+      unit='mm';
+      eq(parseLen('12.5'), 12.5, 'mm 12.5');
+      eq(parseLen(''), null, '空欄');
+      eq(Math.round(calcCutLenMm(67.5,520)), 215, '開き角135°・520');
+      eq(Math.round(calcCutLenMm(75,520)), 139, '線との角度75°・520');
+    }finally{ unit=u0; fracDen=f0; }
+    console.log(out.join('\n')); return out;
   }
 
   // ===== 入力の保存と復元（再読み込み・回転・アプリの再起動で消えないように） =====
@@ -876,9 +964,7 @@
   function saveState(){
     try{
       const pe=document.querySelector('input[name=rectPos]:checked');
-      const st={ v:1, mode, flipped, left:leftAngle, right:rightAngle,
-        width:document.getElementById('productWidth').value,
-        faces:faceRowEls().map(r=>{ const i=r.querySelector('.faceW'); return i?i.value:''; }),
+      const st={ v:2, mode, flipped, left:leftAngle, right:rightAngle, widthMm, faceMm:faceMm.slice(0,2),
         rect:!!document.getElementById('rectMode').checked, rectPos:pe?pe.value:'top',
         taper:!!document.getElementById('offTaper').checked,
         offsetOpen:document.getElementById('offsetBody').style.display!=='none' };
@@ -888,24 +974,30 @@
   function restoreState(){
     let st=null;
     try{ st=JSON.parse(localStorage.getItem(STATE_KEY)||'null'); }catch(e){ st=null; }
-    if(!st || st.v!==1) return false;
+    if(!st || (st.v!==1 && st.v!==2)) return false;
+    const pos=v=>(typeof v==='number'&&isFinite(v)&&v>0)?v:null;
     restoring=true;
     try{
-      mode=(st.mode==='single')?'single':'dual';
-      flipped=!!st.flipped;
-      const fb=document.getElementById('flipBtn'); if(fb) fb.style.background = flipped ? '#cfc' : '#fff';
-      const w=parseNum(st.width);
-      if(isFinite(w)&&w>0){ document.getElementById('productWidth').value=String(st.width); lastValidWidth=Math.max(10, Math.min(9999, Math.round(w))); }
-      faceRowEls().forEach((r,i)=>{ const inp=r.querySelector('.faceW'); if(inp) inp.value=(Array.isArray(st.faces)&&typeof st.faces[i]==='string')?sanitizeFace(st.faces[i]):''; });
+      if(st.v===1){   // 段階Aの形式（mm の文字列）
+        widthMm=pos(parseNum(st.width));
+        faceMm=[0,1].map(i=>pos(Array.isArray(st.faces)?parseNum(st.faces[i]):NaN));
+      }else{
+        widthMm=pos(st.widthMm);
+        faceMm=[0,1].map(i=>pos(Array.isArray(st.faceMm)?st.faceMm[i]:null));
+      }
       document.getElementById('rectMode').checked=!!st.rect;
       if(st.rectPos){ const rp=document.querySelector('input[name=rectPos][value="'+st.rectPos+'"]'); if(rp) rp.checked=true; }
       document.getElementById('offTaper').checked=!!st.taper;
       if(st.offsetOpen){ const b=document.getElementById('offsetBody'), ot=document.getElementById('offsetToggle'); b.style.display='block'; const tri=ot.querySelector('.tri'); if(tri) tri.textContent='▾'; ot.setAttribute('aria-expanded','true'); }
+      flipped=!!st.flipped;
+      const fb=document.getElementById('flipBtn'); if(fb) fb.classList.toggle('on', flipped);
+      mode=(st.mode==='single')?'single':'dual';
+      applyModeUI();   // 表示の切り替え（角度はスライダーから計算し直されるので、直後に保存値へ戻す）
       if(typeof st.left==='number' && isFinite(st.left)) leftAngle=st.left;
       if(typeof st.right==='number' && isFinite(st.right)) rightAngle=st.right;
       syncSliderPositions();
-      applyModeUI();   // スライダー位置から角度を計算し直す（直前に合わせた位置なので同じ値）
-      { const open=openAngleFromGuide(); document.getElementById('manualAngle').value=(mode==='single')?fmtAng(Math.abs(open-90)):fmtAng(open); }
+      document.getElementById('manualAngle').value=fmtAng(shownAngle());
+      applyUnitUI();
       syncRectUI();
       requestRender();
     }catch(e){ console.warn('restoreState failed:', e); }
@@ -916,25 +1008,33 @@
   // ===== 初期化 =====
   function setup(){
     fitCanvas();
-    document.getElementById('leftSlider').addEventListener('input',updateFromSliders);
-    document.getElementById('rightSlider').addEventListener('input',updateFromSliders);
-    document.getElementById('productWidth').addEventListener('input',requestRender);
-    document.getElementById('productWidth').addEventListener('change',sanitizeWidth);
-    document.getElementById('manualAngle').addEventListener('input', ()=>applyManualAngle(false));
-    document.getElementById('manualAngle').addEventListener('change', ()=>applyManualAngle(true));
+    const $=id=>document.getElementById(id);
+    $('leftSlider').addEventListener('input',updateFromSliders);
+    $('rightSlider').addEventListener('input',updateFromSliders);
+    $('productWidth').addEventListener('input',onWidthInput);
+    $('productWidth').addEventListener('change',onWidthCommit);
+    $('manualAngle').addEventListener('input', ()=>applyManualAngle(false));
+    $('manualAngle').addEventListener('change', ()=>applyManualAngle(true));
+    $('angleMinus').addEventListener('click', ()=>nudgeAngle(-0.5));
+    $('anglePlus').addEventListener('click', ()=>nudgeAngle(+0.5));
+    $('unitMmBtn').addEventListener('click', ()=>setUnit('mm'));
+    $('unitInBtn').addEventListener('click', ()=>setUnit('in'));
+    $('modeDualBtn').addEventListener('click', ()=>setMode('dual'));
+    $('modeSingleBtn').addEventListener('click', ()=>setMode('single'));
+    $('shapeRectBtn').addEventListener('click', ()=>setShape(true));
+    $('shapeUBtn').addEventListener('click', ()=>setShape(false));
     // カメラのイベント
-    document.getElementById('cameraToggleBtn').addEventListener('click',toggleCamera);
-    document.getElementById('captureBtn').addEventListener('click',toggleFreeze);
-    document.getElementById('imageInput').addEventListener('change',handleImageLoad);
-    const toggle=document.getElementById('modeToggle');
+    $('cameraToggleBtn').addEventListener('click',toggleCamera);
+    $('captureBtn').addEventListener('click',toggleFreeze);
+    $('imageInput').addEventListener('change',handleImageLoad);
+    const toggle=$('modeToggle');
     toggle.addEventListener('change',()=>{ mode=toggle.checked?'single':'dual'; applyModeUI(); });
-    const flipBtn=document.getElementById('flipBtn');
-    if(flipBtn) flipBtn.addEventListener('click',()=>{ flipped=!flipped; flipBtn.style.background = flipped ? '#cfc' : '#fff'; requestRender(); });
-    // 前回の入力（モード・角度・幅・面など）を復元。保存が無ければ両側モードで開始
-    if(!restoreState()){ mode='dual'; if(toggle) toggle.checked=false; applyModeUI(); requestRender(); }
-    // 直接ドラッグで角度調整
+    const flipBtn=$('flipBtn');
+    if(flipBtn) flipBtn.addEventListener('click',()=>{ flipped=!flipped; flipBtn.classList.toggle('on', flipped); requestRender(); });
+    // 前回の入力を復元。保存が無ければ「2本をつなぐ」・幅は空欄で始める
+    if(!restoreState()){ mode='dual'; if(toggle) toggle.checked=false; applyModeUI(); applyUnitUI(); requestRender(); }
     setupCanvasDrag();
-    if(/[?&]selftest\b/.test(location.search)){ try{ runTests(); }catch(e){ console.warn('Tests failed:', e); } }   // 自己テストは ?selftest の時だけ（配布版の起動時に状態を書き換えない）
+    if(/[?&]selftest\b/.test(location.search)){ try{ runTests(); }catch(e){ console.warn('Tests failed:', e); } }
   }
 
   // ===== キャンバス直接ドラッグで角度調整 =====
@@ -969,32 +1069,32 @@
       const rv = Math.max(0, Math.min(100, (60  - rightAngle)/0.6));
       document.getElementById('leftSlider').value  = lv;            // 精密保持（step="any"）
       document.getElementById('rightSlider').value = rv;
-      document.getElementById('manualAngle').value = Math.round(Math.abs(leftAngle - rightAngle));
+      document.getElementById('manualAngle').value = fmtAng(Math.abs(leftAngle - rightAngle));
     }else{
       // 片側: leftAngle = 180 - 0.6*lv  → lv = (180 - leftAngle)/0.6
       const lv = Math.max(0, Math.min(100, (180 - leftAngle)/0.6));
       document.getElementById('leftSlider').value = lv;             // 精密保持（step="any"）
       const open = openAngleFromGuide();
-      document.getElementById('manualAngle').value = Math.round(Math.abs(open - 90));
+      document.getElementById('manualAngle').value = fmtAng(Math.abs(open - 90));
     }
   }
   function applyDragAngle(p){
     const a = pointerAngleDeg(p);
     if(mode==='dual'){
       if(dragTarget==='left'){
-        leftAngle = Math.max(120, Math.min(180, a));
+        leftAngle = q05(Math.max(120, Math.min(180, a)));
       }else{
         let r = a;
         if(r > 300) r = 0;
         else if(r > 60 && r <= 300) r = 60;
-        rightAngle = Math.max(0, Math.min(60, r));
+        rightAngle = q05(Math.max(0, Math.min(60, r)));
       }
     }else{
       // 片側: 120..180（真下方向への過度な傾きを除外）
       let s = a;
       if(s < 120) s = 120;
       if(s > 180) s = 180;
-      leftAngle = s;
+      leftAngle = q05(s);
     }
     updateSliderFromAngle();
     requestRender();
@@ -1048,42 +1148,27 @@
   const LOG_KEY='cutcalc_log_v1';
   function loadLog(){ try{ return JSON.parse(localStorage.getItem(LOG_KEY)||'[]'); }catch(e){ return []; } }
   function saveLogToStorage(log){ localStorage.setItem(LOG_KEY, JSON.stringify(log)); }
-  function readFaceWidths(){
-    const arr=[];
-    document.querySelectorAll('#faceRows .faceRow').forEach(r=>{
-      if(r.style.display==='none') return;
-      const inp=r.querySelector('.faceW');
-      const v=inp?parseNum(inp.value):NaN;
-      if(isFinite(v)&&v>0) arr.push(v);                 // 生値で返す（丸めは表示時のみ＝他経路と累計基準を統一）
-    });
-    return arr;
-  }
   function getCurrentMeasurement(){
-    const open=openAngleFromGuide(); const width=getWidth();
-    let displayAngle, cutLen;
-    if(mode==='single'){ displayAngle=Math.abs(open-90); cutLen=calcCutLenMm(displayAngle, width); }
-    else               { displayAngle=open;             cutLen=calcCutLenMm(open/2,        width); }
-    const facesRaw=readFaceWidths();
-    const ratioVal = width>0 ? cutLen/width : 0;
+    const ratio=cutRatio(), cut=currentCutLen(), facesRaw=visibleFacesMm();
     const rc=document.getElementById('rectMode'); const rect=!!(rc&&rc.checked);
     const pe=document.querySelector('input[name=rectPos]:checked'); const rectPos=pe?pe.value:'top';
     const ot=document.getElementById('offTaper'); const taper=!!(ot&&ot.checked);
-    const indep = rect;   // updateOffsetと同一モデル：四角=各面独立、側溝=同側累計
-    let cum=0; const offsets=facesRaw.map(f=>{ if(indep){ return Math.round(f*ratioVal); } cum+=f; return Math.round(cum*ratioVal); });
-    return { timestamp:new Date().toISOString(), mode, angle:Math.round(displayAngle*10)/10, width:Math.round(width), cutLen:Math.round(cutLen), faces:facesRaw.map(v=>Math.round(v*10)/10), offsets, rect, rectPos, taper };
+    const r1=v=>Math.round(v*10)/10;
+    let cum=0; const offsets=facesRaw.map(f=>{ if(rect) return r1(f*ratio); cum+=f; return r1(cum*ratio); });   // updateOffset と同じ：四角=各面独立、U字=同側累計
+    return { timestamp:new Date().toISOString(), mode, angle:r1(shownAngle()), width:(widthMm==null?null:r1(widthMm)), cutLen:(cut==null?null:r1(cut)), faces:facesRaw.map(r1), offsets, rect, rectPos, taper, unit };
   }
   function formatLogEntry(e){
     const d=new Date(e.timestamp);
-    const time=`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const time=(d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
     const m=(e.mode==='single')?t('mode_single'):t('mode_dual');
-    let base=`${time}  ${m} ∠${e.angle}° ${e.width}mm ✂${e.cutLen}mm`;
-    if(e.faces && e.faces.length) base+=`  ▦[${e.faces.join('/')}]→[${(e.offsets||[]).join('/')}]`;
+    let base=time+'  '+m+' ∠'+e.angle+'° W '+fmtLenFull(e.width,1)+' ✂'+fmtLenFull(e.cutLen,0);
+    if(e.faces && e.faces.length) base+='  ▦['+e.faces.map(v=>fmtLenU(v,1)).join('/')+']→['+(e.offsets||[]).map(v=>fmtLenU(v,0)).join('/')+']';
     return base;
   }
   function renderLogModal(){
     const cur=getCurrentMeasurement();
-    let curStr=`${cur.mode==='single'?t('mode_single'):t('mode_dual')} ・ ∠${cur.angle}° ・ ${cur.width}mm ・ ✂${cur.cutLen}mm`;
-    if(cur.faces && cur.faces.length) curStr+=` ・ ▦[${cur.faces.join('/')}]`;
+    let curStr=(cur.mode==='single'?t('mode_single'):t('mode_dual'))+' ・ ∠'+cur.angle+'° ・ W '+fmtLenFull(cur.width,1)+' ・ ✂'+fmtLenFull(cur.cutLen,0);
+    if(cur.faces && cur.faces.length) curStr+=' ・ ▦['+cur.faces.map(v=>fmtLenU(v,1)).join('/')+']';
     document.getElementById('logCurrentVals').textContent = curStr;
     { const ct=captureThumb(), cth=document.getElementById('logCurrentThumb'); if(cth){ if(ct){ cth.src=ct; cth.style.display=''; } else { cth.style.display='none'; } } }
     const list=loadLog();
@@ -1143,36 +1228,27 @@
     renderLogModal();
     showStatus(t(noPhoto?'st_log_nophoto':'st_log_saved'),'success');
   }
-  // 記録の復元（読込）：モード・幅・角度・面を再現
+  // 記録の復元（読込）：モード・幅・角度・面を再現（記録は mm で持っている）
   function restoreFaces(arr){
     arr = Array.isArray(arr) ? arr : [];
-    const rows=[].slice.call(document.querySelectorAll('#faceRows .faceRow'));
-    rows.forEach((r,i)=>{
-      const inp=r.querySelector('.faceW');
-      const show=(i===0)||(i<arr.length);
-      r.style.display = show ? '' : 'none';
-      if(inp) inp.value = (i<arr.length) ? arr[i] : '';
-    });
-    if(typeof syncRectUI==='function') syncRectUI();
-    if(typeof updateOffset==='function') updateOffset();
-    if(arr.length){
-      const b=document.getElementById('offsetBody'), t=document.getElementById('offsetToggle');
-      if(b && b.style.display==='none' && t) t.click();
-    }
+    faceMm=[0,1].map(i=>{ const v=+arr[i]; return (isFinite(v)&&v>0)?v:null; });
+    faceRowEls().forEach((r,i)=>{ r.style.display=(i===0||i<arr.length)?'':'none'; });
+    syncRectUI(); applyUnitUI(); updateOffset();
+    if(arr.length){ const b=document.getElementById('offsetBody'), tg=document.getElementById('offsetToggle'); if(b && b.style.display==='none' && tg) tg.click(); }
   }
   function restoreEntry(e){
     if(!e) return;
-    mode = (e.mode==='single') ? 'single' : 'dual';
+    mode=(e.mode==='single')?'single':'dual';
     applyModeUI();
-    const pw=document.getElementById('productWidth'); if(pw && e.width){ pw.value=e.width; lastValidWidth=Math.max(10, Math.min(9999, Math.round(+e.width)||520)); }
+    widthMm=(typeof e.width==='number'&&isFinite(e.width)&&e.width>0)?e.width:null;
     const ma=document.getElementById('manualAngle'); if(ma && (e.angle||e.angle===0)) ma.value=e.angle;
     applyManualAngle(true);          // 角度をガイドへ反映
-    // 四角モード設定を復元（古い記録はrect未保存→側溝扱い）
-    const rm=document.getElementById('rectMode'); if(rm) rm.checked=!!e.rect;
+    const rm=document.getElementById('rectMode'); if(rm) rm.checked=!!e.rect;   // 古い記録は rect 無し＝U字（側溝など）扱い
     if(e.rectPos){ const rp=document.querySelector('input[name=rectPos][value="'+e.rectPos+'"]'); if(rp) rp.checked=true; }
     const ot2=document.getElementById('offTaper'); if(ot2) ot2.checked=!!e.taper;
-    restoreFaces(e.faces);           // 面を再現（syncRectUI/updateOffsetを内部で呼ぶ）
-    requestRender();                 // ガイド・ずらし再計算
+    restoreFaces(e.faces);
+    applyUnitUI();
+    requestRender();
     closeLogModal();
     showStatus(t('st_log_loaded'),'success');
   }
@@ -1195,15 +1271,12 @@
   }
   // 「切断方法」タブ内のSVGの切断長表示を、現在のアプリ値で書き換え
   function updateHelpCutLen(){
-    const open = openAngleFromGuide();
-    const widthMm = getWidth();
-    const angDeg = (mode==='dual') ? open/2 : Math.abs(open - 90);
-    const cl = Math.round(calcCutLenMm(angDeg, widthMm));
+    const clTxt = fmtLenFull(currentCutLen(),0), extra = t(unit==='in'?'extra_in':'extra_mm');
     // 上面（ケガキ図）も側面も同じ切断長でおろす。±補正は表示しない（各面の向き・量はメイン欄のケガキ補正値で確認）
     const mEl = document.getElementById('markingCutLenText');
-    if(mEl) mEl.textContent = cl + ' mm ' + t('extra_mm');
+    if(mEl) mEl.textContent = clTxt + ' ' + extra;
     const sEl = document.getElementById('sideScribeCutLenText');
-    if(sEl) sEl.textContent = cl + ' mm ' + t('extra_mm');
+    if(sEl) sEl.textContent = clTxt + ' ' + extra;
   }
 
   // ===== 多言語（i18n）: 辞書は i18n.js（window.I18N）。エンジンは下に残す =====
@@ -1230,8 +1303,10 @@
     // 折りたたみボタンのラベル（▸/▾は維持）
     const ot=document.getElementById('offsetToggle'); if(ot){ const tri=ot.querySelector('.tri'); const open=tri&&tri.textContent==='▾'; ot.innerHTML='<span class="tri">'+(open?'▾':'▸')+'</span> '+t('offset_toggle'); }
     // カメラボタンの状態別ラベル
-    const cb=document.getElementById('cameraToggleBtn'); if(cb){ cb.textContent = (typeof stream!=='undefined'&&stream)? t('btn_camera_stop') : t('btn_camera'); }
-    const cap=document.getElementById('captureBtn'); if(cap){ cap.textContent = (typeof isCaptured!=='undefined'&&isCaptured)? t('btn_unfreeze') : t('btn_freeze'); }
+    setActLabel('cameraToggleBtn', (typeof stream!=='undefined'&&stream)? t('btn_camera_stop') : t('btn_camera'));
+    setActLabel('captureBtn', (typeof isCaptured!=='undefined'&&isCaptured)? t('btn_unfreeze') : t('btn_freeze'));
+    document.title = t('app_name');
+    syncModeLabels(); applyUnitUI(); lastResKey='';
     if(typeof requestRender==='function') requestRender();          // 上部バー等を再描画
     if(typeof updateHelpCutLen==='function') updateHelpCutLen();    // ＋数mm 等
     if(typeof renderLogModal==='function' && document.getElementById('logModal') && document.getElementById('logModal').classList.contains('show')) renderLogModal();
@@ -1243,6 +1318,7 @@
 
   var THEMES = [
     {id:'navy',         bg1:'#172554', bg2:'#1e3a8a', ac:'#fcd34d'},
+    {id:'outdoor',      bg1:'#000000', bg2:'#111111', ac:'#ffd400', panel:'rgba(255,255,255,.13)'},   // 屋外用（黒地に黄。日なたで読みやすい）
     {id:'ocean',        bg1:'#1e3c72', bg2:'#2a5298', ac:'#00bcd4'},
     {id:'slate_orange', bg1:'#1e293b', bg2:'#0f172a', ac:'#fb923c'},
     {id:'slate_green',  bg1:'#1e293b', bg2:'#0f172a', ac:'#22c55e'},
@@ -1285,7 +1361,8 @@
   var FIG = (function(){
     var MAX_FACES = 2;
     var X0=70, X1=290, Y_TOP=46, H_TOTAL=360, T1=60, T_W1=60, SHOULDER_V=100, F1_V=65, F2_V=50, CH_V=75, INNER_W=300;
-    var st = { W:520, L:135, faces:[], facesRaw:[], taper:false, rect:false, rectPos:'top' };
+    var st = { W:520, L:135, faces:[], facesRaw:[], taper:false, rect:false, rectPos:'top', example:false };
+    function WL(){ return st.example?'W':fmtLenU(st.W,0); }   // 幅が未入力なら数字を出さない（図は例の比率で描く）
     function $(id){ return document.getElementById(id); }
     function setSec(s){ var a=$('figSecSvg'); if(a) a.innerHTML=s; var b=$('figSecSvgMain'); if(b) b.innerHTML=s; }  // 断面図は解説とメイン埋め込みの両方へ
     function sx(){ return (X1-X0)/st.W; }
@@ -1321,7 +1398,7 @@
       topW=Math.min(topW, halfW); botW=Math.min(botW, halfW);
       var tWpx=topW*sx(), bWpx=botW*sx(), tHpx=topW*syv(), bHpx=botW*syv();
       var s='<defs><marker id="figDD2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="figDDr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b3261e"/></marker></defs>';
-      s+='<text x="180" y="16" text-anchor="middle" font-weight="700" font-size="12" fill="#222">'+t('fig_sec_title')+'（'+t('rect_sec')+(st.taper?'・'+t('fig_sec_taper'):'')+'）</text>';
+      s+='<text x="180" y="16" text-anchor="middle" font-weight="700" font-size="12" fill="#222">'+t('fig_sec_title')+'（'+t('rect_sec')+(st.taper?'・'+t('fig_sec_taper'):'')+'）'+(st.example?t('fig_example'):'')+'</text>';
       var d;
       if(st.taper){
         if(pos==='both'){ d='M'+F(X0+tWpx)+','+Y_TOP+' L'+X1+','+Y_TOP+' L'+F(X1-bWpx)+','+F(yBot)+' L'+X0+','+F(yBot)+' Z'; }
@@ -1334,7 +1411,7 @@
       }
       s+='<path d="'+d+'" fill="#e0e0e0" stroke="#1a1a1a" stroke-width="1.4" stroke-linejoin="round"/>';
       s+='<line x1="'+X0+'" y1="'+F(yBot+42)+'" x2="'+X1+'" y2="'+F(yBot+42)+'" stroke="#333" stroke-width="0.8" marker-start="url(#figDD2)" marker-end="url(#figDD2)"/>';
-      s+='<text x="180" y="'+F(yBot+38)+'" text-anchor="middle" font-size="10" fill="#333">'+fmt(st.W,0)+'</text>';
+      s+='<text x="180" y="'+F(yBot+38)+'" text-anchor="middle" font-size="10" fill="#333">'+WL()+'</text>';
       // 面の値は「横幅」＝横向きの寸法線（赤両矢印）で明示。各面を個別表示（累計しない）。縦/斜めとの混同を防ぐ。側溝モードの図は変更なし。
       var topFaces=(pos==='top')?faces.slice():(pos==='both'?[faces[0]||0]:[]);
       var botFaces=(pos==='bottom')?faces.slice():(pos==='both'?(faces[1]>0?[faces[1]]:[]):[]);
@@ -1342,13 +1419,13 @@
       topFaces.forEach(function(fw){ if(fw<=0) return; var x1=X0+Math.min(tcum,topW)*sx(), x2=X0+Math.min(tcum+fw,topW)*sx(); tcum+=fw; if(x2-x1<0.5) return;
         s+='<line x1="'+F(x1)+'" y1="'+ty+'" x2="'+F(x2)+'" y2="'+ty+'" stroke="#b3261e" stroke-width="1" marker-start="url(#figDDr)" marker-end="url(#figDDr)"/>'
          +'<line x1="'+F(x1)+'" y1="'+ty+'" x2="'+F(x1)+'" y2="'+Y_TOP+'" stroke="#e3a3a0" stroke-width="0.6"/><line x1="'+F(x2)+'" y1="'+ty+'" x2="'+F(x2)+'" y2="'+Y_TOP+'" stroke="#e3a3a0" stroke-width="0.6"/>'
-         +'<text x="'+F((x1+x2)/2)+'" y="'+(ty-3)+'" text-anchor="middle" font-size="9.5" fill="#b3261e" font-weight="700">'+fmt(fw,1)+'</text>'; });
+         +'<text x="'+F((x1+x2)/2)+'" y="'+(ty-3)+'" text-anchor="middle" font-size="9.5" fill="#b3261e" font-weight="700">'+fmtLenU(fw,1)+'</text>'; });
       var by=yBot+12, rightAnchor=(st.taper&&pos==='both'), bcum=0;
       botFaces.forEach(function(fw){ if(fw<=0) return; var d1=Math.min(bcum,botW), d2=Math.min(bcum+fw,botW); bcum+=fw; var x1,x2;
         if(rightAnchor){ x1=X1-d2*sx(); x2=X1-d1*sx(); } else { x1=X0+d1*sx(); x2=X0+d2*sx(); } if(Math.abs(x2-x1)<0.5) return;
         s+='<line x1="'+F(x1)+'" y1="'+by+'" x2="'+F(x2)+'" y2="'+by+'" stroke="#b3261e" stroke-width="1" marker-start="url(#figDDr)" marker-end="url(#figDDr)"/>'
          +'<line x1="'+F(x1)+'" y1="'+F(yBot)+'" x2="'+F(x1)+'" y2="'+by+'" stroke="#e3a3a0" stroke-width="0.6"/><line x1="'+F(x2)+'" y1="'+F(yBot)+'" x2="'+F(x2)+'" y2="'+by+'" stroke="#e3a3a0" stroke-width="0.6"/>'
-         +'<text x="'+F((x1+x2)/2)+'" y="'+(by+11)+'" text-anchor="middle" font-size="9.5" fill="#b3261e" font-weight="700">'+fmt(fw,1)+'</text>'; });
+         +'<text x="'+F((x1+x2)/2)+'" y="'+(by+11)+'" text-anchor="middle" font-size="9.5" fill="#b3261e" font-weight="700">'+fmtLenU(fw,1)+'</text>'; });
       setSec(s);
     }
 
@@ -1357,7 +1434,7 @@
       var nAll=st.faces.length, n=Math.min(nAll,MAX_FACES), faces=st.faces.slice(0,n);
       var C=cumsOf(faces), s='', F=function(v){ return (+v).toFixed(1); };
       s+='<defs><marker id="figDD" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker></defs>';
-      s+='<text x="180" y="16" text-anchor="middle" font-weight="700" font-size="12" fill="#222">'+t('fig_sec_title')+'（'+(n===0?t('fig_sec_none'):((n===1?t('fig_sec_one'):t('fig_sec_two'))+(st.taper?'・'+t('fig_sec_taper'):'')))+'）</text>';
+      s+='<text x="180" y="16" text-anchor="middle" font-weight="700" font-size="12" fill="#222">'+t('fig_sec_title')+'（'+(n===0?t('fig_sec_none'):((n===1?t('fig_sec_one'):t('fig_sec_two'))+(st.taper?'・'+t('fig_sec_taper'):'')))+'）'+(st.example?t('fig_example'):'')+'</text>';
       var yBot=py(H_TOTAL), d, startYs;
       if(n===2){
         var ySh=py(SHOULDER_V), yF1=py(SHOULDER_V+F1_V), yPl=yBot-F2_V*syv();
@@ -1404,14 +1481,14 @@
       s+='</g>';
       for(var i=0;i<n;i++){
         var y=rowY(i), p0=B[i], p1=B[i+1];
-        var seg=[[cxL(p0),cxL(p1),faces[i]],[cxL(p1),cxR(p1),Math.max(0,st.W-2*B[i+1])],[cxR(p1),cxR(p0),faces[i]]];
+        var seg=[[cxL(p0),cxL(p1),faces[i]],[cxL(p1),cxR(p1),Math.max(0,st.W-2*B[i+1]),1],[cxR(p1),cxR(p0),faces[i]]];
         s+='<g stroke="#555" stroke-width="0.8">';
         seg.forEach(function(g){ s+='<line x1="'+F(g[0])+'" y1="'+y+'" x2="'+F(g[1])+'" y2="'+y+'" marker-start="url(#figDD)" marker-end="url(#figDD)"/>'; });
         s+='</g>';
-        seg.forEach(function(g){ s+='<text x="'+F((g[0]+g[1])/2)+'" y="'+(y-5)+'" text-anchor="middle" font-size="10" fill="#333">'+fmt(g[2],1)+'</text>'; });
+        seg.forEach(function(g){ s+='<text x="'+F((g[0]+g[1])/2)+'" y="'+(y-5)+'" text-anchor="middle" font-size="10" fill="#333">'+((g[3]&&st.example)?'—':fmtLenU(g[2],1))+'</text>'; });
       }
       s+='<line x1="'+X0+'" y1="288" x2="'+X1+'" y2="288" stroke="#333" stroke-width="0.8" marker-start="url(#figDD)" marker-end="url(#figDD)"/>';
-      s+='<text x="180" y="284" text-anchor="middle" font-size="10" fill="#333">'+fmt(st.W,0)+'</text>';
+      s+='<text x="180" y="284" text-anchor="middle" font-size="10" fill="#333">'+WL()+'</text>';
       setSec(s);
     }
 
@@ -1424,7 +1501,7 @@
         +'</defs>';
       s+='<text x="180" y="17" text-anchor="middle" font-weight="700" font-size="13" fill="#222">'+t('fig_bot_title')+'</text>';
       s+='<line x1="'+X0+'" y1="44" x2="'+X1+'" y2="44" stroke="#3a7fc0" stroke-width="1" marker-start="url(#figOB)" marker-end="url(#figOB)"/>';
-      s+='<text x="180" y="40" text-anchor="middle" font-size="10" fill="#3a7fc0" font-weight="700">'+fmt(st.W,0)+'</text>';
+      s+='<text x="180" y="40" text-anchor="middle" font-size="10" fill="#3a7fc0" font-weight="700">'+WL()+'</text>';
       s+='<rect x="'+X0+'" y="'+y0+'" width="'+(X1-X0)+'" height="342" fill="url(#figFade)"/>';
       s+='<line x1="'+X0+'" y1="'+y0+'" x2="'+X1+'" y2="'+y0+'" stroke="#999" stroke-width="1"/>';
       s+='<line x1="'+X0+'" y1="'+y0+'" x2="'+X0+'" y2="362" stroke="#999" stroke-width="1"/>';
@@ -1433,10 +1510,10 @@
       var marks=[];
       if(st.rect){
         // 各面取りの span位置 p に、値=p×比率（＝その位置での切断線オフセット）を左右両側に表示。
-        marks=rectMarkPos().map(function(p){ return {x:xL(p), val:p*r, side:(p<st.W/2)?'L':'R'}; });
+        marks=rectMarkPos().map(function(p){ return {x:xL(p), val:p*r, side:(p<st.W/2)?'L':'R', needW:(p>=st.W/2)}; });
       } else {
         var dep=C.concat(C.slice().reverse().map(function(c){ return st.W-c; }));
-        marks=dep.map(function(dp,k){ return {x:xL(dp), val:dp*r, side:(k%2===0)?'L':'R'}; });
+        marks=dep.map(function(dp,k){ return {x:xL(dp), val:dp*r, side:(k%2===0)?'L':'R', needW:(k>=C.length)}; });
       }
       s+='<g stroke="#999" stroke-width="0.8" stroke-dasharray="4,3">';
       marks.forEach(function(m){ s+='<line x1="'+m.x.toFixed(1)+'" y1="'+y0+'" x2="'+m.x.toFixed(1)+'" y2="362"/>'; });
@@ -1445,37 +1522,34 @@
       s+='<line x1="'+X0+'" y1="'+y0+'" x2="'+X1+'" y2="'+yEnd.toFixed(1)+'" stroke="#2c8c2c" stroke-width="2.8"/>';
       s+='<circle cx="'+X0+'" cy="'+y0+'" r="3.2" fill="#2c8c2c"/>';
       s+='<text x="'+(X0-6)+'" y="'+(y0-3)+'" text-anchor="end" font-size="10" fill="#2c8c2c" font-weight="700">0</text>';
-      s+='<text x="'+(X1+6)+'" y="'+(yEnd+4).toFixed(1)+'" font-size="10" fill="#2c8c2c" font-weight="700">'+fmt(st.L,0)+'</text>';
+      s+='<text x="'+(X1+6)+'" y="'+(yEnd+4).toFixed(1)+'" font-size="10" fill="#2c8c2c" font-weight="700">'+(st.example?'—':fmtLenU(st.L,0))+'</text>';
       marks.forEach(function(m){ var vy=y0+m.val*sy, lft=(m.side==='L');
         s+='<line x1="'+m.x.toFixed(1)+'" y1="'+y0+'" x2="'+m.x.toFixed(1)+'" y2="'+vy.toFixed(1)+'" stroke="#cc2c2c" stroke-width="1.3" marker-end="url(#figOR)"/>';
         s+='<circle cx="'+m.x.toFixed(1)+'" cy="'+vy.toFixed(1)+'" r="2.6" fill="#cc2c2c"/>';
-        s+='<text x="'+(lft?m.x-6:m.x+6).toFixed(1)+'" y="'+(vy+3).toFixed(1)+'" '+(lft?'text-anchor="end" ':'')+'font-size="10" fill="#cc2c2c" font-weight="700">'+Math.round(m.val)+'</text>';
+        s+='<text x="'+(lft?m.x-6:m.x+6).toFixed(1)+'" y="'+(vy+3).toFixed(1)+'" '+(lft?'text-anchor="end" ':'')+'font-size="10" fill="#cc2c2c" font-weight="700">'+((m.needW&&st.example)?'—':fmtLenU(m.val,0))+'</text>';
       });
       $('figBotSvg').innerHTML=s;
     }
 
     function buildTable(){
-      var r=ratio(), C=cumsOf(st.faces);
-      // 底面図と一致：四角=面取りの span位置(左右両側)、側溝=累計＋左右対称。先頭0・末尾W付き。
+      if(st.example){ $('figCalcTable').innerHTML='<tr><td>'+t('res_need_width')+'</td></tr>'; return; }
+      var r=ratio(), C=cumsOf(st.faces), inch=(unit==='in');
+      // 下から見た図と一致：四角=面取りの位置（左右両側）、U字=累計＋左右対称。先頭0・末尾W付き。
       var depths = st.rect ? [0].concat(rectMarkPos(), [st.W])
                            : [0].concat(C, C.slice().reverse().map(function(c){ return st.W-c; }), [st.W]);
+      var dnum=function(v){ return inch?(v/25.4).toFixed(2):fmt(v,1); };   // 計算の列はインチなら小数で
       var html='<tr><th>'+t('tbl_cum')+'</th><th>'+t('tbl_calc')+'</th><th>'+t('tbl_offset')+'</th></tr>';
       var rD=Number(r.toFixed(4));
-      depths.forEach(function(dp){ html+='<tr><td>'+fmt(dp,1)+'</td><td class="f">'+fmt(dp,1)+' × '+r.toFixed(4)+' = '+fmt(dp*rD,1)+'</td><td><b>'+Math.round(dp*r)+'</b></td></tr>'; });  // 計算列は表示比率で自己整合・確定値は実比率で底面図と一致
+      depths.forEach(function(dp){ html+='<tr><td>'+fmtLenU(dp,1)+'</td><td class="f">'+dnum(dp)+' × '+r.toFixed(4)+' = '+dnum(dp*rD)+'</td><td><b>'+fmtLenU(dp*r,0)+'</b></td></tr>'; });
       $('figCalcTable').innerHTML=html;
     }
 
     function render(){
       if(!$('figSecSvg')) return;
-      st.W = getWidth();
-      st.L = currentCutLen();
-      var arr=[];
-      document.querySelectorAll('#faceRows .faceRow').forEach(function(row){
-        if(row.style.display==='none') return;
-        var inp=row.querySelector('.faceW');
-        var v=inp?parseNum(inp.value):NaN;
-        if(isFinite(v)&&v>0) arr.push(v);
-      });
+      st.example = (widthMm==null);
+      st.W = st.example ? 520 : widthMm;
+      st.L = st.W*cutRatio();
+      var arr=visibleFacesMm();
       // 非物理入力（面の累計が全幅超）でも図が破綻しないよう、図用に累計を全幅でキャップ（主パネルのケガキ補正値表示は実値のまま）
       var capped=[], run=0;
       arr.forEach(function(w){ if(run>=st.W) return; var c=Math.min(w, st.W-run); if(c>0){ capped.push(c); run+=c; } });
@@ -1520,7 +1594,8 @@
       scheduleSave();
     });
     const faceRows=document.getElementById('faceRows');
-    faceRows.addEventListener('input', (e)=>{ if(e.target.classList.contains('faceW')){ var cv=sanitizeFace(e.target.value); if(cv!==e.target.value) e.target.value=cv; updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); scheduleSave(); } });
+    faceRows.addEventListener('input', (e)=>{ if(e.target.classList.contains('faceW')){ var cv=sanitizeFace(e.target.value); if(cv!==e.target.value) e.target.value=cv; var i=faceRowEls().indexOf(e.target.closest('.faceRow')); var v=parseLen(cv); if(i>=0) faceMm[i]=(v!=null&&isFinite(v)&&v>0)?Math.min(W_MAX_MM,v):null; updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); scheduleSave(); } });
+    faceRows.addEventListener('change', (e)=>{ if(e.target.classList.contains('faceW')) onFaceCommit(e.target); });
     const reRender=()=>{ if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); };
     const offTaper=document.getElementById('offTaper'); if(offTaper) offTaper.addEventListener('change', ()=>{ reRender(); scheduleSave(); });
     const rectMode=document.getElementById('rectMode');
@@ -1601,7 +1676,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-a';   // 1.0.8（versionCode 10008）の準備中。-a＝段階A。★署名AABの前に '1.0.8' にすること
+  const APP_VERSION = '1.0.8-b';   // 1.0.8（versionCode 10008）の準備中。-b＝段階B。★署名AABの前に '1.0.8' にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
@@ -1622,7 +1697,7 @@
     if(a){
       a.textContent = CONTACT_MAIL;
       a.href = 'mailto:' + CONTACT_MAIL
-             + '?subject=' + encodeURIComponent('[側溝カットガイド ' + ver + '] ' + t('about_mail_subject'));
+             + '?subject=' + encodeURIComponent('[' + t('app_name') + ' ' + ver + '] ' + t('about_mail_subject'));
     }
   }
 </script>
@@ -1809,7 +1884,7 @@
     <!-- 情報タブ：バージョン／連絡先／開発元 -->
     <div class="help-section" data-section="about">
       <div class="about-app">
-        <div class="about-name">側溝カットガイド</div>
+        <div class="about-name" data-i18n="app_name">角度カットガイド</div>
         <div class="about-ver"><span data-i18n="about_version">バージョン</span> <b id="aboutVerNum">-</b></div>
       </div>
 
