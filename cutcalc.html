@@ -35,6 +35,20 @@
     .canvasWrap{ margin-top:4px }
     .canvasTools{ position:absolute; top:5px; left:50%; transform:translateX(-50%); z-index:2; display:flex; gap:6px; pointer-events:none; white-space:nowrap }
     .canvasTools.zoomed #fsEnterBtn span{ display:none }
+    .chipBtn.on, .canvasTools .chipBtn.on{ color:#fcd34d; border-color:#fcd34d }
+    /* 見やすさパネル（明るさ・見え方）：図の下側に重ねる */
+    .viewPanel{ position:absolute; left:8px; right:8px; bottom:8px; z-index:4; max-width:420px; margin:0 auto; padding:8px 36px 8px 10px; border-radius:12px; background:rgba(8,12,24,.92); color:#fff; box-shadow:0 6px 18px rgba(0,0,0,.45); display:flex; flex-direction:column; gap:6px }
+    .vpRow{ display:flex; align-items:center; flex-wrap:wrap; gap:6px 8px; min-height:40px }
+    .vpLbl{ font-size:12.5px; font-weight:700; min-width:3.6em; white-space:nowrap }
+    .vpCtl{ display:flex; align-items:center; gap:6px }
+    .vpPm{ min-width:40px; min-height:38px; padding:0; font-size:20px }
+    .vpPm:disabled{ opacity:.4; cursor:not-allowed }
+    .vpVal{ min-width:2.8em; text-align:center; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:16px; color:#fcd34d }
+    .vpAuto{ min-height:34px; padding:0 10px; color:#fff; background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.4) }
+    .vpAuto:disabled{ opacity:.45; cursor:default }
+    .vpNote{ font-size:12px; opacity:.85; line-height:1.4 }
+    .viewPanel .posSeg label span{ min-height:34px; min-width:46px }
+    .vpClose{ position:absolute; top:4px; right:4px; appearance:none; border:0; background:none; color:#fff; font-size:17px; width:32px; height:32px; cursor:pointer; opacity:.8 }
     .canvasTools .chipBtn{ pointer-events:auto; min-height:30px; padding:0 10px; font-size:12px; background:rgba(0,0,0,.58); color:#fff; border-color:rgba(255,255,255,.45) }
     .answer{ display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-areas:"al cl" "ac cv" ". cn"; column-gap:12px; align-items:center; margin-top:8px }
     .answer .aLbl{ grid-area:al; white-space:nowrap }
@@ -275,6 +289,7 @@
   <section class="card viewCard" id="viewCard">
     <div class="fsTop">
       <button type="button" class="fsBtn" id="fsExitBtn" data-i18n-aria="aria_fs_exit" aria-label="全画面を閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <button type="button" class="fsBtn" id="fsViewBtn" data-i18n-aria="vp_btn" aria-label="見やすさ" aria-expanded="false" aria-controls="viewPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></button>
       <button type="button" class="fsBtn" id="fsZoomBtn" data-i18n-aria="aria_zoom_reset" aria-label="拡大を元に戻す" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/></svg><span class="zLbl">1.0×</span></button>
       <div class="fsRes" id="fsRes"><span data-i18n="res_cut">切る長さ</span><b id="fsCut">—</b><small id="fsUnit">mm</small></div>
     </div>
@@ -304,7 +319,30 @@
       <canvas id="loupe" class="loupe" aria-hidden="true"></canvas>
       <div class="canvasTools">
         <button type="button" class="chipBtn" id="fsEnterBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span data-i18n="btn_fullscreen">全画面</span></button>
+        <button type="button" class="chipBtn" id="viewBtn" data-i18n-aria="vp_btn" data-i18n-title="vp_btn" aria-label="見やすさ" title="見やすさ" aria-expanded="false" aria-controls="viewPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></button>
         <button type="button" class="chipBtn" id="zoomResetBtn" data-i18n-aria="aria_zoom_reset" aria-label="拡大を元に戻す" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/></svg><span class="zLbl">1.0×</span></button>
+      </div>
+      <div class="viewPanel" id="viewPanel" hidden>
+        <div class="vpRow">
+          <span class="vpLbl" data-i18n="vp_exposure">明るさ</span>
+          <div class="vpCtl" id="vpExpCtl" hidden>
+            <button type="button" class="iconBtn vpPm" id="expMinus" data-i18n-aria="aria_exp_minus" aria-label="暗くする">−</button>
+            <b class="vpVal" id="expVal">0</b>
+            <button type="button" class="iconBtn vpPm" id="expPlus" data-i18n-aria="aria_exp_plus" aria-label="明るくする">＋</button>
+            <button type="button" class="chipBtn vpAuto" id="expAuto" data-i18n="vp_auto">自動</button>
+          </div>
+          <span class="vpNote" id="vpExpNote"></span>
+        </div>
+        <div class="vpRow">
+          <span class="vpLbl" data-i18n="vp_look">見え方</span>
+          <div class="posSeg" role="radiogroup" data-i18n-aria="vp_look" aria-label="見え方">
+            <label><input type="radio" name="viewLook" value="std" class="vh" checked><span data-i18n="vp_std">標準</span></label>
+            <label><input type="radio" name="viewLook" value="crisp" class="vh"><span data-i18n="vp_crisp">くっきり</span></label>
+            <label><input type="radio" name="viewLook" value="mono" class="vh"><span data-i18n="vp_mono">白黒</span></label>
+          </div>
+          <span class="vpNote" id="vpLookNote" data-i18n="vp_look_none" hidden></span>
+        </div>
+        <button type="button" class="vpClose" id="vpClose" data-i18n-aria="aria_close" aria-label="閉じる">✕</button>
       </div>
     </div>
     <div class="sliderRow">
@@ -476,10 +514,11 @@
     const k=Math.max(CW/src.w, CH/src.h)*sc, iw=src.w*k, ih=src.h*k;
     const ix=Math.min(0, Math.max(CW-iw, px-u0*iw)), iy=Math.min(0, Math.max(CH-ih, py-v0*ih));
     view={ s:sc, u:(CW/2-ix)/iw, v:(CH/2-iy)/ih };
+    lvT=0;   // 見えている範囲が変わった＝明るさの幅を測り直す
     if(!liveRAF) renderAll();   // ライブ中は次のフレームで描かれる
     syncZoomUI();
   }
-  function resetView(){ view={ s:1, u:0.5, v:0.5 }; if(!liveRAF) renderAll(); syncZoomUI(); }
+  function resetView(){ view={ s:1, u:0.5, v:0.5 }; lvT=0; if(!liveRAF) renderAll(); syncZoomUI(); }
   function isZoomed(){ return view.s>1.01 || Math.abs(view.u-0.5)>0.01 || Math.abs(view.v-0.5)>0.01; }
   let zoomKey='';
   function syncZoomUI(){
@@ -494,7 +533,10 @@
     const src=bgSource(); if(!src) return;
     const r=bgRect(src, W, H);
     if(src.el===photo) gtx.imageSmoothingQuality='high';
+    updateLevels(src);
+    const f=lookFilter(); if(f!=='none') gtx.filter=f;   // 見え方（くっきり・白黒）
     gtx.drawImage(src.el, r.x, r.y, r.w, r.h);
+    if(f!=='none') gtx.filter='none';
   }
 
   // ===== 幾何補助 =====
@@ -885,6 +927,9 @@
       if(gen!==camGen){ s.getTracks().forEach(tr=>tr.stop()); return; }   // 許可を待つ間に止められた／裏に回った
       stream=s; video.srcObject=stream; await video.play().catch(()=>{});   // play中断(AbortError等)はカメラ失敗扱いにしない（getUserMediaは成功済み）
       if(gen!==camGen) return;   // 再生の開始を待つ間に止められた
+      camTrack=s.getVideoTracks()[0]||null; expCaps=null;
+      if(!silent) expVal=0; else if(expVal!==0) setExposure(expVal);   // 裏から戻ったときは、前の明るさに戻す
+      setTimeout(()=>{ if(gen===camGen) syncViewPanel(); }, 1000);   // 端末の対応状況は、映像が出てから分かることがある
       isCaptured=false; photo.width=photo.height=0; capTilt=null;
       if(!silent) view={ s:1, u:0.5, v:0.5 };   // 自分で起動したときは拡大を戻す（裏から戻ったときはそのまま）
       startLiveLoop();
@@ -904,7 +949,7 @@
   }
   function startLiveLoop(){ tiltStart(); if(liveRAF) return; const loop=()=>{ if(!stream){ liveRAF=null; tiltStop(); return; } renderAll(); liveRAF=requestAnimationFrame(loop); }; liveRAF=requestAnimationFrame(loop); }
   function stopLiveLoop(){ tiltStop(); if(liveRAF){ cancelAnimationFrame(liveRAF); liveRAF=null; } }
-  function stopCamera(){ camGen++; camStarting=false; camAutoResume=false; stopLiveLoop(); if(stream){ stream.getTracks().forEach(tr=>tr.stop()); stream=null; } video.pause(); video.srcObject=null; keepAwake(false); setActLabel('cameraToggleBtn', t('btn_camera')); document.getElementById('cameraToggleBtn').classList.remove('on'); { const cb=document.getElementById('captureBtn'); cb.disabled=true; setActLabel('captureBtn', t('btn_freeze')); } isCaptured=false; photo.width=photo.height=0; capTilt=null; view={ s:1, u:0.5, v:0.5 }; endLineDrag(); renderAll(); showStatus(t('st_cam_off'),'info'); }
+  function stopCamera(){ camGen++; camStarting=false; camAutoResume=false; stopLiveLoop(); if(stream){ stream.getTracks().forEach(tr=>tr.stop()); stream=null; } video.pause(); video.srcObject=null; keepAwake(false); setActLabel('cameraToggleBtn', t('btn_camera')); document.getElementById('cameraToggleBtn').classList.remove('on'); { const cb=document.getElementById('captureBtn'); cb.disabled=true; setActLabel('captureBtn', t('btn_freeze')); } isCaptured=false; photo.width=photo.height=0; capTilt=null; view={ s:1, u:0.5, v:0.5 }; camTrack=null; expCaps=null; expVal=0; endLineDrag(); renderAll(); syncViewPanel(); showStatus(t('st_cam_off'),'info'); }
   // 画面を点けたままにする（対応ブラウザのみ。アプリ版はネイティブ側でも指定する）
   let wakeLock=null;
   async function keepAwake(on){
@@ -920,7 +965,7 @@
     camGen++; camStarting=false;
     camAutoResume=!isCaptured;
     stopLiveLoop();
-    stream.getTracks().forEach(tr=>tr.stop()); stream=null;
+    stream.getTracks().forEach(tr=>tr.stop()); stream=null; camTrack=null; expCaps=null;
     video.pause(); video.srcObject=null; keepAwake(false);
     setActLabel('cameraToggleBtn', t('btn_camera')); document.getElementById('cameraToggleBtn').classList.remove('on');
     if(!isCaptured){ const cb=document.getElementById('captureBtn'); cb.disabled=true; setActLabel('captureBtn', t('btn_freeze')); }
@@ -935,6 +980,7 @@
     if(!(video.videoWidth>0)) return showStatus(t('st_no_video'),'error');
     const vw=video.videoWidth, vh=video.videoHeight;
     capTilt=tiltNow();
+    lvEl=null;   // 止めた1コマで、明るさの幅をすぐ測り直す
     photo.width=vw; photo.height=vh;
     const p=photo.getContext('2d'); p.clearRect(0,0,vw,vh); p.drawImage(video,0,0,vw,vh);
     isCaptured=true; stopLiveLoop(); renderAll();
@@ -961,7 +1007,7 @@
       photo.width=Math.max(1, Math.round(iw*k)); photo.height=Math.max(1, Math.round(ih*k));
       const p=photo.getContext('2d'); p.clearRect(0,0,photo.width,photo.height); p.drawImage(img,0,0,photo.width,photo.height);
       capTilt=null; isCaptured=true; stopLiveLoop(); endLineDrag();
-      view={ s:1, u:0.5, v:0.5 };
+      view={ s:1, u:0.5, v:0.5 }; lvEl=null;
       if(stream){ const cb=document.getElementById('captureBtn'); cb.disabled=false; setActLabel('captureBtn', t('btn_unfreeze')); }   // カメラ中に写真を読んだ：「再開」でライブに戻れる
       renderAll(); done();
       showStatus(t('st_img_ok'),'success');
@@ -1020,6 +1066,95 @@
     gtx.lineJoin='round'; gtx.lineWidth=2.5; gtx.strokeStyle='rgba(0,0,0,0.8)'; gtx.strokeText(txt, tx, ty);
     gtx.fillStyle=col; gtx.fillText(txt, tx, ty);
     gtx.restore();
+  }
+
+  // ===== 見やすさ：明るさ（露出補正。カメラ中・対応端末だけ）と見え方（標準／くっきり／白黒） =====
+  // 真っ白に飛んだ所は、映ったあとでは戻らない＝まず明るさを下げる。見え方は、映っている明るさの幅を広げて縁をくっきりさせる
+  const LOOK_KEY='cutcalc_look';
+  const LOOK_OK=(function(){ try{ const c=document.createElement('canvas').getContext('2d'); if(!c || !('filter' in c)) return false; c.filter='contrast(1.5)'; return c.filter==='contrast(1.5)'; }catch(e){ return false; } })();   // iPhone のブラウザは未対応
+  let look=(function(){ try{ const v=localStorage.getItem(LOOK_KEY); if(v==='crisp'||v==='mono') return v; }catch(e){} return 'std'; })();
+  let lv={ lo:0, hi:1 }, lvT=0, lvEl=null;
+  const lvCv=document.createElement('canvas'); lvCv.width=48; lvCv.height=36;
+  const lvCtx=lvCv.getContext('2d', { willReadFrequently:true });
+  // 明るさの幅 [lo,hi] を 0〜1 に広げる brightness(b)→contrast(c)（強くしすぎない範囲に抑える）
+  function levelsBC(lo, hi){
+    const b=1/Math.max(0.2, hi+lo), c=(hi+lo)/Math.max(0.05, hi-lo);
+    return { b:Math.max(0.5, Math.min(2, b)), c:Math.max(1, Math.min(3, c)) };
+  }
+  function updateLevels(src, force){
+    if(look==='std' || !LOOK_OK || !src || !lvCtx) return;
+    const now=performance.now();
+    if(!force && src.el===lvEl && now-lvT<500) return;   // 映像は0.5秒ごとに測り直す
+    const first=force || src.el!==lvEl; lvT=now; lvEl=src.el;
+    try{
+      const r=bgRect(src, CW, CH);   // 画面に見えている範囲（拡大・移動を含む）だけで測る
+      lvCtx.clearRect(0,0,48,36);
+      lvCtx.drawImage(src.el, (-r.x)/r.w*src.w, (-r.y)/r.h*src.h, CW/r.w*src.w, CH/r.h*src.h, 0, 0, 48, 36);
+      const d=lvCtx.getImageData(0,0,48,36).data, hist=new Uint32Array(256); let n=0;
+      for(let i=0;i<d.length;i+=4){ hist[(d[i]*77+d[i+1]*150+d[i+2]*29)>>8]++; n++; }
+      const cut=(look==='mono')?0.03:0.02, pick=p=>{ let acc=0; for(let k=0;k<256;k++){ acc+=hist[k]; if(acc>=n*p) return k/255; } return 1; };
+      let lo=pick(cut), hi=pick(1-cut);
+      if(hi-lo<0.25){ const m=(hi+lo)/2; lo=Math.max(0, m-0.125); hi=Math.min(1, m+0.125); }   // ほぼ一色の画面で、ざらつきを強めすぎない
+      if(first) lv={ lo, hi }; else { lv.lo+=(lo-lv.lo)*0.5; lv.hi+=(hi-lv.hi)*0.5; }   // 映像はちらつかないよう、なめらかに
+    }catch(e){}
+  }
+  function lookFilter(){
+    if(look==='std' || !LOOK_OK) return 'none';
+    const bc=levelsBC(lv.lo, lv.hi);
+    if(look==='mono') return 'grayscale(1) brightness('+bc.b.toFixed(3)+') contrast('+(bc.c*1.2).toFixed(3)+')';
+    return 'brightness('+bc.b.toFixed(3)+') contrast('+(bc.c*1.08).toFixed(3)+') saturate(1.15)';
+  }
+  function setLook(v){
+    if(v!=='std' && v!=='crisp' && v!=='mono') return;
+    look=v; try{ localStorage.setItem(LOOK_KEY, v); }catch(e){}
+    lvT=0; lvEl=null;
+    if(!liveRAF) renderAll();
+    syncViewPanel();
+  }
+  // カメラの明るさ（露出補正）。端末が対応しているときだけ
+  let camTrack=null, expVal=0, expCaps=null;
+  function readExpCaps(){
+    expCaps=null;
+    try{
+      const c=(camTrack && camTrack.getCapabilities) ? camTrack.getCapabilities() : null, e=c && c.exposureCompensation;
+      if(e && typeof e.min==='number' && typeof e.max==='number' && e.max>e.min){
+        const st=(typeof e.step==='number' && e.step>0) ? e.step : (e.max-e.min)/12;
+        expCaps={ min:e.min, max:e.max, inc:st*Math.max(1, Math.round((1/3)/st)) };   // 1回で約1/3段
+      }
+    }catch(err){ expCaps=null; }
+    return expCaps;
+  }
+  async function setExposure(v){
+    if(!camTrack || !(expCaps || readExpCaps())) return;
+    v=Math.max(expCaps.min, Math.min(expCaps.max, v)); if(Math.abs(v)<1e-6) v=0;
+    expVal=v; syncViewPanel();   // 押したらすぐ表示（続けて押しても、前の値に積み上がるように）
+    const tr=camTrack;
+    try{ await tr.applyConstraints({ advanced:[{ exposureCompensation:v }] }); }catch(e){ /* 受け付けられなかった */ }
+    if(tr!==camTrack || expVal!==v) return;   // 途中で止めた／もっと押された
+    try{ const st=tr.getSettings ? tr.getSettings() : {}; if(typeof st.exposureCompensation==='number') expVal=st.exposureCompensation; }catch(e){}
+    syncViewPanel();
+  }
+  function isViewPanelOpen(){ const p=document.getElementById('viewPanel'); return !!(p && !p.hidden); }
+  function toggleViewPanel(on){
+    const p=document.getElementById('viewPanel'); if(!p) return;
+    on=(on==null) ? p.hidden : !!on;
+    p.hidden=!on;
+    ['viewBtn','fsViewBtn'].forEach(id=>{ const b=document.getElementById(id); if(b) b.setAttribute('aria-expanded', on); });
+    if(on) syncViewPanel();
+  }
+  function syncViewPanel(){
+    const $=id=>document.getElementById(id);
+    const live=!!(stream && camTrack);
+    if(live && !expCaps) readExpCaps();
+    const canExp=live && !!expCaps, ctl=$('vpExpCtl'), note=$('vpExpNote');
+    if(ctl) ctl.hidden=!canExp;
+    if(note){ note.hidden=canExp; note.textContent=t(live?'vp_exp_none':'vp_exp_cam'); }
+    if($('expVal')) $('expVal').textContent=(expVal>0?'+':expVal<0?'−':'')+(Math.round(Math.abs(expVal)*10)/10);
+    if(canExp){ $('expMinus').disabled=(expVal<=expCaps.min+1e-6); $('expPlus').disabled=(expVal>=expCaps.max-1e-6); $('expAuto').disabled=(expVal===0); }
+    document.querySelectorAll('input[name=viewLook]').forEach(r=>{ r.checked=(r.value===look); r.disabled=!LOOK_OK; });
+    if($('vpLookNote')) $('vpLookNote').hidden=LOOK_OK;
+    const active=(LOOK_OK && look!=='std') || expVal!==0;   // 何か効いているときは「☀」を黄色に
+    ['viewBtn','fsViewBtn'].forEach(id=>{ const b=$(id); if(b) b.classList.toggle('on', active); });
   }
 
   // ===== 全画面（図を画面いっぱいに。閉じる＝✕・端末の戻る・Esc） =====
@@ -1193,6 +1328,7 @@
       eq(Math.round(calcCutLenMm(75,520)), 139, '線との角度75°・520');
       const br=bgRect({w:200,h:100}, 100, 100, 1, 0.5, 0.5); eq(br.x+','+br.y+','+br.w, '-50,0,200', '横長の写真を正方形に（中央）');
       const br2=bgRect({w:200,h:100}, 100, 100, 2, 0, 0); eq(br2.x+','+br2.y+','+br2.w, '0,0,400', '2倍・左上に寄せる');
+      { const bc=levelsBC(0.3, 0.95), mp=x=>(x*bc.b-0.5)*bc.c+0.5; eq(Math.round(mp(0.3)*100)/100+','+Math.round(mp(0.95)*100)/100, '0,1', '明るさの幅 0.30〜0.95 を 0〜1 に'); }
       const g0=tiltG, t0=tiltT;
       try{
         const c10=Math.cos(10*Math.PI/180), s10=Math.sin(10*Math.PI/180);
@@ -1381,7 +1517,7 @@
     ltx.translate(R,R); ltx.scale(Z,Z); ltx.translate(-px,-py);
     const r=bgRect(src, CW, CH);
     ltx.imageSmoothingQuality='high';
-    ltx.drawImage(src.el, r.x, r.y, r.w, r.h);
+    { const f=lookFilter(); if(f!=='none') ltx.filter=f; ltx.drawImage(src.el, r.x, r.y, r.w, r.h); if(f!=='none') ltx.filter='none'; }
     ltx.lineCap='round';
     guideRays().forEach((g,i)=>{   // 拡大鏡の中の線は細く（太いと縁が隠れる）
       ltx.setLineDash((mode==='single' && i===1) ? [6/Z, 5/Z] : []);
@@ -1547,6 +1683,7 @@
     const ob=document.getElementById('onboard'); if(ob && ob.classList.contains('show')){ closeOnboard(); return true; }
     const lm=document.getElementById('logModal'); if(lm && lm.classList.contains('show')){ closeLogModal(); return true; }
     const hm=document.getElementById('helpModal'); if(hm && hm.classList.contains('show')){ closeHelpModal(); return true; }
+    if(isViewPanelOpen()){ toggleViewPanel(false); return true; }
     if(isFullscreen()){ setFullscreen(false); return true; }
     return false;
   };
@@ -1673,6 +1810,7 @@
     document.title = t('app_name');
     syncModeLabels(); applyUnitUI(); lastResKey=''; fsKey=''; zoomKey='';
     if(typeof syncFsBar==='function') syncFsBar(true);
+    if(typeof syncViewPanel==='function') syncViewPanel();
     if(typeof requestRender==='function') requestRender();          // 上部バー等を再描画
     if(typeof updateHelpCutLen==='function') updateHelpCutLen();    // ＋数mm 等
     if(typeof renderLogModal==='function' && document.getElementById('logModal') && document.getElementById('logModal').classList.contains('show')) renderLogModal();
@@ -1986,6 +2124,14 @@
     document.getElementById('fsFreezeBtn').addEventListener('click', toggleFreeze);
     document.getElementById('fsMinus').addEventListener('click', ()=>nudgeAngle(-0.5));
     document.getElementById('fsPlus').addEventListener('click', ()=>nudgeAngle(+0.5));
+    // 見やすさ（明るさ・見え方）
+    ['viewBtn','fsViewBtn'].forEach(id=>document.getElementById(id).addEventListener('click', ()=>toggleViewPanel()));
+    document.getElementById('vpClose').addEventListener('click', ()=>toggleViewPanel(false));
+    document.getElementById('expMinus').addEventListener('click', ()=>{ if(expCaps || readExpCaps()) setExposure(expVal-expCaps.inc); });
+    document.getElementById('expPlus').addEventListener('click', ()=>{ if(expCaps || readExpCaps()) setExposure(expVal+expCaps.inc); });
+    document.getElementById('expAuto').addEventListener('click', ()=>setExposure(0));
+    document.querySelectorAll('input[name=viewLook]').forEach(r=>r.addEventListener('change', ()=>{ if(r.checked) setLook(r.value); }));
+    syncViewPanel();
     ['zoomResetBtn','fsZoomBtn'].forEach(id=>document.getElementById(id).addEventListener('click', resetView));
     document.addEventListener('keydown', e=>{ if(e.key==='Escape' && window.cutcalcBack()) e.preventDefault(); });
     document.addEventListener('fullscreenchange', ()=>{ if(!document.fullscreenElement && isFullscreen()) setFullscreen(false); else fitCanvas(); });   // ブラウザの戻る等で本当の全画面が解けたら、こちらも閉じる
@@ -2061,7 +2207,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c1.3';   // 1.0.8（versionCode 10008）の準備中。-c1.3＝段階C-1＋1画面の並び＋全画面の入口を図の上に。★署名AABの前に '1.0.8' にすること
+  const APP_VERSION = '1.0.8-c1.4';   // 1.0.8（versionCode 10008）の準備中。-c1.4＝段階C-1＋1画面の並び＋全画面の入口＋屋外の見やすさ。★署名AABの前に '1.0.8' にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
@@ -2119,6 +2265,7 @@
         <li data-i18n="h_hidden_li6"></li>
         <li data-i18n="h_hidden_li7"></li>
         <li data-i18n="h_hidden_li8"></li>
+        <li data-i18n="h_hidden_li9"></li>
       </ul>
 
       <h4 data-i18n="h_dual_h">2本をつなぐ</h4>
