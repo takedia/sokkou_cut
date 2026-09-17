@@ -22,10 +22,10 @@
     .help-btn .qmk{ color:var(--accent); font-weight:800; font-size:14px; line-height:1 }
     /* カード */
     .card{ background:var(--panel); border:1px solid rgba(255,255,255,.16); border-radius:14px; padding:10px }
-    /* 計測パネル：①切り方 ②材料の幅 → 図 → ③角度 ④切る長さ（上から順に） */
+    /* 計測パネル：①切り方 ②材料の幅 ③測り方 → 図 → 角度 → 切る長さ（上から順に） */
     .viewCard{ padding:6px 10px 10px }
-    #angleGuide{ width:100%; aspect-ratio:4/3; min-height:170px; max-height:calc(100vh - 424px); background:rgba(0,0,0,.22); border-radius:10px; display:block; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none }
-    @supports (height:100dvh){ #angleGuide{ max-height:calc(100dvh - 424px) } }
+    #angleGuide{ width:100%; aspect-ratio:4/3; min-height:170px; max-height:calc(100vh - 470px); background:rgba(0,0,0,.22); border-radius:10px; display:block; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none }
+    @supports (height:100dvh){ #angleGuide{ max-height:calc(100dvh - 470px) } }
     #angleGuide.dragging{ cursor:grabbing }
     .stepRow{ display:flex; align-items:center; gap:8px; min-height:46px }
     .stepRow .sw{ margin:0 auto }
@@ -233,7 +233,7 @@
     .tool-apply{ display:block; width:100%; min-height:44px; margin-top:8px; font-size:14px }
     .tool-apply.lite{ min-height:40px; margin-top:6px; font-size:13px; box-shadow:none; border:1px solid #cbd5e1 }
     /* 測り方（カメラで測る／当てて測る） */
-    .methodRow{ display:flex; justify-content:center; margin:6px 0 0 }
+    .methodRow{ margin-top:2px }
     html.touchMode .canvasTools, html.touchMode .sliderRow, html.touchMode .camOnly{ display:none !important }
     html:not(.touchMode) .touchOnly{ display:none !important }
     @media (max-width:380px){ .methodRow .swOpt svg{ display:none } }
@@ -419,7 +419,8 @@
         </div>
       </div>
     </div>
-    <div class="methodRow">
+    <div class="stepRow methodRow">
+      <span class="stepNo" aria-hidden="true">3</span>
       <div class="sw" id="methodSw" data-pos="left" role="group" data-i18n-aria="method_aria" aria-label="測り方">
         <button type="button" class="swOpt" id="methodCamBtn" aria-pressed="true"><span class="led"></span><svg viewBox="0 0 26 18" aria-hidden="true"><rect x="3" y="4.5" width="20" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="13" cy="10.5" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 4.5l1.5-2.5h5L17 4.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span data-i18n="method_cam">カメラで測る</span></button>
         <button type="button" class="swTrack" id="methodTrack" data-i18n-aria="method_aria" aria-label="測り方"><span class="swKnob"></span></button>
@@ -483,13 +484,13 @@
       <div id="rightWrap" class="sWrap"><input type="range" id="rightSlider" min="0" max="100" step="any" value="75" data-i18n-aria="aria_right" aria-label="右の線" /></div>
     </div>
     <div class="answer">
-      <label class="stepLbl aLbl" for="manualAngle"><span class="stepNo" aria-hidden="true">3</span><span id="angleLabel">開き角</span></label>
+      <label class="stepLbl aLbl" for="manualAngle"><span id="angleLabel">開き角</span></label>
       <div class="fld aCtl">
         <button type="button" class="iconBtn" id="angleMinus" data-i18n-aria="aria_minus" aria-label="0.5度小さく">−</button>
         <input id="manualAngle" class="numfield angleField" type="text" inputmode="decimal" maxlength="5" autocomplete="off" aria-labelledby="angleLabel" data-i18n-ph="ph_angle" placeholder="例 90" /><span class="degSign">°</span>
         <button type="button" class="iconBtn" id="anglePlus" data-i18n-aria="aria_plus" aria-label="0.5度大きく">＋</button>
       </div>
-      <span class="stepLbl cLbl"><button type="button" class="shareBtn" id="shareBtn" data-i18n-aria="share_btn" data-i18n-title="share_btn" aria-label="結果を画像で送る" title="結果を画像で送る"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="17.5" cy="5.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><circle cx="17.5" cy="18.5" r="2.5"/><path d="M8.7 10.7l6.6-3.9M8.7 13.3l6.6 3.9"/></svg></button><span class="stepNo" aria-hidden="true">4</span><span data-i18n="res_cut">切る長さ</span></span>
+      <span class="stepLbl cLbl"><button type="button" class="shareBtn" id="shareBtn" data-i18n-aria="share_btn" data-i18n-title="share_btn" aria-label="結果を画像で送る" title="結果を画像で送る"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="17.5" cy="5.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><circle cx="17.5" cy="18.5" r="2.5"/><path d="M8.7 10.7l6.6-3.9M8.7 13.3l6.6 3.9"/></svg></button><span data-i18n="res_cut">切る長さ</span></span>
       <div class="readout" id="readout" aria-live="polite"><b id="resCut">—</b><small id="resUnit">mm</small></div>
       <span class="resMm" id="resCutMm"></span>
       <div class="cmpRow" id="cmpRow" hidden><button type="button" class="cmpVal" id="cmpCam">—</button><button type="button" class="cmpVal" id="cmpTouch">—</button><b id="cmpDiff">—</b></div>
@@ -1477,10 +1478,11 @@
       { const o=curveCalc({ r:5000, side:'out', w:90, anchor:'li', val:1963.25 }); eq(Math.round(o.lo), 2000, '曲線：内側の長さから外側を出す'); }
       eq(Math.round(chordRadius(3000, 230)), 5006, '曲線：弦3000・矢高230 → 半径5006');
       eq(curveCalc({ r:1000, side:'out', anchor:'lo', val:2100 }).err, 'curve_bad', '曲線：長さが長すぎる');
-      { const a=rotLong(eulerToQuat(0,0,0)), b=rotLong(eulerToQuat(-25,0,90)), c=rotLong(eulerToQuat(0,10,0)); eq(Math.round(turnOf(b.h, a.h)*10)/10+'|'+Math.round(b.tilt)+'|'+Math.round(c.tilt)+'|'+Math.round(c.h), '25|0|10|0', '角を測る：寝かせて0 → 長い辺で立てて右へ25°＝25（傾きは無関係）'); }
+      { const a=rotAlong(eulerToQuat(0,0,0)), b=rotAlong(eulerToQuat(-25,0,90)), c=rotAlong(eulerToQuat(0,10,0)); eq(Math.round(turnOf(b.h, a.h)*10)/10+'|'+Math.round(b.tilt)+'|'+Math.round(c.tilt)+'|'+Math.round(c.h), '25|0|10|0', '当てて測る：寝かせて0 → 長い辺で立てて右へ25°＝25（傾きは無関係）'); }
+      { const m0=mode; try{ mode='single'; const a=rotAlong(eulerToQuat(0,90,0)), b=rotAlong(eulerToQuat(-30,90,0)); eq((a.upright?'up':'flat')+'|'+Math.round(turnOf(b.h, a.h))+'|'+Math.round(a.tilt)+'|'+Math.round(a.plumb), 'up|30|0|0', '面に当てる：縦に持っても短い辺の向きで測れる（右へ30°）'); }finally{ mode=m0; } }
       eq(turnOf(-170, 170)+'|'+turnOf(10, 350), '20|20', '角を測る：0°／360° をまたいでも曲がりは正しい');
       { const m0=mode, k0=touch.kind; try{ mode='dual'; touch.kind='turn'; const a=touchAngle(-23.7), a2=touchAngle(150); touch.kind='inner'; const b=touchAngle(90), b2=touchAngle(30); mode='single'; const c=touchAngle(100); eq(Math.round(a*10)/10+'|'+a2+'|'+b+'|'+b2+'|'+c, '156.3|150|90|150|80', '当てて測る：外角23.7°→156.3・向きの取り違えは自動で直す（回転150→150、内角30→150）・壁は鋭角80'); }finally{ mode=m0; touch.kind=k0; } }
-      { const h0=rotHist, q0=rotQ, t0=rotT; try{ const now=performance.now(); rotHist=[]; for(let i=0;i<20;i++) rotHist.push({ t:now-700+i*35, h:(i%2) ? -179.9 : 179.9, tilt:1 }); rotQ=[0,0,0,1]; rotT=now; const st=rotSteady(600, 0.3); rotHist.push({ t:now, h:-170, tilt:1 }); const mv=rotSteady(600, 0.3); eq((st ? String(Math.round(turnOf(st.h, 180)*10)/10+0) : 'null')+'|'+(mv ? 'steady' : 'moving'), '0|moving', '当てて測る：止まっていれば平均（180°をまたいでも）、動いていれば待つ'); }finally{ rotHist=h0; rotQ=q0; rotT=t0; } }
+      { const h0=rotHist, q0=rotQ, t0=rotT; try{ const now=performance.now(); rotHist=[]; for(let i=0;i<20;i++) rotHist.push({ t:now-700+i*35, q:eulerToQuat((i%2) ? 179.9 : -179.9, 0, 0) }); rotQ=[0,0,0,1]; rotT=now; const st=rotSteady(600, 0.3); rotHist.push({ t:now, q:eulerToQuat(170, 0, 0) }); const mv=rotSteady(600, 0.3); eq((st ? String(Math.round(turnOf(st.h, 180)*10)/10+0) : 'null')+'|'+(mv ? 'steady' : 'moving'), '0|moving', '当てて測る：止まっていれば平均（180°をまたいでも）、動いていれば待つ'); }finally{ rotHist=h0; rotQ=q0; rotT=t0; } }
       const g0=tiltG, t0=tiltT;
       try{
         const c10=Math.cos(10*Math.PI/180), s10=Math.sin(10*Math.PI/180);
@@ -2153,12 +2155,16 @@
   var TOUCH_TILT_MAX=30;   // これより傾けると向きが不安定になるので取り込まない
   // 向きのセンサー：アプリ＝ジャイロ＋加速度（磁気は使わない＝鉄筋やグレーチングで狂わない）、ブラウザ＝deviceorientation
   var rotQ=null, rotT=0, rotOn=false, rotSrc='', rotHist=[];
-  function rotLong(q){   // スマホの長い辺（端末の y 軸）が水平面で向く方向（上から見て右回りが＋）と、水平からの傾き
-    const x=q[0], y=q[1], z=q[2], w=q[3], vx=2*(x*y-w*z), vy=1-2*(x*x+z*z), vz=2*(y*z+w*x);
-    return { h:Math.atan2(vx, vy)/D2R, tilt:Math.asin(Math.max(-1, Math.min(1, vz)))/D2R };
+  const asinDeg=v=>Math.asin(Math.max(-1, Math.min(1, v)))/D2R;
+  function rotAlong(q){   // 当てた辺が水平面で向く方向（上から見て右回りが＋）。長い辺が寝ていれば長い辺、面に当てるときに立てていれば短い辺
+    const x=q[0], y=q[1], z=q[2], w=q[3];
+    const Y=[2*(x*y-w*z), 1-2*(x*x+z*z), 2*(y*z+w*x)], X=[1-2*(y*y+z*z), 2*(x*y+w*z), 2*(x*z-w*y)], Zz=1-2*(x*x+y*y);
+    const tY=asinDeg(Y[2]), tX=asinDeg(X[2]), up=(mode==='single' && Math.abs(tY)>45);   // 面に当てるときは縦置きを標準に（面との角度は鋭角なので、辺の向きの±は関係ない）
+    const A=up ? X : Y;
+    return { h:Math.atan2(A[0], A[1])/D2R, tilt:up ? tX : tY, upright:up, plumb:asinDeg(Zz) };
   }
   function turnOf(h1, h0){ return ((h1-h0+540)%360)-180; }   // 回転（−180〜180、右が＋）
-  function rotPush(q){ rotQ=q; rotT=performance.now(); const L=rotLong(q); rotHist.push({ t:rotT, h:L.h, tilt:L.tilt }); while(rotHist.length>2 && rotT-rotHist[0].t>1500) rotHist.shift(); }
+  function rotPush(q){ rotQ=q; rotT=performance.now(); rotHist.push({ t:rotT, q }); while(rotHist.length>2 && rotT-rotHist[0].t>1500) rotHist.shift(); }
   window.cutcalcRot=function(x, y, z, w){ rotPush([+x, +y, +z, +w]); };   // アプリから約30回/秒
   function eulerToQuat(a, b, g){   // deviceorientation（alpha・beta・gamma、Z-X'-Y''）→ 四元数 [x,y,z,w]
     const hx=b*D2R/2, hy=g*D2R/2, hz=a*D2R/2, cx=Math.cos(hx), cy=Math.cos(hy), cz=Math.cos(hz), sx=Math.sin(hx), sy=Math.sin(hy), sz=Math.sin(hz);
@@ -2178,10 +2184,10 @@
   function rotSteady(ms, tol){   // 直近 ms のあいだ向きの揺れが tol° 以内なら、その平均（置いたまま動いていない）
     const now=performance.now(); if(!rotQ || now-rotT>500) return null;
     const pts=rotHist.filter(p=>now-p.t<=ms); if(pts.length<5 || now-pts[0].t<ms*0.8) return null;
-    const ref=pts[pts.length-1].h; let sum=0, mn=Infinity, mx=-Infinity, tilt=0;
-    pts.forEach(p=>{ const d=turnOf(p.h, ref); sum+=d; mn=Math.min(mn, d); mx=Math.max(mx, d); tilt+=p.tilt; });
+    const ls=pts.map(p=>rotAlong(p.q)), ref=ls[ls.length-1].h; let sum=0, mn=Infinity, mx=-Infinity, tilt=0, plumb=0, up=0;
+    ls.forEach(L=>{ const d=turnOf(L.h, ref); sum+=d; mn=Math.min(mn, d); mx=Math.max(mx, d); tilt+=L.tilt; plumb+=L.plumb; if(L.upright) up++; });
     if(mx-mn>tol) return null;
-    return { h:ref+sum/pts.length, tilt:tilt/pts.length };
+    return { h:ref+sum/ls.length, tilt:tilt/ls.length, plumb:plumb/ls.length, upright:up>ls.length/2 };
   }
   var beepCtx=null;
   function touchPrimeAudio(){ try{ if(!beepCtx){ const AC=window.AudioContext || window.webkitAudioContext; if(AC) beepCtx=new AC(); } if(beepCtx && beepCtx.state==='suspended') beepCtx.resume(); }catch(e){} }   // 押したときに用意（音は取り込んだときに鳴らす）
@@ -2245,16 +2251,18 @@
     const { cx, cy }=getApex(), halfW=Math.min(W, H)*0.078, t0=(touch.step===3 && touch.fix) ? touch.fix.turn : touch.live;
     const eff=(mode==='single') ? 'wall' : ((t0==null) ? touch.kind : touchKindFor(Math.abs(t0)));
     const PL=Math.max(42, Math.min(64, halfW*3.1)), PW=Math.max(22, Math.min(30, halfW*1.45));
-    const phone=(x, y, ang, top, active, label, lx, ly)=>{   // ang＝長い辺の向き、top＝+1 なら ang の向きがスマホの上
+    const phone=(x, y, ang, top, active, label, lx, ly, standing)=>{   // ang＝当てた辺の向き、top＝+1 なら ang の向きがスマホの上。standing＝立てて当てている（上から見ると細い）
       gtx.save(); gtx.translate(x, y); gtx.rotate(ang);
-      const r=5, x0=-PL/2, y0=-PW/2;
-      gtx.beginPath(); gtx.moveTo(x0+r, y0); gtx.lineTo(x0+PL-r, y0); gtx.quadraticCurveTo(x0+PL, y0, x0+PL, y0+r); gtx.lineTo(x0+PL, y0+PW-r); gtx.quadraticCurveTo(x0+PL, y0+PW, x0+PL-r, y0+PW); gtx.lineTo(x0+r, y0+PW); gtx.quadraticCurveTo(x0, y0+PW, x0, y0+PW-r); gtx.lineTo(x0, y0+r); gtx.quadraticCurveTo(x0, y0, x0+r, y0); gtx.closePath();
+      const PWd=standing ? 8 : PW, r=standing ? 3 : 5, x0=-PL/2, y0=-PWd/2;
+      gtx.beginPath(); gtx.moveTo(x0+r, y0); gtx.lineTo(x0+PL-r, y0); gtx.quadraticCurveTo(x0+PL, y0, x0+PL, y0+r); gtx.lineTo(x0+PL, y0+PWd-r); gtx.quadraticCurveTo(x0+PL, y0+PWd, x0+PL-r, y0+PWd); gtx.lineTo(x0+r, y0+PWd); gtx.quadraticCurveTo(x0, y0+PWd, x0, y0+PWd-r); gtx.lineTo(x0, y0+r); gtx.quadraticCurveTo(x0, y0, x0+r, y0); gtx.closePath();
       gtx.fillStyle=active ? '#fcd34d' : 'rgba(15,23,42,.92)'; gtx.fill(); gtx.lineWidth=2; gtx.strokeStyle=active ? '#0b1220' : 'rgba(255,255,255,.9)'; gtx.stroke();
       const ink=active ? '#0b1220' : '#ffffff';
       gtx.fillStyle=ink; gtx.strokeStyle=ink; gtx.lineCap='round';
-      gtx.beginPath(); gtx.arc(top*(PL/2-5.5), 0, 2.4, 0, Math.PI*2); gtx.fill();   // カメラの丸＝スマホの上
-      gtx.beginPath(); gtx.moveTo(-top*(PL/2-9), 0); gtx.lineTo(top*(PL/2-18), 0); gtx.lineWidth=2.4; gtx.stroke();   // 矢印の軸
-      gtx.beginPath(); gtx.moveTo(top*(PL/2-10), 0); gtx.lineTo(top*(PL/2-21), -6); gtx.lineTo(top*(PL/2-21), 6); gtx.closePath(); gtx.fill();   // 矢印の先
+      if(!standing){   // 立てて当てているときは、上から見ると細いので印だけ
+        gtx.beginPath(); gtx.arc(top*(PL/2-5.5), 0, 2.4, 0, Math.PI*2); gtx.fill();   // カメラの丸＝スマホの上
+        gtx.beginPath(); gtx.moveTo(-top*(PL/2-9), 0); gtx.lineTo(top*(PL/2-18), 0); gtx.lineWidth=2.4; gtx.stroke();   // 矢印の軸
+        gtx.beginPath(); gtx.moveTo(top*(PL/2-10), 0); gtx.lineTo(top*(PL/2-21), -6); gtx.lineTo(top*(PL/2-21), 6); gtx.closePath(); gtx.fill();   // 矢印の先
+      }
       gtx.restore();
       gtx.save(); gtx.font='700 14px sans-serif'; gtx.textAlign='center'; gtx.textBaseline='middle'; gtx.lineWidth=4; gtx.strokeStyle='rgba(0,0,0,.85)'; gtx.strokeText(label, lx, ly); gtx.fillStyle=active ? '#fcd34d' : '#ffffff'; gtx.fillText(label, lx, ly); gtx.restore();
     };
@@ -2266,24 +2274,24 @@
     const lab=(p)=>[p.x-p.nx*(PW/2+13), p.y-p.ny*(PW/2+13)];
     if(mode==='dual'){
       const a=along(leftAngle, +1), b=along(rightAngle, -1), la=lab(a), lb=lab(b);
-      phone(a.x, a.y, a.rad, -1, touch.step===1, '①', la[0], la[1]);                          // ①：上を2本の角へ
-      phone(b.x, b.y, b.rad, (eff==='inner') ? -1 : +1, touch.step>=2, '②', lb[0], lb[1]);   // ②：外角（曲がり）は角から離れる向き、内角は角へ
+      phone(a.x, a.y, a.rad, -1, touch.step===1, '1', la[0], la[1]);                          // 1本目：上を2本の角へ
+      phone(b.x, b.y, b.rad, (eff==='inner') ? -1 : +1, touch.step>=2, '2', lb[0], lb[1]);   // 2本目：外角（曲がり）は角から離れる向き、内角は角へ
     } else {
       const side=flipped ? -1 : 1, b=along(renderAngle(leftAngle), flipped ? -1 : +1), lb=lab(b);
-      const wy=Math.min(H-PL/2-10, cy+Math.max(PL*0.9, (H-cy)*0.45)), wx=cx-side*(PW/2+3);   // ①は壁（点線）に沿わせる
-      phone(wx, wy, Math.PI/2, -1, touch.step===1, '①', wx-side*(PW/2+14), wy);
-      phone(b.x, b.y, b.rad, +1, touch.step>=2, '②', lb[0], lb[1]);
+      const wy=Math.min(H-PL/2-10, cy+Math.max(PL*0.9, (H-cy)*0.45)), wx=cx-side*(PW/2+3);   // 1本目は面（点線）に沿わせる。立てて当てるのが標準なので細く描く
+      phone(wx, wy, Math.PI/2, -1, touch.step===1, '1', wx-side*(PW/2+14), wy, true);
+      phone(b.x, b.y, b.rad, +1, touch.step>=2, '2', lb[0], lb[1], !!(rotQ && rotAlong(rotQ).upright));
     }
   }
   function renderTouch(force){
     if(!touch.on) return;
     const $=id=>document.getElementById(id), now=performance.now(), r1=v=>(v==null) ? null : Math.round(v*10)/10;
-    const cur=(rotQ && now-rotT<1000) ? rotLong(rotQ) : null, noSensor=(!cur && now-touch.t0>1500);
+    const cur=(rotQ && now-rotT<1000) ? rotAlong(rotQ) : null, noSensor=(!cur && now-touch.t0>1500);
     if(touch.waiting){   // 0 にする／確定：押した指の揺れがおさまり、置いたまま動かなくなったら取り込む
       const st=rotSteady(600, 0.3);
       if(st && Math.abs(st.tilt)<=TOUCH_TILT_MAX){
-        if(touch.waiting==='zero'){ touch.before=Math.round(shownAngle()*10)/10; touch.zero={ h:st.h, tilt:st.tilt, t:now }; touch.fix=null; touch.step=2; }
-        else if(touch.zero){ touch.fix={ turn:turnOf(st.h, touch.zero.h), tilt:st.tilt, t:now }; touch.step=3; touchApply(); }
+        if(touch.waiting==='zero'){ touch.before=Math.round(shownAngle()*10)/10; touch.zero={ h:st.h, tilt:st.tilt, upright:st.upright, t:now }; touch.fix=null; touch.step=2; }
+        else if(touch.zero){ touch.fix={ turn:turnOf(st.h, touch.zero.h), tilt:st.tilt, upright:st.upright, t:now }; touch.step=3; touchApply(); }
         touch.waiting=''; touch.msg=''; touchBeep();
       } else if(now-touch.waitT>4000){ touch.msg=(touch.waiting==='zero') ? 'touch_move_zero' : 'touch_move_fix'; touch.waiting=''; }
     }
@@ -2311,11 +2319,11 @@
     else if(tiltBad) note=t('touch_tilt_bad');
     else if(touch.step===1) note=t(wall ? 'touch_n1_wall' : 'touch_n1');
     else if(touch.step===2) note=t(wall ? 'touch_n2_wall' : ((eff || touch.kind)==='inner' ? 'touch_n2_inner' : 'touch_n2_turn'))+autoLine+(old ? '\n'+t('touch_old') : '');
-    else { note=t('touch_n3')+autoLine; if(touch.fix && touch.zero && Math.abs(touch.fix.tilt-touch.zero.tilt)>10) note+='\n'+t('touch_tilt_diff').replace('{a}', fmtAng(r1(touch.zero.tilt))).replace('{b}', fmtAng(r1(touch.fix.tilt))); }
+    else { note=t('touch_n3')+autoLine; if(touch.fix && touch.zero && touch.fix.upright===touch.zero.upright && Math.abs(touch.fix.tilt-touch.zero.tilt)>10) note+='\n'+t('touch_tilt_diff').replace('{a}', fmtAng(r1(touch.zero.tilt))).replace('{b}', fmtAng(r1(touch.fix.tilt))); }
     $('touchNote').textContent=note;
-    const lv=$('touchLevel'), at=(tilt==null) ? null : Math.abs(tilt);
-    lv.classList.toggle('ok', at!=null && at<=5); lv.classList.toggle('warn', at!=null && at>5 && !tiltBad); lv.classList.toggle('bad', tiltBad);
-    $('touchTilt').textContent=(at==null) ? '—' : t('touch_tilt').replace('{v}', fmtAng(r1(at)));
+    const lv=$('touchLevel'), upright=!!(cur && cur.upright), dev=(cur==null) ? null : Math.abs(upright ? cur.plumb : cur.tilt);   // 縦置きなら「垂直から」、寝かせているなら「水平から」
+    lv.classList.toggle('ok', dev!=null && dev<=5); lv.classList.toggle('warn', dev!=null && dev>5 && !tiltBad); lv.classList.toggle('bad', tiltBad);
+    $('touchTilt').textContent=(dev==null) ? '—' : t(upright ? 'touch_plumb' : 'touch_tilt').replace('{v}', fmtAng(r1(dev)));
     const zb=$('touchZeroBtn'), fb=$('touchFixBtn'), rb=$('touchResetBtn');
     zb.hidden=(touch.step!==1); fb.hidden=(touch.step!==2); rb.hidden=(touch.step===1);
     zb.disabled=(!cur || touch.waiting==='fix'); fb.disabled=(!cur || !touch.zero || touch.waiting==='zero');
@@ -3118,7 +3126,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c8.1';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
+  const APP_VERSION = '1.0.8-c9';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
