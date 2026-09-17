@@ -211,10 +211,21 @@
     .tool-seg{ padding:2px; gap:2px; margin-left:auto }
     .tool-seg label span{ min-height:32px; min-width:0; padding:0 9px; font-size:12px }
     .tool-seg input:disabled + span{ opacity:.35; cursor:not-allowed }
-    .tool-figs{ display:flex; gap:6px; margin:8px 0 6px }
-    .tool-fig{ display:block; width:100%; height:auto; margin:6px auto; background:#f8fafc; border:1px solid #e5e7eb; border-radius:8px }
-    .tool-figs .tool-fig{ margin:0; min-width:0 }
-    .tool-figs .tool-fig:first-child{ flex:0 0 34% }
+    .tool-fig{ display:block; width:100%; height:auto; margin:4px auto 8px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:8px }
+    .tool-grp{ margin:10px 2px 4px; font-size:12.5px; font-weight:700; color:#334155 }
+    .tool-grid{ display:grid; grid-template-columns:1fr 1fr; gap:6px 10px; margin:0 0 8px }
+    .tool-cell{ display:flex; flex-direction:column; gap:2px; min-width:0; margin:0 }
+    .tool-cap{ font-size:12px; font-weight:700; color:#475569; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+    .tool-cell .tool-ctl{ margin-left:0; gap:4px }
+    .tool-cell .numfield{ flex:1 1 auto; width:auto; min-width:0 }
+    .numfield.calc{ background:#eef2f7; color:#1d4ed8; border-color:transparent }
+    .tool-sec .swOpt{ color:#1f2937 }
+    .tool-cams{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 0 6px }
+    .tool-cam{ appearance:none; border:1px solid #cbd5e1; background:#fff; color:#1f2937; border-radius:12px; padding:10px 6px 8px; display:flex; flex-direction:column; align-items:center; gap:2px; font:inherit; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.08) }
+    .tool-cam svg{ width:30px; height:30px }
+    .tool-cam b{ font-size:14px }
+    .tool-cam small{ font-size:11px; color:#64748b; line-height:1.3; text-align:center }
+    .tool-link{ appearance:none; display:block; border:0; background:none; color:#1d4ed8; font:inherit; font-size:12.5px; font-weight:700; padding:2px 2px 8px; cursor:pointer; text-decoration:underline }
     .tool-res{ margin:6px 0; padding:8px 12px; border-radius:10px; background:linear-gradient(180deg,#070b14,#131c2e); color:#fff; display:grid; gap:3px }
     .tool-res:empty{ display:none }
     .tool-res div{ display:flex; justify-content:space-between; align-items:baseline; gap:10px }
@@ -1416,12 +1427,15 @@
       eq(csvCell('a,b')+'|'+csvCell('say "hi"'), '"a,b"|"say ""hi"""', 'CSV のカンマ・引用符');
       eq(JSON.stringify(sanitizeMaterial({ name:'  U字300 ', widthMm:300, shape:{ rect:false, faceMm:[15,null] } })), '{"name":"U字300","widthMm":300,"shape":{"rect":false,"rectPos":"top","taper":false,"faceMm":[15,null]}}', '材料を整える');
       eq(sanitizeEntry({ timestamp:'2026-09-17T05:00:00.000Z', mode:'dual', angle:135, width:520, cutLen:215, thumb:'javascript:alert(1)' }).thumb, undefined, '読み込み：写真以外の data は入れない');
-      { const r=polyCalc({ n:8, w:90, mode:'out', size:300 }); eq(Math.round(r.li*10)/10+'|'+r.miter+'|'+r.open, '225.4|22.5|135', '枠：八角・幅90・外側300 → 内側225.4'); }
-      { const r=polyCalc({ n:6, w:90, mode:'across', size:600 }); eq(Math.round(r.lo*10)/10, 346.4, '枠：六角・外寸600 → 外側の辺346.4'); }
-      { const r=polyCalc({ n:8, w:90, mode:'out', size:300 }), st=polyStock(r, { stock:1820, kerf:3 }); eq(st.alt+'|'+st.str, '6|6', '枠：定尺1820・刃3 → 1本から6本'); }
-      { const o=curveCalc({ method:'r', r:5000, l:2000, w:null, a:90, edge:'out' }); eq(Math.round(o.theta*100)/100+'|'+o.n+'|'+Math.round(o.lExact), '23.07|4|1951', '曲線：半径5000・長さ2000・90° → 4本・1951'); }
-      { const o=curveCalc({ method:'chord', c:3000, h:230, l:2000, edge:'out' }); eq(Math.round(o.R), 5006, '曲線：弦3000・矢高230 → 半径5006'); }
-      eq(curveCalc({ method:'r', r:1000, l:2100 }).err, 'curve_bad', '曲線：長さが半径の2倍を超える');
+      { const r=polyCalc({ n:8, w:90, anchor:'lo', val:300 }); eq(Math.round(r.li*10)/10+'|'+r.miter+'|'+r.open+'|'+Math.round(r.dout)+'|'+Math.round(r.din), '225.4|22.5|135|724|544', '枠：八角・幅90・外側の辺300 → 内側225.4・外寸724・内寸544'); }
+      { const r=polyCalc({ n:6, w:90, anchor:'dout', val:600 }); eq(Math.round(r.lo*10)/10+'|'+Math.round(r.din), '346.4|420', '枠：六角・外寸600 → 外側の辺346.4・内寸420'); }
+      { const r=polyCalc({ n:4, w:45, anchor:'din', val:500 }); eq(Math.round(r.lo)+'|'+Math.round(r.dout), '590|590', '枠：四角・内寸500・幅45 → 外側の辺590'); }
+      { const r=polyCalc({ n:8, w:90, anchor:'lo', val:300 }), st=polyStock(r, { stock:1820, kerf:3 }); eq(st.alt+'|'+st.str, '6|6', '枠：定尺1820・刃3 → 1本から6本'); }
+      { const o=curveCalc({ r:5000, side:'out', w:null, a:90, anchor:'lo', val:2000 }); eq(Math.round(o.theta*100)/100+'|'+fmtCount(o.n)+'|'+fmtCount(3.97)+'|'+fmtCount(4.001), '23.07|3.9|3.97|4', '曲線：半径5000・外側2000・90° → 23.07°・3.9本'); }
+      { const o=curveCalc({ r:5000, side:'out', w:90, a:90, anchor:'n', val:4 }); eq(Math.round(o.lo)+'|'+Math.round(o.li*10)/10+'|'+o.open, '1951|1915.1|157.5', '曲線：90°を4本 → 外側1951・内側1915.1'); }
+      { const o=curveCalc({ r:5000, side:'out', w:90, anchor:'li', val:1963.25 }); eq(Math.round(o.lo), 2000, '曲線：内側の長さから外側を出す'); }
+      eq(Math.round(chordRadius(3000, 230)), 5006, '曲線：弦3000・矢高230 → 半径5006');
+      eq(curveCalc({ r:1000, side:'out', anchor:'lo', val:2100 }).err, 'curve_bad', '曲線：長さが長すぎる');
       { const lg=curLang; try{ curLang='ja'; eq(slopeText(26.5651, 'pct')+'|'+slopeText(26.5651, 'frac')+'|'+slopeText(33.6901, 'ratio')+'|'+wariText(2), '50%|1/2|1:1.5（1割5分）|2割', '勾配：％・1/n・割'); }finally{ curLang=lg; } }
       { const g0=tiltG, t0=tiltT; try{ tiltT=performance.now(); tiltG={ x:0, y:9.8*Math.sin(30*Math.PI/180), z:9.8*Math.cos(30*Math.PI/180) }; eq(Math.round(slopeRaw()*10)/10, 30, '勾配：長い辺を30°'); }finally{ tiltG=g0; tiltT=t0; } }
       const g0=tiltG, t0=tiltT;
@@ -1847,9 +1861,19 @@
     const p=st.poly||{}, c=st.curve||{}, g=st.slope||{}, pick=(v, list, def)=>(list.indexOf(v)>=0 ? v : def);
     return {
       tab: pick(st.tab, ['poly','curve','slope'], 'poly'),
-      poly:{ n:clampInt(p.n,3,24,8), w:posLen(p.w), mode:pick(p.mode,['out','in','across'],'out'), size:posLen(p.size), stock:posLen(p.stock), kerf:(typeof p.kerf==='number' && p.kerf>=0 && p.kerf<50) ? p.kerf : 3, stockOpen:!!p.stockOpen },
-      curve:{ method:pick(c.method,['r','chord'],'r'), r:posLen(c.r), c:posLen(c.c), h:posLen(c.h), l:posLen(c.l), w:posLen(c.w), a:(typeof c.a==='number' && c.a>0 && c.a<=360) ? c.a : null, edge:pick(c.edge,['out','in'],'out') },
-      slope:{ method:pick(g.method,['touch','sight','photo'],'touch'), unit:pick(g.unit,['deg','pct','ratio','rise','frac'],'deg'), cal:(typeof g.cal==='number' && Math.abs(g.cal)<10) ? g.cal : 0, tri:pick(g.tri,['h','len','d'],'h'), triV:posLen(g.triV), triOpen:!!g.triOpen, result:null }
+      poly:(function(){   // 大きさは「最後に入れた欄（anchor）とその値」。前の形（mode/size）からも引き継ぐ
+        let anchor=pick(p.anchor, ['lo','li','dout','din'], null), val=posLen(p.val);
+        if(!anchor){ anchor={ out:'lo', in:'li', across:'dout' }[p.mode] || 'lo'; val=posLen(p.size); }
+        return { n:clampInt(p.n,3,24,8), w:posLen(p.w), anchor, val, stock:posLen(p.stock), kerf:(typeof p.kerf==='number' && p.kerf>=0 && p.kerf<50) ? p.kerf : 3, stockOpen:!!p.stockOpen };
+      })(),
+      curve:(function(){   // 長さは 外側・内側・本数 のどれか（最後に入れたもの）。前の形（edge/l/method）からも引き継ぐ
+        const side=pick(c.side || c.edge, ['out','in'], 'out');
+        let anchor=pick(c.anchor, ['lo','li','n'], null), val=(anchor==='n') ? clampInt(c.val,1,99,null) : posLen(c.val);
+        if(!anchor){ anchor=(side==='out') ? 'lo' : 'li'; val=posLen(c.l); }
+        const r=posLen(c.r) || ((c.c>0 && c.h>0) ? posLen(c.c*c.c/(8*c.h)+c.h/2) : null);
+        return { r, side, w:posLen(c.w), anchor, val, a:(typeof c.a==='number' && c.a>0 && c.a<=360) ? c.a : null, c:posLen(c.c), h:posLen(c.h), chordOpen:!!c.chordOpen };
+      })(),
+      slope:{ unit:pick(g.unit,['deg','pct','ratio','rise','frac'],'deg'), cal:(typeof g.cal==='number' && Math.abs(g.cal)<10) ? g.cal : 0, tri:pick(g.tri,['h','len','d'],'h'), triV:posLen(g.triV), triOpen:!!g.triOpen, result:null }
     };
   })();
   let toolSaveTimer=null;
@@ -1874,7 +1898,7 @@
     if(tools.tab==='poly') renderPoly();
     else if(tools.tab==='curve') renderCurve();
     else renderSlope(force);
-    if(tools.tab==='slope' && tools.slope.method==='touch') slopeStart(); else slopeStop();
+    if(tools.tab==='slope' && !tools.slope.result) slopeStart(); else slopeStop();
   }
   function setLenField(id, mm){ const el=document.getElementById(id); if(el && document.activeElement!==el) el.value=fmtLenInput(mm); }
   function setRadios(name, val, disabledVals){ document.querySelectorAll('input[name='+name+']').forEach(x=>{ x.checked=(x.value===val); x.disabled=!!(disabledVals && disabledVals.indexOf(x.value)>=0); }); }
@@ -1894,70 +1918,83 @@
     requestRender(); syncMatName(true);
     showStatus(t('st_tool_applied').replace('{l}', t(m==='single' ? 'angle_line' : 'angle_open')).replace('{v}', fmtAng(shownAngle())), 'success');
   }
-  // 1本の切り出し図（上＝外側の辺、下＝内側の辺、両端＝直角からの切る角度。角度は絵のとおりの傾き）
-  function drawPiece(svgId, lo, li, miter, w){
-    const svg=document.getElementById(svgId); if(!svg) return; svg.replaceChildren();
-    const x0=18, x1=212, top=38, h=54, off=Math.max(5, Math.min(80, h*Math.tan(Math.max(0.5, Math.min(75, miter||0))*D2R)));
-    const q=[[x0,top],[x1,top],[x1-off,top+h],[x0+off,top+h]];
-    svg.appendChild(svgEl('path', { d:'M'+q.map(v=>v[0].toFixed(1)+','+v[1].toFixed(1)).join('L')+'Z', fill:'#fde68a', stroke:'#334155', 'stroke-width':'1.4' }));
-    [[x0,1],[x1,-1]].forEach(e=>{
-      svg.appendChild(svgEl('line', { x1:e[0], y1:top-4, x2:e[0], y2:top+h+10, stroke:'#64748b', 'stroke-width':'1', 'stroke-dasharray':'3 2' }));   // 直角の線
-      svg.appendChild(svgEl('line', { x1:e[0], y1:top, x2:(e[0]+e[1]*off).toFixed(1), y2:top+h, stroke:'#16a34a', 'stroke-width':'2.6' }));   // 切る線
-      const r=24, a=Math.atan2(h, e[1]*off);
-      svg.appendChild(svgEl('path', { d:'M'+e[0]+','+(top+r)+' A'+r+','+r+' 0 0 '+(e[1]>0?0:1)+' '+(e[0]+r*Math.cos(a)).toFixed(1)+','+(top+r*Math.sin(a)).toFixed(1), fill:'none', stroke:'#15803d', 'stroke-width':'1.3' }));
-    });
-    const txt=(x,y,str,color,anchor,size)=>svg.appendChild(svgEl('text', { x:x.toFixed(1), y:y.toFixed(1), 'font-size':String(size||11), 'font-weight':'700', fill:color||'#1f2937', 'text-anchor':anchor||'middle' }, str));
-    txt((x0+x1)/2, top-10, t('curve_edge_out')+'  '+(lo!=null ? fmtLenFull(lo,1) : '—'));
-    txt((x0+x1)/2, top+h+18, t('curve_edge_in')+'  '+(li!=null ? fmtLenFull(li,1) : '—'));
-    if(miter!=null) txt(x0+2, top+h+36, fmtAng(miter)+'°', '#15803d', 'start', 12);
-    if(w!=null) txt((x0+x1)/2, top+h/2+4, t('wh')+' '+fmtLenFull(w,0), '#475569', 'middle', 10);
+  // ---- 図の共通：点を縦横同じ縮尺で枠に収める（計算は y が上向き、画面は下向き） ----
+  function fitBox(pts, W, H, pad){
+    let x0=Infinity, y0=Infinity, x1=-Infinity, y1=-Infinity;
+    pts.forEach(q=>{ x0=Math.min(x0, q[0]); x1=Math.max(x1, q[0]); y0=Math.min(y0, q[1]); y1=Math.max(y1, q[1]); });
+    const aw=W-pad.l-pad.r, ah=H-pad.t-pad.b, bw=Math.max(1e-9, x1-x0), bh=Math.max(1e-9, y1-y0), s=Math.min(aw/bw, ah/bh);
+    const ox=pad.l+(aw-bw*s)/2, oy=pad.t+(ah-bh*s)/2;
+    return { s, P:q=>[ox+(q[0]-x0)*s, oy+(y1-q[1])*s] };
   }
+  const svgPath=pts=>'M'+pts.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join('L')+'Z';
+  function svgText(svg, x, y, str, o){ o=o||{}; const a={ x:x.toFixed(1), y:y.toFixed(1), 'font-size':String(o.size||11), 'font-weight':'700', fill:o.color||'#1f2937', 'text-anchor':o.anchor||'middle', 'paint-order':'stroke', stroke:'#f8fafc', 'stroke-width':'3', 'stroke-linejoin':'round' }; if(o.rot) a.transform='rotate('+o.rot+' '+a.x+' '+a.y+')'; svg.appendChild(svgEl('text', a, str)); }
+  function svgLine(svg, p, q, color, w, dash){ const a={ x1:p[0].toFixed(1), y1:p[1].toFixed(1), x2:q[0].toFixed(1), y2:q[1].toFixed(1), stroke:color, 'stroke-width':String(w||1) }; if(dash) a['stroke-dasharray']=dash; svg.appendChild(svgEl('line', a)); }
+  function setCalcLen(id, mm, anchored){ const el=document.getElementById(id); if(!el) return; el.classList.toggle('calc', !anchored); if(document.activeElement!==el) el.value=(mm!=null && isFinite(mm)) ? fmtLenInput(mm) : ''; }   // 入れた欄はそのまま、出た欄は色を変える
+  function fmtCount(v){ const r=Math.round(v), d=Math.abs(v-r); return (d<0.005) ? String(r) : (d<0.05) ? v.toFixed(2) : v.toFixed(1); }   // ぴったりのときだけ整数（3.97 を 4 と見せない）
 
-  // ---- 枠・多角形 ----
+  // ---- 枠・多角形：外側の辺・内側の辺・外寸・内寸のどれか1つ（最後に入れた欄）から、残りを出す ----
   function polyCalc(p){
-    const n=p.n, tn=Math.tan(Math.PI/n), open=180*(n-2)/n, miter=180/n, off=(p.w!=null) ? p.w*tn : null;
+    const n=p.n, tn=Math.tan(Math.PI/n), open=180*(n-2)/n, miter=180/n, even=(n%2===0), w=(p.w>0) ? p.w : null, off=(w!=null) ? w*tn : null, v=(p.val>0) ? p.val : null;
     let lo=null, li=null, err='';
-    if(p.size!=null){
-      if(p.mode==='out') lo=p.size;
-      else if(p.mode==='in') lo=(off!=null) ? p.size+2*off : null;
-      else if(n%2===0) lo=p.size*tn;   // 外寸＝向かい合う辺の外側どうしの間（偶数角のとき）
+    if(v!=null){
+      if(p.anchor==='lo') lo=v;
+      else if(p.anchor==='li'){ li=v; if(off!=null) lo=v+2*off; }
+      else if(p.anchor==='dout' && even) lo=v*tn;                      // 外寸＝向かい合う辺の外側どうし（偶数角）
+      else if(p.anchor==='din' && even){ li=v*tn; if(off!=null) lo=li+2*off; }
     }
-    if(lo!=null && off!=null){ li=lo-2*off; if(!(li>0)){ li=null; err='poly_too_wide'; } }
-    return { n, open, miter, off, lo, li, err, across:(lo!=null && n%2===0) ? lo/tn : null, corner:(lo!=null && n%2===1) ? lo/Math.sin(Math.PI/n) : null };
+    if(lo!=null && off!=null && li==null){ li=lo-2*off; if(!(li>0)){ li=null; err='poly_too_wide'; } }
+    return { n, open, miter, off, lo, li, err, dout:(even && lo!=null) ? lo/tn : null, din:(even && li!=null) ? li/tn : null };
   }
   function polyStock(r, p){   // 定尺1本から何本：互い違い＝台形を交互に向ける（切り口を共有）／同じ向き
     if(r.lo==null || r.li==null || !(p.stock>0)) return null;
     const k=Math.max(0, p.kerf||0);
     return { alt:Math.max(0, Math.floor((p.stock - r.off + k)/((r.lo+r.li)/2 + k))), str:Math.max(0, Math.floor((p.stock + k)/(r.lo + k))) };
   }
-  function drawPolyFig(n){
+  function drawPolyFig(p, r){   // 枠の絵：実寸の比率（幅も）。上の1本が黄色、外寸・内寸の寸法線
     const svg=document.getElementById('polyFig'); if(!svg) return; svg.replaceChildren();
-    const cx=75, cy=75, R=64, a0=-Math.PI/2-Math.PI/n;   // 上の辺を水平に
-    const Rin=Math.max(10, R*Math.cos(Math.PI/n)-13)/Math.cos(Math.PI/n);
-    const pts=r=>Array.from({ length:n }, (_,i)=>{ const a=a0+2*Math.PI*i/n; return [cx+r*Math.cos(a), cy+r*Math.sin(a)]; });
-    const po=pts(R), pi=pts(Rin), d=q=>'M'+q.map(v=>v[0].toFixed(1)+','+v[1].toFixed(1)).join('L')+'Z';
-    svg.appendChild(svgEl('path', { d:d(po)+d(pi), 'fill-rule':'evenodd', fill:'#dfe3e8', stroke:'#334155', 'stroke-width':'1.3' }));
-    svg.appendChild(svgEl('path', { d:d([po[0],po[1],pi[1],pi[0]]), fill:'#fcd34d', stroke:'#334155', 'stroke-width':'1.3' }));   // 1本分
-    po.forEach((q,i)=>svg.appendChild(svgEl('line', { x1:q[0].toFixed(1), y1:q[1].toFixed(1), x2:pi[i][0].toFixed(1), y2:pi[i][1].toFixed(1), stroke:'#94a3b8', 'stroke-width':'1' })));
+    const n=p.n, tn=Math.tan(Math.PI/n), cs=Math.cos(Math.PI/n), even=(n%2===0), have=(r.lo!=null && r.li!=null);
+    const lo=have ? r.lo : 300, aOut=lo/(2*tn), wd=Math.min(have ? p.w : lo*0.3, aOut*0.9), aIn=aOut-wd;   // 数字がそろうまでは例の比率
+    const vert=(a,i)=>{ const g=Math.PI/2+Math.PI/n+2*Math.PI*i/n, R=a/cs; return [R*Math.cos(g), R*Math.sin(g)]; };
+    const out=[], inn=[]; for(let i=0;i<n;i++){ out.push(vert(aOut,i)); inn.push(vert(aIn,i)); }
+    const fb=fitBox(out, 300, 200, { l:14, r:even ? 40 : 14, t:24, b:10 }), O=out.map(fb.P), I=inn.map(fb.P), k=n-1, C=fb.P([0,0]);
+    svg.appendChild(svgEl('path', { d:svgPath(O)+svgPath(I), 'fill-rule':'evenodd', fill:'#e2e8f0', stroke:'#475569', 'stroke-width':'1.2' }));
+    svg.appendChild(svgEl('path', { d:svgPath([O[0], O[k], I[k], I[0]]), fill:'#fcd34d', stroke:'#334155', 'stroke-width':'1.4' }));
+    for(let i=0;i<n;i++) svgLine(svg, O[i], I[i], '#64748b', 1);
+    // 開き角（右下のつなぎ目の内側に弧。上の寸法の文字と重ならないように）
+    { let j=0, best=Infinity; out.forEach((q,i)=>{ const d=Math.abs(Math.atan2(q[1],q[0])+Math.PI/4); if(d<best){ best=d; j=i; } });
+      const q=I[j], ua=[I[(j+1)%n][0]-q[0], I[(j+1)%n][1]-q[1]], ub=[I[(j+n-1)%n][0]-q[0], I[(j+n-1)%n][1]-q[1]], la=Math.hypot(ua[0],ua[1])||1, lb=Math.hypot(ub[0],ub[1])||1, rr=Math.min(14, la*0.4, lb*0.4);
+      const a=[ua[0]/la, ua[1]/la], b=[ub[0]/lb, ub[1]/lb], cross=a[0]*b[1]-a[1]*b[0];
+      svg.appendChild(svgEl('path', { d:'M'+(q[0]+a[0]*rr).toFixed(1)+','+(q[1]+a[1]*rr).toFixed(1)+' A'+rr.toFixed(1)+','+rr.toFixed(1)+' 0 0 '+(cross>0 ? 1 : 0)+' '+(q[0]+b[0]*rr).toFixed(1)+','+(q[1]+b[1]*rr).toFixed(1), fill:'none', stroke:'#15803d', 'stroke-width':'1.6' }));
+      let bx=a[0]+b[0], by=a[1]+b[1]; const bl=Math.hypot(bx,by)||1; bx/=bl; by/=bl;
+      svgText(svg, q[0]+bx*(rr+16), q[1]+by*(rr+16)+4, fmtAng(r.open)+'°', { color:'#15803d', size:11 }); }
+    if(have){
+      const cx=(O[0][0]+O[k][0])/2;
+      svgText(svg, cx, O[0][1]-8, t('curve_lo')+' '+fmtLenFull(r.lo,1));
+      svgText(svg, cx, I[0][1]+14, t('curve_li')+' '+fmtLenFull(r.li,1), { color:'#334155' });
+      if(even){
+        const yb=Math.max(...O.map(q=>q[1])), yib=Math.max(...I.map(q=>q[1])), xr=Math.max(...O.map(q=>q[0]))+12;
+        svgLine(svg, [xr, O[0][1]], [xr, yb], '#1d4ed8', 1.2); svgLine(svg, [xr-4, O[0][1]], [xr+4, O[0][1]], '#1d4ed8', 1.2); svgLine(svg, [xr-4, yb], [xr+4, yb], '#1d4ed8', 1.2);
+        svgText(svg, xr+11, (O[0][1]+yb)/2, t('poly_dout_s')+' '+fmtLenFull(r.dout,0), { color:'#1d4ed8', size:10.5, rot:-90 });
+        const xi=C[0]+Math.min(0.6*Math.tan(Math.PI/n), 0.45)*(aIn*fb.s);
+        svgLine(svg, [xi, I[0][1]], [xi, yib], '#1d4ed8', 1.2, '4 3');
+        svgText(svg, xi-8, (I[0][1]+yib)/2+14, t('poly_din_s')+' '+fmtLenFull(r.din,0), { color:'#1d4ed8', size:10.5, rot:-90 });
+      }
+    }
   }
   function renderPoly(){
-    const $=id=>document.getElementById(id), p=tools.poly;
-    if(p.n%2===1 && p.mode==='across') p.mode='out';   // 奇数角に「辺から辺」の外寸は無い
-    const r=polyCalc(p);
+    const $=id=>document.getElementById(id), p=tools.poly, r=polyCalc(p), odd=(p.n%2===1);
     if(document.activeElement!==$('polyN')) $('polyN').value=p.n;
     $('polyMinus').disabled=(p.n<=3); $('polyPlus').disabled=(p.n>=24);
     document.querySelectorAll('[data-poly]').forEach(b=>b.setAttribute('aria-pressed', (+b.dataset.poly)===p.n));
-    setRadios('polyMode', p.mode, (p.n%2===1) ? ['across'] : null);
-    setLenField('polyW', p.w); setLenField('polySize', p.size); setLenField('polyStock', p.stock); setLenField('polyKerf', p.kerf);
-    drawPolyFig(p.n); drawPiece('polyPiece', r.lo, r.li, r.miter, p.w);
-    const rows=[];
-    if(r.lo!=null) rows.push([t('poly_lo'), fmtLenFull(r.lo,1)]);
-    if(r.li!=null) rows.push([t('poly_li'), fmtLenFull(r.li,1)]);
-    if(r.off!=null) rows.push([t('res_cut'), fmtLenFull(r.off,0), 'sub']);
-    if(r.lo!=null){
-      rows.push([t('poly_count'), t('poly_count_v').replace('{n}', p.n), 'sub']);
-      if(r.across!=null) rows.push([t('poly_across'), fmtLenFull(r.across,0), 'sub']); else if(r.corner!=null) rows.push([t('poly_corner'), fmtLenFull(r.corner,0), 'sub']);
-    }
+    setLenField('polyW', p.w); setLenField('polyStock', p.stock); setLenField('polyKerf', p.kerf);
+    setCalcLen('polyLo', p.anchor==='lo' ? p.val : r.lo, p.anchor==='lo');
+    setCalcLen('polyLi', p.anchor==='li' ? p.val : r.li, p.anchor==='li');
+    setCalcLen('polyDout', p.anchor==='dout' ? p.val : r.dout, p.anchor==='dout');
+    setCalcLen('polyDin', p.anchor==='din' ? p.val : r.din, p.anchor==='din');
+    $('polyDoutCell').hidden=odd; $('polyDinCell').hidden=odd;   // 奇数角に「辺から辺」の外寸・内寸は無い
+    drawPolyFig(p, r);
+    const rows=[[t('angle_open'), fmtAng(r.open)+'°']];
+    if(r.off!=null && r.li!=null) rows.push([t('res_cut'), fmtLenFull(r.off,0)]);
     resRows($('polyRes'), rows);
     $('polyNote').textContent=r.err ? t(r.err) : ((r.lo==null || r.li==null) ? t('poly_need') : '');
     setDisc('polyStockToggle', 'polyStockBody', p.stockOpen);
@@ -1969,36 +2006,71 @@
     $('polyApply').textContent=t('tool_use_main').replace('{v}', fmtAng(r.open));
   }
 
-  // ---- 曲線 ----
-  function curveRadius(c){ return (c.method==='chord') ? ((c.c>0 && c.h>0) ? c.c*c.c/(8*c.h) + c.h/2 : null) : c.r; }   // 弦 c・矢高 h → R＝c²/8h＋h/2
+  // ---- 曲線：曲線の半径（沿う側の縁）、1本の長さ（外側⇔内側）、全体の角度⇔本数 ----
+  function chordRadius(cc, hh){ return (cc>0 && hh>0) ? cc*cc/(8*hh)+hh/2 : null; }   // 弦と矢高 → 半径
   function curveCalc(c){
-    const R=curveRadius(c), o={ R, theta:null, open:null, endOpen:null, off:null, lo:null, li:null, gap:null, n:null, lExact:null, thExact:null, err:'' };
-    if(R==null || !(c.l>0)) return o;
-    if(c.l>=2*R){ o.err='curve_bad'; return o; }
-    const th=2*Math.asin(c.l/(2*R))/D2R;   // 材料の角＝曲線の上（1本は弦）
-    if(th>120){ o.err='curve_bad'; return o; }
-    o.theta=th; o.open=180-th; o.endOpen=180-th/2; o.gap=R*(1-Math.cos(th/2*D2R));
-    if(c.edge==='out') o.lo=c.l; else o.li=c.l;
-    if(c.w>0){
-      o.off=c.w*Math.tan(th/2*D2R);
-      if(c.edge==='out'){ const v=c.l-2*o.off; if(v>0) o.li=v; else o.err='poly_too_wide'; }
-      else o.lo=c.l+2*o.off;
+    const o={ theta:null, lo:null, li:null, n:null, open:null, endOpen:null, off:null, err:'' };
+    const R=(c.r>0) ? c.r : null, w=(c.w>0) ? c.w : null, A=(c.a>0) ? c.a : null;
+    if(R==null) return o;
+    const tq=x=>Math.tan(x/2*D2R), refLen=x=>2*R*Math.sin(x/2*D2R);   // 曲線に沿う側の縁の角は、曲線の上
+    const otherLen=x=>(w==null) ? null : ((c.side==='out') ? refLen(x)-2*w*tq(x) : refLen(x)+2*w*tq(x));
+    let th=null;
+    if(c.anchor==='n'){ if(A!=null && c.val>=1) th=A/c.val; }
+    else if(c.val>0){
+      if((c.anchor==='lo')===(c.side==='out')){ if(c.val<=2*R*Math.sin(60*D2R)) th=2*Math.asin(c.val/(2*R))/D2R; else o.err='curve_bad'; }
+      else if(w!=null){   // 反対側の長さから角度を探す
+        const f=x=>otherLen(x)-c.val; let a=0, b=null;
+        for(let x=1;x<=120;x++){ if(f(x)>=0){ b=x; a=x-1; break; } }
+        if(b==null) o.err='curve_bad';
+        else { for(let i=0;i<40;i++){ const m=(a+b)/2; if(f(m)>=0) b=m; else a=m; } th=(a+b)/2; }
+      }
+      else o.err='res_need_width';
     }
-    if(c.a>0){ o.n=Math.max(1, Math.ceil(c.a/th - 1e-9)); o.thExact=c.a/o.n; o.lExact=2*R*Math.sin(o.thExact/2*D2R); }
+    if(th!=null && !(th>0 && th<=120)){ th=null; o.err='curve_bad'; }
+    if(th==null) return o;
+    o.theta=th; o.open=180-th; o.endOpen=180-th/2;
+    const rl=refLen(th), ol=otherLen(th);
+    if(c.side==='out'){ o.lo=rl; o.li=ol; } else { o.li=rl; o.lo=ol; }
+    if(ol!=null && !(ol>0)){ o.err='poly_too_wide'; if(c.side==='out') o.li=null; }
+    if(w!=null) o.off=w*tq(th);
+    if(A!=null) o.n=A/th;
     return o;
   }
-  function drawCurveFig(th){
+  function curveChain(R, side, w, th, count, lead){   // 曲線に沿う側の折れ線（前後にまっすぐな所）と、反対側の折れ線。中心は原点、左から右へ
+    const half=th*count/2, ref=[];
+    for(let k=0;k<=count;k++){ const a=(90+half-th*k)*D2R; ref.push([R*Math.cos(a), R*Math.sin(a)]); }
+    const tg=deg=>[Math.sin(deg*D2R), -Math.cos(deg*D2R)], t0=tg(90+half), t1=tg(90-half);
+    const line=[[ref[0][0]-t0[0]*lead, ref[0][1]-t0[1]*lead]].concat(ref, [[ref[count][0]+t1[0]*lead, ref[count][1]+t1[1]*lead]]);
+    const sg=(side==='out') ? 1 : -1, nrm=u=>[u[1]*sg, -u[0]*sg];   // 反対側へ向く向き（外側に沿うなら中心の側）
+    const dir=[]; for(let i=0;i<line.length-1;i++){ const dx=line[i+1][0]-line[i][0], dy=line[i+1][1]-line[i][1], l=Math.hypot(dx,dy)||1; dir.push([dx/l, dy/l]); }
+    const other=line.map((q,i)=>{ const va=nrm(dir[Math.max(0,i-1)]), vb=nrm(dir[Math.min(dir.length-1,i)]); let mx=va[0]+vb[0], my=va[1]+vb[1]; const ml=Math.hypot(mx,my)||1; mx/=ml; my/=ml; const kk=w/Math.max(0.2, mx*va[0]+my*va[1]); return [q[0]+mx*kk, q[1]+my*kk]; });
+    return { line, other };
+  }
+  function drawCurveFig(c, o){   // 曲線の絵：実寸の比率。前後のまっすぐな所は点線、つなぎ目の開き角つき
     const svg=document.getElementById('curveFig'); if(!svg) return; svg.replaceChildren();
-    const a=Math.max(15, Math.min(30, isFinite(th) ? th : 22))*D2R, pieces=3, half=a*pieces/2, start=-Math.PI/2-half;   // 絵は見やすい角度に丸める
-    const Rp=105, cx=75, cy=132;   // 下に中心、そこから半径
-    const P=ang=>[cx+Rp*Math.cos(ang), cy+Rp*Math.sin(ang)], arc=[];
-    [start, start+a*pieces].forEach(ang=>{ const q=P(ang); svg.appendChild(svgEl('line', { x1:cx, y1:cy, x2:q[0].toFixed(1), y2:q[1].toFixed(1), stroke:'#94a3b8', 'stroke-width':'1.2', 'stroke-dasharray':'4 3' })); });
-    svg.appendChild(svgEl('circle', { cx, cy, r:'3', fill:'#64748b' }));
-    { const q=P(start); svg.appendChild(svgEl('text', { x:((cx+q[0])/2-6).toFixed(1), y:((cy+q[1])/2+4).toFixed(1), 'font-size':'12', 'font-weight':'700', fill:'#475569', 'text-anchor':'end' }, 'R')); }
-    for(let k=0;k<=30;k++) arc.push(P(start+a*pieces*k/30));
-    svg.appendChild(svgEl('path', { d:'M'+arc.map(v=>v[0].toFixed(1)+','+v[1].toFixed(1)).join('L'), fill:'none', stroke:'#64748b', 'stroke-width':'1.6', 'stroke-dasharray':'5 3' }));
-    for(let i=0;i<pieces;i++){ const p1=P(start+a*i), p2=P(start+a*(i+1)); svg.appendChild(svgEl('line', { x1:p1[0].toFixed(1), y1:p1[1].toFixed(1), x2:p2[0].toFixed(1), y2:p2[1].toFixed(1), stroke:(i===1?'#b45309':'#334155'), 'stroke-width':'6' })); }
-    for(let i=1;i<pieces;i++){ const p1=P(start+a*i); svg.appendChild(svgEl('circle', { cx:p1[0].toFixed(1), cy:p1[1].toFixed(1), r:'4.5', fill:'#16a34a' })); }
+    const have=(o.theta!=null), R=have ? c.r : 3000, th=have ? o.theta : 20, L=2*R*Math.sin(th/2*D2R);
+    let count=3;
+    if(have && c.anchor==='n' && c.val>=1) count=Math.min(24, c.val);
+    else if(have && c.a>0) count=Math.max(1, Math.min(24, Math.ceil(c.a/th-1e-6)));
+    const PAD={ l:12, r:12, t:26, b:24 }, fitH=pts=>{ let x0=Infinity, x1=-Infinity, y0=Infinity, y1=-Infinity; pts.forEach(q=>{ x0=Math.min(x0,q[0]); x1=Math.max(x1,q[0]); y0=Math.min(y0,q[1]); y1=Math.max(y1,q[1]); }); return Math.max(120, Math.min(200, (y1-y0)*(300-PAD.l-PAD.r)/Math.max(1e-9, x1-x0)+PAD.t+PAD.b)); };   // 横長の絵は図の高さを詰める
+    let wd=(have && c.w>0) ? c.w : L*0.12, ch=curveChain(R, c.side, wd, th, count, L), FH=fitH(ch.line.concat(ch.other)), fb=fitBox(ch.line.concat(ch.other), 300, FH, PAD);
+    if(wd*fb.s<3){ wd=3/fb.s; ch=curveChain(R, c.side, wd, th, count, L); FH=fitH(ch.line.concat(ch.other)); fb=fitBox(ch.line.concat(ch.other), 300, FH, PAD); }   // 細すぎると見えない
+    svg.setAttribute('viewBox', '0 0 300 '+Math.round(FH));
+    const P=fb.P, Ls=ch.line.map(P), Qs=ch.other.map(P), last=Ls.length-2, hi=1+Math.floor((count-1)/2);
+    for(let i=0;i<=last;i++){
+      const lead=(i===0 || i===last);
+      const a={ d:svgPath([Ls[i], Ls[i+1], Qs[i+1], Qs[i]]), fill:lead ? '#f1f5f9' : (i===hi ? '#fcd34d' : '#e2e8f0'), stroke:lead ? '#94a3b8' : '#334155', 'stroke-width':'1.2' };
+      if(lead) a['stroke-dasharray']='4 3';
+      svg.appendChild(svgEl('path', a));
+    }
+    const half=th*count/2, ext=Math.min(th*0.6, 12), arc=[];
+    for(let k=0;k<=48;k++){ const a=(90+half+ext-(2*half+2*ext)*k/48)*D2R; arc.push(P([R*Math.cos(a), R*Math.sin(a)])); }
+    svg.appendChild(svgEl('path', { d:'M'+arc.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join('L'), fill:'none', stroke:'#ea580c', 'stroke-width':'1.8', 'stroke-dasharray':'6 4' }));
+    if(!have) return;
+    const outer=(c.side==='out') ? ch.line : ch.other, label=(idx, str, color)=>{ const q=outer[idx], l=Math.hypot(q[0],q[1])||1, d=17/fb.s, sp=P([q[0]*(1+d/l), q[1]*(1+d/l)]); svgText(svg, sp[0], sp[1]+4, str, { color, size:11 }); };
+    if(count>=2) label(1+Math.ceil(count/2), fmtAng(o.open)+'°', '#15803d');
+    label(1, fmtAng(o.endOpen)+'°', '#64748b');
+    { const q=P([0, R-(c.side==='out' ? wd : 0)-24/fb.s]); svgText(svg, q[0], Math.min(q[1], FH-8), 'R '+fmtLenFull(c.r,0), { color:'#ea580c', size:11 }); }
   }
   function drawChordFig(){
     const svg=document.getElementById('curveChordFig'); if(!svg) return; svg.replaceChildren();
@@ -2010,33 +2082,28 @@
   }
   function renderCurve(){
     const $=id=>document.getElementById(id), c=tools.curve, o=curveCalc(c);
-    setRadios('curveMethod', c.method); setRadios('curveEdge', c.edge);
-    $('curveRRow').hidden=(c.method!=='r'); $('curveChordRows').hidden=(c.method!=='chord');
-    setLenField('curveR', c.r); setLenField('curveC', c.c); setLenField('curveH', c.h); setLenField('curveL', c.l); setLenField('curveW', c.w);
+    setLenField('curveR', c.r); setLenField('curveW', c.w); setLenField('curveC', c.c); setLenField('curveH', c.h);
+    { const sw=$('curveSideSw'); sw.setAttribute('data-pos', c.side==='out' ? 'left' : 'right'); sw.querySelectorAll('.swOpt').forEach(b=>b.setAttribute('aria-pressed', b.dataset.side===c.side)); }
+    setCalcLen('curveLo', c.anchor==='lo' ? c.val : o.lo, c.anchor==='lo');
+    setCalcLen('curveLi', c.anchor==='li' ? c.val : o.li, c.anchor==='li');
     { const el=$('curveA'); if(document.activeElement!==el) el.value=(c.a!=null) ? String(Math.round(c.a*10)/10) : ''; }
-    if(c.method==='chord') drawChordFig();
-    $('curveRCalc').textContent=(c.method==='chord' && o.R!=null) ? t('curve_r_calc').replace('{r}', fmtLenFull(o.R,0)) : '';
-    drawCurveFig(o.theta); drawPiece('curvePiece', o.lo, o.li, (o.theta!=null) ? o.theta/2 : null, c.w);
+    { const el=$('curveN'); el.classList.toggle('calc', c.anchor!=='n'); if(document.activeElement!==el) el.value=(c.anchor==='n') ? (c.val!=null ? String(c.val) : '') : (o.n!=null ? fmtCount(o.n) : ''); }
+    setDisc('curveChordToggle', 'curveChordBody', c.chordOpen);
+    if(c.chordOpen) drawChordFig();
+    { const R=chordRadius(c.c, c.h); $('curveRCalc').textContent=(R!=null) ? t('curve_r_calc').replace('{r}', fmtLenFull(R,0)) : ''; }
+    drawCurveFig(c, o);
     const rows=[];
     if(o.theta!=null){
-      rows.push([t('curve_theta'), fmtAng(o.theta)+'°']);
-      if(c.edge==='out' && o.li!=null) rows.push([t('curve_other_in'), fmtLenFull(o.li,1)]);
-      if(c.edge==='in' && o.lo!=null) rows.push([t('curve_other_out'), fmtLenFull(o.lo,1)]);
+      rows.push([t('curve_joint'), fmtAng(o.open)+'°']);
       if(o.off!=null) rows.push([t('res_cut'), fmtLenFull(o.off,0), 'sub']);
-      rows.push([t('curve_gap'), fmtLenFull(o.gap,0), 'sub']);
-      if(o.n!=null) rows.push([t('curve_count').replace('{a}', fmtAng(c.a)), t('poly_count_v').replace('{n}', o.n), 'sub']);
+      rows.push([t('curve_ends'), fmtAng(o.endOpen)+'°', 'sub']);
     }
     resRows($('curveRes'), rows);
-    let note='';
-    if(o.err) note=t(o.err);
-    else if(o.theta==null) note=t('curve_need');
-    else {
-      note=t('curve_ends').replace('{t}', fmtAng(o.theta/2)).replace('{o}', fmtAng(o.endOpen));
-      if(o.n!=null) note+='\n'+t('curve_fit').replace('{n}', o.n).replace('{l}', fmtLenFull(o.lExact,0)).replace('{t}', fmtAng(o.thExact));
-    }
-    $('curveNote').textContent=note;
+    $('curveNote').textContent=o.err ? t(o.err) : ((o.theta==null) ? t('curve_need') : '');
     $('curveApply').disabled=(o.open==null);
     $('curveApply').textContent=t('tool_use_main').replace('{v}', o.open!=null ? fmtAng(o.open) : '—');
+    $('curveEndApply').hidden=(o.open==null);
+    $('curveEndApply').textContent=t('curve_use_end').replace('{v}', o.endOpen!=null ? fmtAng(o.endOpen) : '—');
   }
 
   // ---- 勾配 ----
@@ -2063,7 +2130,7 @@
   function slopeTouchValue(){ if(slopeHold!=null) return slopeHold; const e=slopeElev(); if(e==null) return null; return (slopeZero==null) ? Math.abs(e) : Math.min(180, Math.abs(e-slopeZero)); }
   function slopeStart(){ if(slopeOn) return; slopeOn=true; slopeT0=performance.now(); slopeKey=''; tiltRequestPermission(); tiltStart('slope'); const loop=()=>{ if(!slopeOn) return; renderSlope(); slopeRaf=requestAnimationFrame(loop); }; slopeRaf=requestAnimationFrame(loop); }
   function slopeStop(){ if(!slopeOn) return; slopeOn=false; if(slopeRaf) cancelAnimationFrame(slopeRaf); slopeRaf=null; tiltStop('slope'); slopeCal1=null; }
-  function slopeCurrent(){ const g=tools.slope; return (g.method==='touch') ? slopeTouchValue() : (g.result ? g.result.deg : null); }
+  function slopeCurrent(){ const g=tools.slope; return g.result ? g.result.deg : slopeTouchValue(); }
   function drawSlopeTri(deg){
     const svg=document.getElementById('slopeTriFig'); if(!svg) return; svg.replaceChildren();
     const d=Math.max(8, Math.min(60, (deg!=null && isFinite(deg)) ? deg : 30))*D2R, x0=40, y0=88, hh=Math.min(70, 150*Math.tan(d)), bw=hh/Math.tan(d);
@@ -2073,27 +2140,25 @@
     txt(x0+bw/2, y0+15, t('slope_tri_d'), '#475569'); txt(x0+bw+5, y0-hh/2+4, t('slope_tri_hh'), '#1d4ed8', 'start'); txt(x0+bw/2-8, y0-hh/2-6, t('slope_tri_len'), '#15803d', 'end');
   }
   function renderSlope(force){
-    const $=id=>document.getElementById(id), g=tools.slope, m=g.method, v=slopeCurrent(), vr=(v==null) ? null : Math.round(v*10)/10;
-    const raw=slopeRaw(), noSensor=(m==='touch' && raw==null && performance.now()-slopeT0>1500);
-    const key=[m, g.unit, vr, noSensor, raw==null, slopeZero!=null, slopeHold!=null, slopeCal1!=null, g.cal, g.tri, g.triV, g.triOpen, curLang, unit, g.result ? g.result.dir : ''].join('|');
+    const $=id=>document.getElementById(id), g=tools.slope, res=g.result, v=slopeCurrent(), vr=(v==null) ? null : Math.round(v*10)/10;
+    const raw=slopeRaw(), noSensor=(!res && raw==null && performance.now()-slopeT0>1500);
+    const key=[res ? res.via+res.deg : '', g.unit, vr, noSensor, raw==null, slopeZero!=null, slopeHold!=null, slopeCal1!=null, g.cal, g.tri, g.triV, g.triOpen, curLang, unit].join('|');
     if(!force && key===slopeKey) return; slopeKey=key;
-    setRadios('slopeMethod', m); setRadios('slopeUnit', g.unit); setRadios('slopeTri', g.tri);
+    setRadios('slopeUnit', g.unit); setRadios('slopeTri', g.tri);
     { const rl=document.querySelector('input[name=slopeUnit][value=rise] + span'); if(rl) rl.textContent=(curLang==='ja' && unit!=='in') ? t('slope_u_rise') : 'x/12'; }
-    $('slopeHint').textContent=t('slope_hint_'+m);
-    setSlopeBig($('slopeVal'), vr, g.unit, (m==='sight' && g.result && vr) ? (g.result.dir>0 ? '↑' : '↓') : '');
+    setSlopeBig($('slopeVal'), vr, g.unit, (res && res.via==='sight' && vr) ? (res.dir>0 ? '↑' : '↓') : '');
     $('slopeAll').textContent=(vr==null) ? '' : slopeAllText(vr, g.unit);
     let note='';
-    if(m==='touch'){
-      if(noSensor) note=t('slope_none');
-      else if(slopeCal1!=null) note=t('slope_cal_1');
-      else if(slopeHold==null) note=t(slopeZero!=null ? 'slope_rel' : 'slope_abs')+(g.cal ? '　'+t('slope_cal_done').replace('{v}', (g.cal>0 ? '+' : '')+(Math.round(g.cal*10)/10)) : '');
-    } else if(v==null) note=t('slope_cam_need');
+    if(res) note=t(res.via==='sight' ? 'slope_from_sight' : 'slope_from_photo');
+    else if(noSensor) note=t('slope_none');
+    else if(slopeCal1!=null) note=t('slope_cal_1');
+    else if(slopeHold==null) note=t('slope_hint_touch')+(slopeZero!=null ? '\n'+t('slope_rel') : '')+(g.cal ? '\n'+t('slope_cal_done').replace('{v}', (g.cal>0 ? '+' : '')+(Math.round(g.cal*10)/10)) : '');
     $('slopeNote').textContent=note;
-    $('slopeTouchBtns').hidden=(m!=='touch');
+    $('slopeBackLive').hidden=!res;
+    $('slopeTouchBtns').hidden=!!res;
     $('slopeZeroBtn').textContent=t(slopeZero!=null ? 'slope_unzero' : 'slope_zero'); $('slopeZeroBtn').disabled=(slopeZero==null && raw==null);
     $('slopeHoldBtn').textContent=t(slopeHold!=null ? 'btn_unfreeze' : 'btn_freeze'); $('slopeHoldBtn').disabled=(v==null && slopeHold==null);
     $('slopeCalBtn').disabled=(raw==null);
-    $('slopeCamBtn').hidden=(m==='touch'); $('slopeCamBtn').textContent=t(g.result ? 'slope_again' : 'slope_cam');
     // 高さ・法長・水平距離（どれか1つ → 残り）
     setDisc('slopeTriToggle', 'slopeTriBody', g.triOpen);
     $('slopeTriLbl').textContent=t({ h:'slope_tri_hh', len:'slope_tri_len', d:'slope_tri_d' }[g.tri]);
@@ -2120,7 +2185,7 @@
   }
 
   // ===== 勾配をカメラで測る（のぞく＝十字を目印に合わせる／写す＝水平線に対して、2つの丸を斜面に合わせる） =====
-  let svOpen=false, svRaf=null, svStream=null, svFrozen=false, svHoriz=null, svUp=null, svA=null, svB=null, svDrag=null, svVal=null, svDir=0, svKey='', svW=1, svH=1;
+  let svMode='photo', svOpen=false, svRaf=null, svStream=null, svFrozen=false, svHoriz=null, svUp=null, svA=null, svB=null, svDrag=null, svVal=null, svDir=0, svKey='', svW=1, svH=1;
   const svPhoto=document.createElement('canvas');
   function svSource(){
     if(svFrozen && svPhoto.width>0) return { el:svPhoto, w:svPhoto.width, h:svPhoto.height };
@@ -2134,8 +2199,9 @@
     const x=tiltG.x/n, y=-tiltG.y/n, ang=(((screen.orientation && screen.orientation.angle) || window.orientation || 0))*D2R, c=Math.cos(ang), s=Math.sin(ang);
     return { x:x*c+y*s, y:-x*s+y*c, z:tiltG.z/n };
   }
-  async function openSlopeView(){
-    const m=tools.slope.method; if(m!=='sight' && m!=='photo') return;
+  async function openSlopeView(m){
+    if(m!=='sight' && m!=='photo') return;
+    svMode=m;
     document.getElementById('toolModal').classList.remove('show'); slopeStop();
     svOpen=true; svFrozen=false; svPhoto.width=svPhoto.height=0; svA=svB=null; svVal=null; svDir=0; svKey=''; svDrag=null;
     document.getElementById('slopeView').hidden=false; document.documentElement.classList.add('fsOpen');
@@ -2159,7 +2225,7 @@
     tiltStop('slopecam'); if(!stream) keepAwake(false);
     document.getElementById('slopeView').hidden=true;
     if(!isFullscreen()) document.documentElement.classList.remove('fsOpen');
-    if(accept && svVal!=null) tools.slope.result={ deg:svVal, dir:svDir };
+    if(accept && svVal!=null) tools.slope.result={ deg:svVal, dir:svDir, via:svMode };
     openToolModal('slope');
   }
   function svRender(){
@@ -2171,7 +2237,7 @@
     ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
     const src=svSource();
     if(src){ const k=Math.max(W/src.w, H/src.h), iw=src.w*k, ih=src.h*k; ctx.drawImage(src.el, (W-iw)/2, (H-ih)/2, iw, ih); }
-    const m=tools.slope.method;
+    const m=svMode;
     if(!svFrozen){ svUp=screenUp(); svHoriz=svUp ? Math.atan2(svUp.x, -svUp.y) : null; }   // 本当の水平線の向き（画面の上で）。止めたら、そのときの向きのまま
     const line=(px, py, ang, color, dash, w)=>{ const L=W+H; ctx.save(); ctx.setLineDash(dash||[]); ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(px-Math.cos(ang)*L, py-Math.sin(ang)*L); ctx.lineTo(px+Math.cos(ang)*L, py+Math.sin(ang)*L); ctx.strokeStyle='rgba(0,0,0,.7)'; ctx.lineWidth=(w||2)+2.5; ctx.stroke(); ctx.strokeStyle=color; ctx.lineWidth=w||2; ctx.stroke(); ctx.restore(); };
     if(m==='sight'){
@@ -2191,7 +2257,7 @@
     syncSlopeView();
   }
   function syncSlopeView(force){
-    const vr=(svVal==null) ? null : Math.round(svVal*10)/10, u=tools.slope.unit, m=tools.slope.method;
+    const vr=(svVal==null) ? null : Math.round(svVal*10)/10, u=tools.slope.unit, m=svMode;
     const key=[vr, u, svDir, svFrozen, m, curLang, unit].join('|'); if(!force && key===svKey) return; svKey=key;
     setSlopeBig(document.getElementById('svVal'), vr, u, (m==='sight' && vr) ? (svDir>0 ? '↑' : '↓') : '');
     document.getElementById('svAll').textContent=(vr==null) ? t('slope_none_cam') : slopeAllText(vr, u);
@@ -2207,7 +2273,7 @@
   }
   function svPoint(e){ const r=document.getElementById('svCanvas').getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
 
-  // ===== 材料の登録（名前＋幅。面取りを入れていれば、それも） =====  // ===== 材料の登録（名前＋幅。面取りを入れていれば、それも） =====
+  // ===== 材料の登録（名前＋幅。面取りを入れていれば、それも） =====
   const MAT_KEY='cutcalc_materials_v1', MAT_MAX=30;
   const rnd1=v=>Math.round(v*10)/10;
   function sanitizeMaterial(m){   // 読み込んだデータも、この形に整えてから使う
@@ -2878,37 +2944,47 @@
       el.addEventListener('input', ()=>{ const cv=sanitizeLenInput(el.value); if(cv!==el.value) el.value=cv; const v=parseLen(cv); if(v===null) set(null); else if(isFinite(v) && (v>0 || (allowZero && v===0))) set(Math.min(99999, v)); saveTools(); renderTools(); });   // 打ちかけ（「3 1/」など）は前の値のまま
       el.addEventListener('change', ()=>{ el.value=fmtLenInput(get()); }); };
     const bindRadio=(name, fn)=>document.querySelectorAll('input[name='+name+']').forEach(x=>x.addEventListener('change', ()=>{ if(x.checked){ fn(x.value); saveTools(); renderTools(true); } }));
-    const setPolyN=v=>{ tools.poly.n=clampInt(v, 3, 24, tools.poly.n); saveTools(); renderTools(); };
+    const bindAnchor=(id, obj, key)=>bindLen(id, ()=>(obj.anchor===key ? obj.val : null), v=>{ obj.anchor=key; obj.val=v; });   // 入れた欄が基準になる
+    const setPolyN=v=>{ const p=tools.poly, nn=clampInt(v, 3, 24, p.n); if(nn!==p.n){ const before=polyCalc(p); p.n=nn;
+        if(nn%2===1 && (p.anchor==='dout' || p.anchor==='din')){ const toLo=(p.anchor==='dout'); p.anchor=toLo ? 'lo' : 'li'; p.val=toLo ? before.lo : before.li; } }   // 奇数角に外寸・内寸は無いので、辺の長さに置き換える
+      saveTools(); renderTools(); };
     document.getElementById('polyMinus').addEventListener('click', ()=>setPolyN(tools.poly.n-1));
     document.getElementById('polyPlus').addEventListener('click', ()=>setPolyN(tools.poly.n+1));
     document.getElementById('polyN').addEventListener('input', e=>{ const v=zen2han(e.target.value).replace(/[^0-9]/g,'').slice(0,2); if(v!==e.target.value) e.target.value=v; if(+v>=3 && +v<=24) setPolyN(v); });
     document.getElementById('polyN').addEventListener('change', e=>{ setPolyN(e.target.value||tools.poly.n); e.target.value=tools.poly.n; });
     document.querySelectorAll('[data-poly]').forEach(b=>b.addEventListener('click', ()=>setPolyN(b.dataset.poly)));
     bindLen('polyW', ()=>tools.poly.w, v=>{ tools.poly.w=v; });
-    bindLen('polySize', ()=>tools.poly.size, v=>{ tools.poly.size=v; });
+    bindAnchor('polyLo', tools.poly, 'lo'); bindAnchor('polyLi', tools.poly, 'li'); bindAnchor('polyDout', tools.poly, 'dout'); bindAnchor('polyDin', tools.poly, 'din');
     bindLen('polyStock', ()=>tools.poly.stock, v=>{ tools.poly.stock=v; });
     bindLen('polyKerf', ()=>tools.poly.kerf, v=>{ tools.poly.kerf=(v==null) ? 0 : v; }, true);
-    bindRadio('polyMode', v=>{ tools.poly.mode=v; });
     document.getElementById('polyStockToggle').addEventListener('click', ()=>{ tools.poly.stockOpen=!tools.poly.stockOpen; saveTools(); renderTools(); });
     document.getElementById('polyApply').addEventListener('click', ()=>{ const r=polyCalc(tools.poly); applyToolAngle('dual', r.open, tools.poly.w); });
     bindLen('curveR', ()=>tools.curve.r, v=>{ tools.curve.r=v; });
-    bindLen('curveC', ()=>tools.curve.c, v=>{ tools.curve.c=v; });
-    bindLen('curveH', ()=>tools.curve.h, v=>{ tools.curve.h=v; });
-    bindLen('curveL', ()=>tools.curve.l, v=>{ tools.curve.l=v; });
     bindLen('curveW', ()=>tools.curve.w, v=>{ tools.curve.w=v; });
+    const chordSet=()=>{ const R=chordRadius(tools.curve.c, tools.curve.h); if(R!=null) tools.curve.r=Math.min(99999, R); };   // 弦と矢高がそろったら半径に入れる
+    bindLen('curveC', ()=>tools.curve.c, v=>{ tools.curve.c=v; chordSet(); });
+    bindLen('curveH', ()=>tools.curve.h, v=>{ tools.curve.h=v; chordSet(); });
+    document.getElementById('curveChordToggle').addEventListener('click', ()=>{ tools.curve.chordOpen=!tools.curve.chordOpen; saveTools(); renderTools(); });
+    const setCurveSide=sd=>{ if(sd!=='out' && sd!=='in') return; tools.curve.side=sd; saveTools(); renderTools(); };
+    document.querySelectorAll('#curveSideSw .swOpt').forEach(b=>b.addEventListener('click', ()=>setCurveSide(b.dataset.side)));
+    document.getElementById('curveSideTrack').addEventListener('click', ()=>setCurveSide(tools.curve.side==='out' ? 'in' : 'out'));
+    bindAnchor('curveLo', tools.curve, 'lo'); bindAnchor('curveLi', tools.curve, 'li');
     { const el=document.getElementById('curveA');
       el.addEventListener('input', ()=>{ const v=zen2han(el.value).replace(/[^0-9.]/g,'').slice(0,5); if(v!==el.value) el.value=v; const n=parseNum(v); tools.curve.a=(isFinite(n) && n>0 && n<=360) ? n : null; saveTools(); renderTools(); });
       el.addEventListener('change', ()=>{ el.value=(tools.curve.a!=null) ? String(Math.round(tools.curve.a*10)/10) : ''; }); }
-    bindRadio('curveMethod', v=>{ tools.curve.method=v; });
-    bindRadio('curveEdge', v=>{ tools.curve.edge=v; });
+    { const el=document.getElementById('curveN');
+      el.addEventListener('input', ()=>{ const v=zen2han(el.value).replace(/[^0-9]/g,'').slice(0,2); if(v!==el.value) el.value=v; const n=parseInt(v,10); tools.curve.anchor='n'; tools.curve.val=(n>=1 && n<=99) ? n : null; saveTools(); renderTools(); });
+      el.addEventListener('change', ()=>renderTools(true)); }
     document.getElementById('curveApply').addEventListener('click', ()=>{ const o=curveCalc(tools.curve); applyToolAngle('dual', o.open, tools.curve.w); });
-    bindRadio('slopeMethod', v=>{ tools.slope.method=v; tools.slope.result=null; slopeHold=null; slopeZero=null; slopeCal1=null; });
+    document.getElementById('curveEndApply').addEventListener('click', ()=>{ const o=curveCalc(tools.curve); applyToolAngle('dual', o.endOpen, tools.curve.w); });
     bindRadio('slopeUnit', v=>{ tools.slope.unit=v; });
     bindRadio('slopeTri', v=>{ tools.slope.tri=v; });
     document.getElementById('slopeZeroBtn').addEventListener('click', ()=>{ if(slopeZero!=null) slopeZero=null; else { const e=slopeElev(); if(e!=null){ slopeZero=e; slopeHold=null; } } renderSlope(true); });
     document.getElementById('slopeHoldBtn').addEventListener('click', ()=>{ slopeHold=(slopeHold!=null) ? null : slopeTouchValue(); renderSlope(true); });
     document.getElementById('slopeCalBtn').addEventListener('click', slopeCalibrate);
-    document.getElementById('slopeCamBtn').addEventListener('click', openSlopeView);
+    document.getElementById('slopeSightBtn').addEventListener('click', ()=>openSlopeView('sight'));
+    document.getElementById('slopePhotoBtn').addEventListener('click', ()=>openSlopeView('photo'));
+    document.getElementById('slopeBackLive').addEventListener('click', ()=>{ tools.slope.result=null; slopeHold=null; slopeZero=null; renderTools(true); });
     document.getElementById('slopeTriToggle').addEventListener('click', ()=>{ tools.slope.triOpen=!tools.slope.triOpen; saveTools(); renderTools(true); });
     bindLen('slopeTriV', ()=>tools.slope.triV, v=>{ tools.slope.triV=v; });
     document.getElementById('slopeDualBtn').addEventListener('click', ()=>{ const v=slopeCurrent(); if(v!=null) applyToolAngle('dual', 180-Math.round(v*10)/10, null); });
@@ -2917,7 +2993,7 @@
     document.getElementById('svDone').addEventListener('click', ()=>closeSlopeView(true));
     document.getElementById('svFreeze').addEventListener('click', svToggleFreeze);
     { const cv=document.getElementById('svCanvas');   // 写す：近いほうの丸をつかんで動かす（指の位置と丸のずれは保つ。遠くを触ったら、近いほうの丸をそこへ）
-      cv.addEventListener('pointerdown', e=>{ if(tools.slope.method!=='photo' || !svA || svDrag) return; const p=svPoint(e), da=Math.hypot(p.x-svA.x, p.y-svA.y), db=Math.hypot(p.x-svB.x, p.y-svB.y), h=(da<=db) ? svA : svB;
+      cv.addEventListener('pointerdown', e=>{ if(svMode!=='photo' || !svA || svDrag) return; const p=svPoint(e), da=Math.hypot(p.x-svA.x, p.y-svA.y), db=Math.hypot(p.x-svB.x, p.y-svB.y), h=(da<=db) ? svA : svB;
         if(Math.min(da, db)>70){ h.x=p.x; h.y=p.y; }
         svDrag={ id:e.pointerId, h, dx:h.x-p.x, dy:h.y-p.y }; try{ cv.setPointerCapture(e.pointerId); }catch(_){ } e.preventDefault(); });
       cv.addEventListener('pointermove', e=>{ if(!svDrag || e.pointerId!==svDrag.id) return; const p=svPoint(e); svDrag.h.x=Math.max(0, Math.min(svW, p.x+svDrag.dx)); svDrag.h.y=Math.max(0, Math.min(svH, p.y+svDrag.dy)); e.preventDefault(); });
@@ -2997,7 +3073,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c4';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c4＝道具を独立（枠・多角形／曲線／勾配）。★署名AABの前に、依頼者が決めた版名にすること
+  const APP_VERSION = '1.0.8-c5.1';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
@@ -3314,12 +3390,17 @@
 
     <div class="tool-sec" data-tool-sec="poly">
       <p class="tool-hint" data-i18n="poly_hint"></p>
+      <svg class="tool-fig" id="polyFig" viewBox="0 0 300 200" aria-hidden="true"></svg>
       <div class="tool-row"><label class="tool-lbl" for="polyN" data-i18n="poly_n">角の数</label><div class="tool-ctl"><button type="button" class="iconBtn tool-pm" id="polyMinus" aria-label="−1">−</button><input id="polyN" class="numfield tool-num" type="text" inputmode="numeric" maxlength="2" autocomplete="off" /><button type="button" class="iconBtn tool-pm" id="polyPlus" aria-label="+1">＋</button></div></div>
       <div class="tool-presets"><button type="button" data-poly="4" aria-pressed="false">4</button><button type="button" data-poly="6" aria-pressed="false">6</button><button type="button" data-poly="8" aria-pressed="true">8</button><button type="button" data-poly="12" aria-pressed="false">12</button></div>
       <div class="tool-row"><label class="tool-lbl" for="polyW" data-i18n="wh">材料の幅</label><div class="tool-ctl"><input id="polyW" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
-      <div class="tool-row"><span class="tool-lbl" data-i18n="poly_size">大きさ</span><div class="posSeg tool-seg" role="radiogroup"><label><input type="radio" name="polyMode" value="out" class="vh" checked><span data-i18n="poly_mode_out">外側の辺</span></label><label><input type="radio" name="polyMode" value="in" class="vh"><span data-i18n="poly_mode_in">内側の辺</span></label><label><input type="radio" name="polyMode" value="across" class="vh"><span data-i18n="poly_mode_across">外寸</span></label></div></div>
-      <div class="tool-row"><div class="tool-ctl"><input id="polySize" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
-      <div class="tool-figs"><svg class="tool-fig" id="polyFig" viewBox="0 0 150 150" aria-hidden="true"></svg><svg class="tool-fig" id="polyPiece" viewBox="0 0 230 150" aria-hidden="true"></svg></div>
+      <p class="tool-grp" data-i18n="poly_size_h">大きさ（どれか1つを入れると、残りが出ます）</p>
+      <div class="tool-grid">
+        <label class="tool-cell" id="polyLoCell" for="polyLo"><span class="tool-cap" data-i18n="poly_lo">外側の辺</span><span class="tool-ctl"><input id="polyLo" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></span></label>
+        <label class="tool-cell" id="polyDoutCell" for="polyDout"><span class="tool-cap" data-i18n="poly_dout">外寸（外から外）</span><span class="tool-ctl"><input id="polyDout" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></span></label>
+        <label class="tool-cell" id="polyLiCell" for="polyLi"><span class="tool-cap" data-i18n="poly_li">内側の辺</span><span class="tool-ctl"><input id="polyLi" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></span></label>
+        <label class="tool-cell" id="polyDinCell" for="polyDin"><span class="tool-cap" data-i18n="poly_din">内寸（内から内）</span><span class="tool-ctl"><input id="polyDin" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></span></label>
+      </div>
       <dl class="tool-res" id="polyRes"></dl>
       <p class="tool-sub" id="polyNote"></p>
       <button type="button" class="disclosure tool-disc" id="polyStockToggle" aria-expanded="false" aria-controls="polyStockBody"><span class="tri">▸</span> <span data-i18n="poly_stock_h">材料取り</span></button>
@@ -3333,37 +3414,52 @@
 
     <div class="tool-sec" data-tool-sec="curve" hidden>
       <p class="tool-hint" data-i18n="curve_hint"></p>
-      <div class="tool-row"><span class="tool-lbl" data-i18n="curve_size">大きさ</span><div class="posSeg tool-seg" role="radiogroup"><label><input type="radio" name="curveMethod" value="r" class="vh" checked><span data-i18n="curve_method_r">半径</span></label><label><input type="radio" name="curveMethod" value="chord" class="vh"><span data-i18n="curve_method_chord">弦と矢高</span></label></div></div>
-      <div id="curveRRow"><div class="tool-row"><label class="tool-lbl" for="curveR" data-i18n="curve_r">半径</label><div class="tool-ctl"><input id="curveR" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div></div>
-      <div id="curveChordRows" hidden>
+      <svg class="tool-fig" id="curveFig" viewBox="0 0 300 200" aria-hidden="true"></svg>
+      <div class="tool-row"><label class="tool-lbl" for="curveR" data-i18n="curve_r">曲線の半径</label><div class="tool-ctl"><input id="curveR" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
+      <div class="tool-row"><span class="tool-lbl" data-i18n="curve_side">曲線に沿う側</span>
+        <div class="sw sm" id="curveSideSw" data-pos="left" role="group" data-i18n-aria="curve_side" aria-label="曲線に沿う側">
+          <button type="button" class="swOpt" data-side="out" aria-pressed="true"><span class="led"></span><svg viewBox="0 0 26 18" aria-hidden="true"><path d="M2 16 Q13 -3 24 16" fill="none" stroke="currentColor" stroke-width="3.4"/><path d="M7 17.5 Q13 8 19 17.5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg><span data-i18n="curve_side_out">外側</span></button>
+          <button type="button" class="swTrack" id="curveSideTrack" data-i18n-aria="curve_side" aria-label="曲線に沿う側"><span class="swKnob"></span></button>
+          <button type="button" class="swOpt" data-side="in" aria-pressed="false"><span data-i18n="curve_side_in">内側</span><svg viewBox="0 0 26 18" aria-hidden="true"><path d="M2 16 Q13 -3 24 16" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7 17.5 Q13 8 19 17.5" fill="none" stroke="currentColor" stroke-width="3.4"/></svg><span class="led"></span></button>
+        </div>
+      </div>
+      <button type="button" class="disclosure tool-disc" id="curveChordToggle" aria-expanded="false" aria-controls="curveChordBody"><span class="tri">▸</span> <span data-i18n="curve_chord_h">半径が分からないとき（弦と矢高から出す）</span></button>
+      <div id="curveChordBody" hidden>
         <svg class="tool-fig" id="curveChordFig" viewBox="0 0 230 84" aria-hidden="true"></svg>
         <p class="tool-sub" data-i18n="curve_chord_help"></p>
         <div class="tool-row"><label class="tool-lbl" for="curveC" data-i18n="curve_c">弦</label><div class="tool-ctl"><input id="curveC" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
         <div class="tool-row"><label class="tool-lbl" for="curveH" data-i18n="curve_h">矢高</label><div class="tool-ctl"><input id="curveH" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
         <p class="tool-sub" id="curveRCalc"></p>
       </div>
-      <div class="tool-row"><span class="tool-lbl" data-i18n="curve_edge">測った縁</span><div class="posSeg tool-seg" role="radiogroup"><label><input type="radio" name="curveEdge" value="out" class="vh" checked><span data-i18n="curve_edge_out">外側</span></label><label><input type="radio" name="curveEdge" value="in" class="vh"><span data-i18n="curve_edge_in">内側</span></label></div></div>
-      <div class="tool-row"><label class="tool-lbl" for="curveL" data-i18n="curve_l">1本の長さ</label><div class="tool-ctl"><input id="curveL" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
       <div class="tool-row"><label class="tool-lbl" for="curveW" data-i18n="wh">材料の幅</label><div class="tool-ctl"><input id="curveW" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
-      <div class="tool-row"><label class="tool-lbl" for="curveA" data-i18n="curve_a">曲がる角度</label><div class="tool-ctl"><input id="curveA" class="numfield tool-num" type="text" inputmode="decimal" maxlength="5" autocomplete="off" /><span class="tool-unit">°</span></div></div>
-      <div class="tool-figs"><svg class="tool-fig" id="curveFig" viewBox="0 0 150 150" aria-hidden="true"></svg><svg class="tool-fig" id="curvePiece" viewBox="0 0 230 150" aria-hidden="true"></svg></div>
+      <p class="tool-grp" data-i18n="curve_len_h">1本の長さ（どちらかを入れると、もう一方が出ます）</p>
+      <div class="tool-grid">
+        <label class="tool-cell" id="curveLoCell" for="curveLo"><span class="tool-cap" data-i18n="curve_lo">外側</span><span class="tool-ctl"><input id="curveLo" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></span></label>
+        <label class="tool-cell" id="curveLiCell" for="curveLi"><span class="tool-cap" data-i18n="curve_li">内側</span><span class="tool-ctl"><input id="curveLi" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></span></label>
+        <label class="tool-cell" id="curveACell" for="curveA"><span class="tool-cap" data-i18n="curve_total">曲線全体の角度</span><span class="tool-ctl"><input id="curveA" class="numfield tool-num" type="text" inputmode="decimal" maxlength="5" autocomplete="off" /><span class="tool-unit">°</span></span></label>
+        <label class="tool-cell" id="curveNCell" for="curveN"><span class="tool-cap" data-i18n="curve_n">本数</span><span class="tool-ctl"><input id="curveN" class="numfield tool-num" type="text" inputmode="numeric" maxlength="4" autocomplete="off" /></span></label>
+      </div>
       <dl class="tool-res" id="curveRes"></dl>
       <p class="tool-sub" id="curveNote"></p>
       <button type="button" class="btn primary tool-apply" id="curveApply">—</button>
+      <button type="button" class="btn tool-apply lite" id="curveEndApply">—</button>
     </div>
 
     <div class="tool-sec" data-tool-sec="slope" hidden>
-      <div class="tool-row"><span class="tool-lbl" data-i18n="slope_method">測り方</span><div class="posSeg tool-seg" role="radiogroup"><label><input type="radio" name="slopeMethod" value="touch" class="vh" checked><span data-i18n="slope_m_touch">当てる</span></label><label><input type="radio" name="slopeMethod" value="sight" class="vh"><span data-i18n="slope_m_sight">のぞく</span></label><label><input type="radio" name="slopeMethod" value="photo" class="vh"><span data-i18n="slope_m_photo">写す</span></label></div></div>
-      <p class="tool-hint" id="slopeHint"></p>
       <div class="tool-out"><b id="slopeVal">—</b><span id="slopeAll"></span></div>
-      <div class="tool-row"><span class="tool-lbl" data-i18n="slope_unit">表し方</span><div class="posSeg tool-seg" role="radiogroup"><label><input type="radio" name="slopeUnit" value="deg" class="vh" checked><span data-i18n="slope_u_deg">度</span></label><label><input type="radio" name="slopeUnit" value="pct" class="vh"><span data-i18n="slope_u_pct">％</span></label><label><input type="radio" name="slopeUnit" value="ratio" class="vh"><span data-i18n="slope_u_ratio">割</span></label><label><input type="radio" name="slopeUnit" value="rise" class="vh"><span data-i18n="slope_u_rise">寸</span></label><label><input type="radio" name="slopeUnit" value="frac" class="vh"><span data-i18n="slope_u_frac">1/n</span></label></div></div>
       <p class="tool-sub" id="slopeNote"></p>
+      <button type="button" class="tool-link" id="slopeBackLive" data-i18n="slope_back_live" hidden>当てて測るに戻す</button>
       <div class="tool-chips" id="slopeTouchBtns">
         <button type="button" class="optBtn" id="slopeZeroBtn">0</button>
         <button type="button" class="optBtn" id="slopeHoldBtn">II</button>
         <button type="button" class="optBtn" id="slopeCalBtn" data-i18n="slope_cal">校正</button>
       </div>
-      <button type="button" class="btn primary tool-apply" id="slopeCamBtn" hidden>—</button>
+      <div class="tool-row"><span class="tool-lbl" data-i18n="slope_unit">表し方</span><div class="posSeg tool-seg" role="radiogroup"><label><input type="radio" name="slopeUnit" value="deg" class="vh" checked><span data-i18n="slope_u_deg">度</span></label><label><input type="radio" name="slopeUnit" value="pct" class="vh"><span data-i18n="slope_u_pct">％</span></label><label><input type="radio" name="slopeUnit" value="ratio" class="vh"><span data-i18n="slope_u_ratio">割</span></label><label><input type="radio" name="slopeUnit" value="rise" class="vh"><span data-i18n="slope_u_rise">寸</span></label><label><input type="radio" name="slopeUnit" value="frac" class="vh"><span data-i18n="slope_u_frac">1/n</span></label></div></div>
+      <p class="tool-grp" data-i18n="slope_cam_h">カメラで測る</p>
+      <div class="tool-cams">
+        <button type="button" class="tool-cam" id="slopeSightBtn"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="16" cy="16" r="9"/><path d="M16 3v8M16 21v8M3 16h8M21 16h8"/></svg><b data-i18n="slope_sight_btn">のぞく</b><small data-i18n="slope_sight_cap">目印に十字を合わせる</small></button>
+        <button type="button" class="tool-cam" id="slopePhotoBtn"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="26" height="20" rx="3"/><path d="M7.5 21.5 L24.5 11"/><path d="M7.5 21.5 H24.5" stroke-dasharray="2 2.6"/><circle cx="7.5" cy="21.5" r="1.9" fill="currentColor"/><circle cx="24.5" cy="11" r="1.9" fill="currentColor"/></svg><b data-i18n="slope_photo_btn">写す</b><small data-i18n="slope_photo_cap">写真に線を合わせる</small></button>
+      </div>
       <button type="button" class="disclosure tool-disc" id="slopeTriToggle" aria-expanded="false" aria-controls="slopeTriBody"><span class="tri">▸</span> <span data-i18n="slope_tri_h">高さ・長さを出す</span></button>
       <div id="slopeTriBody" hidden>
         <div class="tool-row"><div class="posSeg tool-seg" role="radiogroup"><label><input type="radio" name="slopeTri" value="h" class="vh" checked><span data-i18n="slope_tri_hh">高さ</span></label><label><input type="radio" name="slopeTri" value="len" class="vh"><span data-i18n="slope_tri_len">法長</span></label><label><input type="radio" name="slopeTri" value="d" class="vh"><span data-i18n="slope_tri_d">水平の距離</span></label></div></div>
