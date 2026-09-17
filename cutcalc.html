@@ -118,7 +118,7 @@
     .error{ background:rgba(200,40,40,.96); color:#fff }
     /* 下の操作バー */
     .actionBar{ position:fixed; left:0; right:0; bottom:0; z-index:50; padding:6px 8px calc(6px + env(safe-area-inset-bottom)); background:rgba(8,12,24,.88); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border-top:1px solid rgba(255,255,255,.12) }
-    .actionInner{ max-width:460px; margin:0 auto; display:grid; grid-template-columns:repeat(5,1fr); gap:2px }
+    .actionInner{ max-width:280px; margin:0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:2px }
     .actBtn{ appearance:none; border:0; background:transparent; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:58px; border-radius:12px; font:inherit; font-size:11.5px; font-weight:700; line-height:1.1; text-align:center; padding:4px 2px; cursor:pointer; position:relative }
     .actBtn svg{ width:25px; height:25px; flex:none }
     .actBtn:active{ background:rgba(255,255,255,.12) }
@@ -234,29 +234,39 @@
     .tool-apply.lite{ min-height:40px; margin-top:6px; font-size:13px; box-shadow:none; border:1px solid #cbd5e1 }
     /* 測り方（カメラで測る／当てて測る） */
     .methodRow{ display:flex; justify-content:center; margin:6px 0 0 }
-    html.touchMode .canvasWrap, html.touchMode .sliderRow, html.touchMode .camOnly{ display:none !important }
+    html.touchMode .canvasTools, html.touchMode .sliderRow, html.touchMode .camOnly{ display:none !important }
     html:not(.touchMode) .touchOnly{ display:none !important }
-    html.touchMode .actionInner{ grid-template-columns:repeat(4,1fr) }
-    .actBtn.go{ color:var(--accent) }
-    .actBtn.go svg{ filter:drop-shadow(0 0 4px var(--accent)) }
     @media (max-width:380px){ .methodRow .swOpt svg{ display:none } }
-    .touchWrap{ position:relative; margin-top:4px; width:100%; aspect-ratio:4/3; min-height:170px; max-height:calc(100vh - 424px); border-radius:10px; background:linear-gradient(180deg,#070b14,#131c2e); box-shadow:inset 0 2px 5px rgba(0,0,0,.75); color:#e2e8f0; display:flex; flex-direction:column; overflow:hidden }
-    @supports (height:100dvh){ .touchWrap{ max-height:calc(100dvh - 424px) } }
-    .touchSteps{ display:flex; gap:4px; padding:7px 8px 0; font-size:11px; font-weight:700; flex-wrap:wrap }
-    .touchSteps span{ padding:2px 7px; border-radius:9px; background:rgba(255,255,255,.08); color:rgba(255,255,255,.5); white-space:nowrap }
+    /* 図の上の操作（右下。ケガキ図の反対側） */
+    .canvasActs{ position:absolute; right:6px; bottom:6px; z-index:3; display:flex; align-items:flex-end; gap:6px; pointer-events:none }
+    .canvasActs.left{ right:auto; left:6px }
+    .viewCard.fs .canvasActs, .viewCard.fs .touchHud{ display:none !important }
+    .canvasActs .actBtn{ pointer-events:auto; min-height:0; min-width:56px; padding:7px 6px 6px; gap:2px; border-radius:12px; background:rgba(0,0,0,.62); color:#fff; font-size:11px; box-shadow:0 2px 8px rgba(0,0,0,.45) }
+    .canvasActs .actBtn svg{ width:22px; height:22px }
+    .canvasActs .actBtn.go{ color:var(--accent); box-shadow:0 0 0 2px var(--accent), 0 2px 8px rgba(0,0,0,.45) }
+    .canvasActs .actBtn.busy{ color:var(--accent); animation:actBusy 1s ease-in-out infinite }
+    @keyframes actBusy{ 0%,100%{ box-shadow:0 0 0 2px var(--accent), 0 2px 8px rgba(0,0,0,.45) } 50%{ box-shadow:0 0 0 6px rgba(252,211,77,.2), 0 2px 8px rgba(0,0,0,.45) } }
+    .canvasActs .actBtn:disabled{ opacity:.45 }
+    /* 当てて測る：図の上の手順と傾き */
+    .touchHud{ position:absolute; left:6px; right:6px; top:6px; z-index:2; display:flex; justify-content:space-between; align-items:flex-start; gap:6px; pointer-events:none }
+    .touchSteps{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; font-size:11px; font-weight:700 }
+    .touchSteps span{ padding:2px 8px; border-radius:9px; background:rgba(0,0,0,.62); color:rgba(255,255,255,.6); white-space:nowrap }
     .touchSteps span.on{ background:var(--accent); color:#0b1220 }
     .touchSteps span.done{ color:#86efac }
-    #touchFig{ flex:1 1 auto; min-height:0; width:100%; display:block }
-    .touchRead{ position:absolute; right:10px; top:30px; text-align:right; pointer-events:none }
-    .touchRead b{ display:block; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:32px; line-height:1.05; color:#fcd34d; text-shadow:0 2px 6px rgba(0,0,0,.9) }
-    .touchRead span{ display:block; font-size:11.5px; color:#cbd5e1; text-shadow:0 1px 3px rgba(0,0,0,.9) }
-    .touchNote{ margin:0; padding:3px 10px 7px; font-size:12px; line-height:1.4; color:#e2e8f0; white-space:pre-line }
-    .touchRow{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; flex-wrap:wrap }
-    .touchLevel{ display:inline-flex; align-items:center; gap:6px; margin-left:auto; font-size:12px; font-weight:700; white-space:nowrap }
-    .touchLevel i{ width:12px; height:12px; border-radius:50%; background:#475569; box-shadow:inset 0 1px 1px rgba(0,0,0,.5) }
+    .touchSteps span:not(.on){ display:none }   /* いまの手順だけ出す（真っすぐのとき帯と重ならないように） */
+    .touchSteps.flash span.on{ animation:touchFlash .7s ease-out 1 }
+    @keyframes touchFlash{ 0%{ transform:scale(1.25); box-shadow:0 0 0 4px var(--accent) } 100%{ transform:none; box-shadow:none } }
+    @media (prefers-reduced-motion: reduce){ .canvasActs .actBtn.busy, .touchSteps.flash span.on{ animation:none } }
+    .touchLevel{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; padding:3px 8px; border-radius:9px; background:rgba(0,0,0,.62); color:#fff; font-size:12px; font-weight:700; white-space:nowrap }
+    .touchLevel span{ display:inline-flex; align-items:center; gap:5px }
+    .touchLevel i{ width:11px; height:11px; border-radius:50%; background:#475569 }
     .touchLevel.ok i{ background:#22c55e; box-shadow:0 0 6px #22c55e }
     .touchLevel.warn i{ background:#f59e0b; box-shadow:0 0 6px #f59e0b }
     .touchLevel.bad i{ background:#ef4444; box-shadow:0 0 6px #ef4444 }
+    .touchLevel small{ font-size:11px; font-weight:600; color:#cbd5e1 }
+    .touchLevel small:empty{ display:none }
+    .touchRow{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; margin-top:8px }
+    .touchNote{ margin:0; font-size:12.5px; line-height:1.45; min-height:2.9em; white-space:pre-line }
     .cmpRow{ grid-column:1 / -1; display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-top:6px; font-size:12px; flex-wrap:wrap }
     .cmpVal{ appearance:none; border:1px solid rgba(127,127,127,.45); background:transparent; color:inherit; font:inherit; font-weight:700; border-radius:8px; min-height:32px; padding:2px 9px; cursor:pointer }
     .cmpVal.on{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) }
@@ -424,6 +434,18 @@
         <button type="button" class="chipBtn" id="viewBtn" data-i18n-aria="vp_btn" data-i18n-title="vp_btn" aria-label="見やすさ" title="見やすさ" aria-expanded="false" aria-controls="viewPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></button>
         <button type="button" class="chipBtn" id="zoomResetBtn" data-i18n-aria="aria_zoom_reset" aria-label="拡大を元に戻す" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/></svg><span class="zLbl">1.0×</span></button>
       </div>
+      <div class="canvasActs" id="canvasActs">
+        <button type="button" class="actBtn camOnly" id="cameraToggleBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7l1.5-2.5h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg><span class="actLbl">カメラ</span></button>
+        <button type="button" class="actBtn camOnly" id="captureBtn" data-i18n-title="tip_freeze" title="画面を止めて合わせやすくする" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span class="actLbl">止める</span></button>
+        <label class="actBtn camOnly"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg><span class="actLbl" data-i18n="btn_image">写真</span><input id="imageInput" class="vh" type="file" accept="image/*" /></label>
+        <button type="button" class="actBtn touchOnly" id="touchResetBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v5h5"/></svg><span class="actLbl" data-i18n="touch_reset">やり直す</span></button>
+        <button type="button" class="actBtn touchOnly" id="touchZeroBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg><span class="actLbl" data-i18n="touch_zero">0 にする</span></button>
+        <button type="button" class="actBtn touchOnly" id="touchFixBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg><span class="actLbl" data-i18n="touch_fix">確定</span></button>
+      </div>
+      <div class="touchHud touchOnly">
+        <div class="touchSteps" id="touchSteps"><span data-step="1" data-i18n="touch_s1">① 1本目で 0</span><span data-step="2" data-i18n="touch_s2">② 2本目へ</span><span data-step="3" data-i18n="touch_s3">③ 確定</span></div>
+        <div class="touchLevel" id="touchLevel"><span><i></i><b id="touchTilt">—</b></span><small id="touchSub"></small></div>
+      </div>
       <div class="viewPanel" id="viewPanel" hidden>
         <div class="vpRow">
           <span class="vpLbl" data-i18n="vp_exposure">明るさ</span>
@@ -447,19 +469,13 @@
         <button type="button" class="vpClose" id="vpClose" data-i18n-aria="aria_close" aria-label="閉じる">✕</button>
       </div>
     </div>
-    <div class="touchWrap" id="touchWrap" hidden>
-      <div class="touchSteps" id="touchSteps"><span data-step="1" data-i18n="touch_s1">① 1本目で 0</span><span data-step="2" data-i18n="touch_s2">② 2本目へ</span><span data-step="3" data-i18n="touch_s3">③ 確定</span></div>
-      <svg id="touchFig" viewBox="0 0 300 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
-      <div class="touchRead" aria-live="polite"><b id="touchVal">—</b><span id="touchSub"></span></div>
-      <p class="touchNote" id="touchNote"></p>
-    </div>
-    <div class="touchRow" id="touchRow" hidden>
+    <div class="touchRow touchOnly" id="touchRow">
+      <p class="touchNote" id="touchNote" aria-live="polite"></p>
       <div class="sw sm" id="touchKindSw" data-pos="left" role="group" data-i18n-aria="touch_kind" aria-label="測る角">
         <button type="button" class="swOpt" data-kind="turn" aria-pressed="true"><span class="led"></span><span data-i18n="touch_turn">外角（曲がり）</span></button>
         <button type="button" class="swTrack" id="touchKindTrack" data-i18n-aria="touch_kind" aria-label="測る角"><span class="swKnob"></span></button>
         <button type="button" class="swOpt" data-kind="inner" aria-pressed="false"><span data-i18n="touch_inner">内角</span><span class="led"></span></button>
       </div>
-      <span class="touchLevel" id="touchLevel"><i></i><b id="touchTilt">—</b></span>
     </div>
     <div class="sliderRow">
       <div id="leftWrap" class="sWrap"><input type="range" id="leftSlider" min="0" max="100" step="any" value="25" data-i18n-aria="aria_left" aria-label="左の線" /></div>
@@ -533,11 +549,6 @@
 <div id="statusMsg" class="status" style="display:none" role="status"></div>
 <nav class="actionBar" data-i18n-aria="aria_actions" aria-label="操作">
   <div class="actionInner">
-    <button type="button" class="actBtn camOnly" id="cameraToggleBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7l1.5-2.5h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg><span class="actLbl">カメラ</span></button>
-    <button type="button" class="actBtn camOnly" id="captureBtn" data-i18n-title="tip_freeze" title="画面を止めて合わせやすくする" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span class="actLbl">止める</span></button>
-    <label class="actBtn camOnly"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg><span class="actLbl" data-i18n="btn_image">写真</span><input id="imageInput" class="vh" type="file" accept="image/*" /></label>
-    <button type="button" class="actBtn touchOnly" id="touchZeroBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg><span class="actLbl" data-i18n="touch_zero">0 にする</span></button>
-    <button type="button" class="actBtn touchOnly" id="touchFixBtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg><span class="actLbl" data-i18n="touch_fix">確定</span></button>
     <button type="button" class="actBtn" id="toolsBtn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18v10H3z"/><path d="M8 9V6h8v3"/><path d="M3 13.5h18"/><path d="M10 13.5v2h4v-2"/></svg><span class="actLbl" data-i18n="btn_tools">道具</span></button>
     <button type="button" class="actBtn" id="logBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7M9 16h7"/></svg><span class="actLbl" data-i18n="btn_log">記録</span></button>
   </div>
@@ -981,9 +992,10 @@
 
     // ケガキ図インセット（flip 連動で左下↔右下）
     drawCutMarkingInset(W, H);
+    drawTouchPhones(W, H);   // 当てて測る：スマホの絵を重ねる
   }
 
-  function renderAll(){ drawBackground(); drawGuide(); drawLevel(CW, CH); drawLoupe(); syncZoomUI(); syncFsBar(); }
+  function renderAll(){ drawBackground(); drawGuide(); drawLevel(CW, CH); drawLoupe(); syncZoomUI(); syncFsBar(); syncCanvasActs(); }
   function requestRender(){ renderAll(); updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); syncCompare(); scheduleSave(); }
   // ケガキ補正値（底面・面取り）＝ 面の横幅 × 比率（切る長さ ÷ 幅）
   function faceRowEls(){ return [].slice.call(document.querySelectorAll('#faceRows .faceRow')); }
@@ -1467,7 +1479,7 @@
       eq(curveCalc({ r:1000, side:'out', anchor:'lo', val:2100 }).err, 'curve_bad', '曲線：長さが長すぎる');
       { const a=rotLong(eulerToQuat(0,0,0)), b=rotLong(eulerToQuat(-25,0,90)), c=rotLong(eulerToQuat(0,10,0)); eq(Math.round(turnOf(b.h, a.h)*10)/10+'|'+Math.round(b.tilt)+'|'+Math.round(c.tilt)+'|'+Math.round(c.h), '25|0|10|0', '角を測る：寝かせて0 → 長い辺で立てて右へ25°＝25（傾きは無関係）'); }
       eq(turnOf(-170, 170)+'|'+turnOf(10, 350), '20|20', '角を測る：0°／360° をまたいでも曲がりは正しい');
-      { const m0=mode, k0=touch.kind; try{ mode='dual'; touch.kind='turn'; const a=touchAngle(-23.7); touch.kind='inner'; const b=touchAngle(90); mode='single'; const c=touchAngle(100); eq(Math.round(a*10)/10+'|'+b+'|'+c, '156.3|90|80', '当てて測る：外角23.7°→開き角156.3・内角90→90・壁は鋭角80'); }finally{ mode=m0; touch.kind=k0; } }
+      { const m0=mode, k0=touch.kind; try{ mode='dual'; touch.kind='turn'; const a=touchAngle(-23.7), a2=touchAngle(150); touch.kind='inner'; const b=touchAngle(90), b2=touchAngle(30); mode='single'; const c=touchAngle(100); eq(Math.round(a*10)/10+'|'+a2+'|'+b+'|'+b2+'|'+c, '156.3|150|90|150|80', '当てて測る：外角23.7°→156.3・向きの取り違えは自動で直す（回転150→150、内角30→150）・壁は鋭角80'); }finally{ mode=m0; touch.kind=k0; } }
       { const h0=rotHist, q0=rotQ, t0=rotT; try{ const now=performance.now(); rotHist=[]; for(let i=0;i<20;i++) rotHist.push({ t:now-700+i*35, h:(i%2) ? -179.9 : 179.9, tilt:1 }); rotQ=[0,0,0,1]; rotT=now; const st=rotSteady(600, 0.3); rotHist.push({ t:now, h:-170, tilt:1 }); const mv=rotSteady(600, 0.3); eq((st ? String(Math.round(turnOf(st.h, 180)*10)/10+0) : 'null')+'|'+(mv ? 'steady' : 'moving'), '0|moving', '当てて測る：止まっていれば平均（180°をまたいでも）、動いていれば待つ'); }finally{ rotHist=h0; rotQ=q0; rotT=t0; } }
       const g0=tiltG, t0=tiltT;
       try{
@@ -2136,7 +2148,7 @@
   // ===== 測り方：カメラで測る／当てて測る（スマホを1本目に当てて 0 → 2本目に当てて確定）。両方で測ったら差をくらべる =====
   var method=(function(){ try{ return (localStorage.getItem('cutcalc_method')==='touch') ? 'touch' : 'cam'; }catch(e){ return 'cam'; } })();
   var measured={ cam:null, touch:null };   // くらべる用：{ v:角度, mode:切り方 }
-  var touch={ on:false, raf:null, t0:0, step:1, zero:null, fix:null, waiting:'', waitT:0, msg:'', key:'', lastMode:'',
+  var touch={ on:false, raf:null, t0:0, step:1, zero:null, fix:null, live:null, before:null, waiting:'', waitT:0, msg:'', key:'', lastMode:'',
     kind:(function(){ try{ return (localStorage.getItem('cutcalc_touch_kind')==='inner') ? 'inner' : 'turn'; }catch(e){ return 'turn'; } })() };
   var TOUCH_TILT_MAX=30;   // これより傾けると向きが不安定になるので取り込まない
   // 向きのセンサー：アプリ＝ジャイロ＋加速度（磁気は使わない＝鉄筋やグレーチングで狂わない）、ブラウザ＝deviceorientation
@@ -2174,18 +2186,15 @@
   var beepCtx=null;
   function touchPrimeAudio(){ try{ if(!beepCtx){ const AC=window.AudioContext || window.webkitAudioContext; if(AC) beepCtx=new AC(); } if(beepCtx && beepCtx.state==='suspended') beepCtx.resume(); }catch(e){} }   // 押したときに用意（音は取り込んだときに鳴らす）
   function touchBeep(){ try{ if(!beepCtx) return; const c=beepCtx, o=c.createOscillator(), g=c.createGain(), t0=c.currentTime; o.type='sine'; o.frequency.value=1400; g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.15, t0+0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0+0.12); o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+0.13); }catch(e){} }
-  function touchAngle(turn){   // 回転 → ③に入れる角度
-    const r=Math.abs(turn);
-    if(mode==='single') return Math.min(r, 180-r);           // 壁との角度（鋭角のほう）
-    return (touch.kind==='inner') ? r : 180-r;                // 開き角：外角（曲がり）なら 180−回転、内角なら回転そのまま
+  function touchKindFor(r){   // 読み方：壁＝鋭角。2本は、開き角が60°未満になる読み方を使わない（向きの取り違えを自動で直す）。60〜120°はスイッチのとおり
+    if(mode==='single') return 'wall';
+    if(r>120) return 'inner';
+    if(r<60) return 'turn';
+    return touch.kind;
   }
-  function touchApply(){
-    if(!touch.fix) return;
-    const v=Math.round(touchAngle(touch.fix.turn)*10)/10, el=document.getElementById('manualAngle');
-    el.value=String(v); applyManualAngle(true);
-    measured.touch={ v, mode };
-    requestRender();
-  }
+  function touchAngle(turn){ const r=Math.abs(turn), k=touchKindFor(r); if(k==='wall') return Math.min(r, 180-r); return (k==='inner') ? r : 180-r; }
+  function touchSetAngle(v, commit){ const el=document.getElementById('manualAngle'), sv=String(Math.round(v*10)/10); if(!commit && el.value===sv) return; el.value=sv; applyManualAngle(!!commit); }
+  function touchApply(){ if(!touch.fix) return; const v=Math.round(touchAngle(touch.fix.turn)*10)/10; touchSetAngle(v, true); measured.touch={ v, mode }; syncCompare(); }
   function camMeasuring(){ return !!(stream || (isCaptured && photo.width>0)); }
   function syncCompare(){
     const row=document.getElementById('cmpRow'); if(!row || typeof measured==='undefined' || !measured) return;
@@ -2204,51 +2213,66 @@
     method=m; try{ localStorage.setItem('cutcalc_method', m); }catch(e){}
     if(m==='touch'){ if(isFullscreen()) setFullscreen(false); try{ toggleViewPanel(false); }catch(e){} if(stream) stopCamera(); touchBegin(); }
     else touchEnd();
-    syncMethodUI();
-    if(m==='cam'){ fitCanvas(); requestRender(); }
-    syncCompare();
+    syncMethodUI(); requestRender();
   }
   function syncMethodUI(){
     const on=(method==='touch'), $=id=>document.getElementById(id);
     document.documentElement.classList.toggle('touchMode', on);
     $('methodSw').setAttribute('data-pos', on ? 'right' : 'left');
     $('methodCamBtn').setAttribute('aria-pressed', !on); $('methodTouchBtn').setAttribute('aria-pressed', on);
-    $('touchWrap').hidden=!on; $('touchRow').hidden=!on;
   }
-  function touchBegin(){ if(touch.on) return; touch.on=true; touch.t0=performance.now(); touch.key=''; touch.step=1; touch.zero=null; touch.fix=null; touch.waiting=''; touch.msg=''; rotStart(); const loop=()=>{ if(!touch.on) return; renderTouch(); touch.raf=requestAnimationFrame(loop); }; touch.raf=requestAnimationFrame(loop); }
+  function syncCanvasActs(){   // 図の上の操作：ケガキ図の反対側へ。カメラで測るときは、次に押すボタンを光らせる
+    const box=document.getElementById('canvasActs'); if(!box) return;
+    const left=!!flipped; if(box.classList.contains('left')!==left) box.classList.toggle('left', left);
+    if(typeof method==='undefined' || method==='touch') return;
+    const cam=document.getElementById('cameraToggleBtn'), cap=document.getElementById('captureBtn');
+    const goCam=!stream && !(isCaptured && photo.width>0), goCap=!!stream && !isCaptured;
+    if(cam.classList.contains('go')!==goCam) cam.classList.toggle('go', goCam);
+    if(cap.classList.contains('go')!==goCap) cap.classList.toggle('go', goCap);
+  }
+  function touchBegin(){ if(touch.on) return; touch.on=true; touch.t0=performance.now(); touch.key=''; touch.step=1; touch.zero=null; touch.fix=null; touch.live=null; touch.before=null; touch.waiting=''; touch.msg=''; rotStart(); const loop=()=>{ if(!touch.on) return; renderTouch(); touch.raf=requestAnimationFrame(loop); }; touch.raf=requestAnimationFrame(loop); }
   function touchEnd(){ if(!touch.on) return; touch.on=false; if(touch.raf) cancelAnimationFrame(touch.raf); touch.raf=null; touch.waiting=''; rotStop(); }
-  function touchSuspend(){ if(typeof touch==='undefined' || !touch || !touch.on) return; touch.zero=null; touch.fix=null; touch.step=1; touch.waiting=''; touch.msg=''; touch.key=''; }
+  function touchSuspend(){ if(typeof touch==='undefined' || !touch || !touch.on) return; touch.zero=null; touch.fix=null; touch.live=null; touch.step=1; touch.waiting=''; touch.msg=''; touch.key=''; }
+  function touchReset(){   // やり直す：①に戻る（②の途中なら③も元の値に戻す）。手順の表示を光らせて、戻ったことを見せる
+    if(touch.step===2 && touch.before!=null) touchSetAngle(touch.before, false);
+    touch.step=1; touch.zero=null; touch.fix=null; touch.live=null; touch.before=null; touch.waiting=''; touch.msg='touch_resetting'; touch.key='';
+    const st=document.getElementById('touchSteps'); if(st){ st.classList.remove('flash'); void st.offsetWidth; st.classList.add('flash'); }
+    renderTouch(true);
+  }
   function touchRefresh(){ if(typeof touch==='undefined' || !touch) return; touch.key=''; if(touch.on) renderTouch(true); syncCompare(); }
-  function drawTouchFig(turn, step, wall){   // 上から見た絵：1本目（壁）は固定、2本目がスマホの向きに合わせて回る
-    const svg=document.getElementById('touchFig'); if(!svg) return; svg.replaceChildren();
-    const ang=(turn==null) ? null : touchAngle(turn), sg=(turn!=null && turn<0) ? -1 : 1;
-    const dev=(ang==null) ? 0 : (wall ? ang : 180-ang)*sg*D2R;   // 1本目のまっすぐから、2本目がどれだけ曲がるか（絵の上）
-    const C=[170, 78], L2=70, A=wall ? [C[0]-150, C[1]] : [C[0]-132, C[1]], B=wall ? [C[0]+L2*Math.cos(-Math.abs(dev)), C[1]+L2*Math.sin(-Math.abs(dev))] : [C[0]+L2*Math.cos(dev), C[1]+L2*Math.sin(dev)];
-    const txt=(x, y, str, color, size)=>svg.appendChild(svgEl('text', { x:x.toFixed(1), y:y.toFixed(1), 'font-size':String(size||12), 'font-weight':'700', fill:color, 'text-anchor':'middle', 'paint-order':'stroke', stroke:'#0b1220', 'stroke-width':'3', 'stroke-linejoin':'round' }, str));
-    if(wall){   // 壁：太い線と斜線
-      svgLine(svg, A, [C[0]+110, C[1]], '#94a3b8', 4);
-      for(let x=A[0]+6; x<C[0]+110; x+=12) svgLine(svg, [x, C[1]+2], [x-7, C[1]+10], '#64748b', 1.2);
-    } else {
-      svgLine(svg, A, [C[0]+96, C[1]], '#475569', 1, '5 4');   // 水糸（まっすぐの延長）
-      svgLine(svg, A, C, '#94a3b8', 20); svgLine(svg, A, C, '#1e293b', 12);
-    }
-    const on2=(step>=2);
-    svgLine(svg, C, B, on2 ? '#94a3b8' : '#475569', 20); svgLine(svg, C, B, on2 ? '#1e293b' : '#111827', 12);
-    const phone=(p, q, tpos, flip, label, active)=>{
-      const a=Math.atan2(q[1]-p[1], q[0]-p[0])/D2R+(flip ? 180 : 0), m=[p[0]+(q[0]-p[0])*tpos, p[1]+(q[1]-p[1])*tpos];
-      const g=svgEl('g', { transform:'translate('+m[0].toFixed(1)+','+m[1].toFixed(1)+') rotate('+a.toFixed(1)+')' });
-      g.appendChild(svgEl('rect', { x:'-17', y:'-8', width:'34', height:'16', rx:'3', fill:active ? '#fcd34d' : '#475569', stroke:'#0b1220', 'stroke-width':'1.5' }));
-      g.appendChild(svgEl('path', { d:'M7,-4.5 L14,0 L7,4.5 Z', fill:active ? '#0b1220' : '#cbd5e1' }));   // スマホの上の向き
-      svg.appendChild(g);
-      txt(m[0], m[1]-15, label, active ? '#fcd34d' : '#94a3b8', 13);
+  function drawTouchPhones(W, H){   // 当てて測る：側溝の図にスマホを重ねる（黄色＝いま当てるスマホ、丸と矢印＝スマホの上）
+    if(typeof touch==='undefined' || !touch || !touch.on) return;
+    const { cx, cy }=getApex(), halfW=Math.min(W, H)*0.078, t0=(touch.step===3 && touch.fix) ? touch.fix.turn : touch.live;
+    const eff=(mode==='single') ? 'wall' : ((t0==null) ? touch.kind : touchKindFor(Math.abs(t0)));
+    const PL=Math.max(42, Math.min(64, halfW*3.1)), PW=Math.max(22, Math.min(30, halfW*1.45));
+    const phone=(x, y, ang, top, active, label, lx, ly)=>{   // ang＝長い辺の向き、top＝+1 なら ang の向きがスマホの上
+      gtx.save(); gtx.translate(x, y); gtx.rotate(ang);
+      const r=5, x0=-PL/2, y0=-PW/2;
+      gtx.beginPath(); gtx.moveTo(x0+r, y0); gtx.lineTo(x0+PL-r, y0); gtx.quadraticCurveTo(x0+PL, y0, x0+PL, y0+r); gtx.lineTo(x0+PL, y0+PW-r); gtx.quadraticCurveTo(x0+PL, y0+PW, x0+PL-r, y0+PW); gtx.lineTo(x0+r, y0+PW); gtx.quadraticCurveTo(x0, y0+PW, x0, y0+PW-r); gtx.lineTo(x0, y0+r); gtx.quadraticCurveTo(x0, y0, x0+r, y0); gtx.closePath();
+      gtx.fillStyle=active ? '#fcd34d' : 'rgba(15,23,42,.92)'; gtx.fill(); gtx.lineWidth=2; gtx.strokeStyle=active ? '#0b1220' : 'rgba(255,255,255,.9)'; gtx.stroke();
+      const ink=active ? '#0b1220' : '#ffffff';
+      gtx.fillStyle=ink; gtx.strokeStyle=ink; gtx.lineCap='round';
+      gtx.beginPath(); gtx.arc(top*(PL/2-5.5), 0, 2.4, 0, Math.PI*2); gtx.fill();   // カメラの丸＝スマホの上
+      gtx.beginPath(); gtx.moveTo(-top*(PL/2-9), 0); gtx.lineTo(top*(PL/2-18), 0); gtx.lineWidth=2.4; gtx.stroke();   // 矢印の軸
+      gtx.beginPath(); gtx.moveTo(top*(PL/2-10), 0); gtx.lineTo(top*(PL/2-21), -6); gtx.lineTo(top*(PL/2-21), 6); gtx.closePath(); gtx.fill();   // 矢印の先
+      gtx.restore();
+      gtx.save(); gtx.font='700 14px sans-serif'; gtx.textAlign='center'; gtx.textBaseline='middle'; gtx.lineWidth=4; gtx.strokeStyle='rgba(0,0,0,.85)'; gtx.strokeText(label, lx, ly); gtx.fillStyle=active ? '#fcd34d' : '#ffffff'; gtx.fillText(label, lx, ly); gtx.restore();
     };
-    phone(wall ? [C[0]-100, C[1]] : A, C, wall ? 0.5 : 0.45, false, '①', step===1);
-    phone(C, B, 0.62, (!wall && touch.kind==='inner'), '②', step>=2);   // 内角：2本目では上を角に向ける
-    if(ang!=null && step>=2 && Math.abs(dev)>=0.5*D2R){   // 角の弧と数字
-      const r=26, u=wall ? [1, 0] : [-1, 0], bl=Math.hypot(B[0]-C[0], B[1]-C[1])||1, v=[(B[0]-C[0])/bl, (B[1]-C[1])/bl], cross=u[0]*v[1]-u[1]*v[0];
-      svg.appendChild(svgEl('path', { d:'M'+(C[0]+u[0]*r).toFixed(1)+','+(C[1]+u[1]*r).toFixed(1)+' A'+r+','+r+' 0 0 '+(cross>0 ? 1 : 0)+' '+(C[0]+v[0]*r).toFixed(1)+','+(C[1]+v[1]*r).toFixed(1), fill:'none', stroke:'#86efac', 'stroke-width':'2' }));
-      let bx=u[0]+v[0], by=u[1]+v[1]; const bn=Math.hypot(bx, by)||1; bx/=bn; by/=bn;
-      txt(C[0]+bx*(r+19), C[1]+by*(r+19)+4, fmtAng(Math.round(ang*10)/10)+'°', '#86efac', 12);
+    const along=(ang, innerSign)=>{   // 帯の真ん中で、根元から少し離れた所
+      const rad=ang*D2R, dx=Math.cos(rad), dy=Math.sin(rad), nx=dy*innerSign, ny=-dx*innerSign, e=edgePoint(cx, cy, ang, 0, 0, W, H), len=Math.hypot(e.x-cx, e.y-cy);
+      const d=Math.max(PL*0.9, Math.min(len*0.46, Math.max(W, H)*0.3));
+      return { x:cx+nx*halfW+dx*d, y:cy+ny*halfW+dy*d, rad, nx, ny };
+    };
+    const lab=(p)=>[p.x-p.nx*(PW/2+13), p.y-p.ny*(PW/2+13)];
+    if(mode==='dual'){
+      const a=along(leftAngle, +1), b=along(rightAngle, -1), la=lab(a), lb=lab(b);
+      phone(a.x, a.y, a.rad, -1, touch.step===1, '①', la[0], la[1]);                          // ①：上を2本の角へ
+      phone(b.x, b.y, b.rad, (eff==='inner') ? -1 : +1, touch.step>=2, '②', lb[0], lb[1]);   // ②：外角（曲がり）は角から離れる向き、内角は角へ
+    } else {
+      const side=flipped ? -1 : 1, b=along(renderAngle(leftAngle), flipped ? -1 : +1), lb=lab(b);
+      const wy=Math.min(H-PL/2-10, cy+Math.max(PL*0.9, (H-cy)*0.45)), wx=cx-side*(PW/2+3);   // ①は壁（点線）に沿わせる
+      phone(wx, wy, Math.PI/2, -1, touch.step===1, '①', wx-side*(PW/2+14), wy);
+      phone(b.x, b.y, b.rad, +1, touch.step>=2, '②', lb[0], lb[1]);
     }
   }
   function renderTouch(force){
@@ -2258,7 +2282,7 @@
     if(touch.waiting){   // 0 にする／確定：押した指の揺れがおさまり、置いたまま動かなくなったら取り込む
       const st=rotSteady(600, 0.3);
       if(st && Math.abs(st.tilt)<=TOUCH_TILT_MAX){
-        if(touch.waiting==='zero'){ touch.zero={ h:st.h, tilt:st.tilt, t:now }; touch.fix=null; touch.step=2; }
+        if(touch.waiting==='zero'){ touch.before=Math.round(shownAngle()*10)/10; touch.zero={ h:st.h, tilt:st.tilt, t:now }; touch.fix=null; touch.step=2; }
         else if(touch.zero){ touch.fix={ turn:turnOf(st.h, touch.zero.h), tilt:st.tilt, t:now }; touch.step=3; touchApply(); }
         touch.waiting=''; touch.msg=''; touchBeep();
       } else if(now-touch.waitT>4000){ touch.msg=(touch.waiting==='zero') ? 'touch_move_zero' : 'touch_move_fix'; touch.waiting=''; }
@@ -2267,35 +2291,38 @@
     touch.lastMode=mode;
     const tilt=cur ? cur.tilt : null, tiltBad=(tilt!=null && Math.abs(tilt)>TOUCH_TILT_MAX), wall=(mode==='single');
     const live=(touch.zero && cur && !tiltBad) ? turnOf(cur.h, touch.zero.h) : null;
+    touch.live=live;
+    if(touch.step===2 && live!=null && !touch.waiting) touchSetAngle(touchAngle(live), false);   // ②のあいだは図と③がスマホに合わせて動く（カメラで線を動かすのと同じ）
     const shown=(touch.step===3 && touch.fix) ? touch.fix.turn : live;
+    const eff=(shown==null) ? null : touchKindFor(Math.abs(shown)), auto=!!(eff && !wall && eff!==touch.kind);
     const old=!!(touch.zero && touch.step===2 && now-touch.zero.t>30000);
-    const key=[touch.step, r1(shown), r1(live), (tilt==null) ? '' : Math.round(Math.abs(tilt)), touch.waiting, touch.msg, noSensor, tiltBad, old, touch.kind, mode, curLang].join('|');
+    const key=[touch.step, r1(shown), r1(live), (tilt==null) ? '' : Math.round(Math.abs(tilt)), touch.waiting, touch.msg, noSensor, tiltBad, old, touch.kind, eff, mode, curLang].join('|');
     if(!force && key===touch.key) return; touch.key=key;
     document.querySelectorAll('#touchSteps [data-step]').forEach(el=>{ const n=+el.dataset.step; el.classList.toggle('on', n===touch.step); el.classList.toggle('done', n<touch.step); });
-    const ang=(shown==null) ? null : r1(touchAngle(shown));
-    $('touchVal').textContent=(ang==null) ? '—' : fmtAng(ang)+'°';
     let sub='';
     if(shown!=null){ const a=r1(Math.abs(shown)); sub=t('touch_rot').replace('{v}', fmtAng(a))+((a>=0.05) ? ' '+t(shown>0 ? 'touch_right' : 'touch_left') : ''); }
     if(touch.step===3 && live!=null) sub+=(sub ? '　' : '')+t('touch_now').replace('{v}', fmtAng(r1(Math.abs(live))));
     $('touchSub').textContent=sub;
+    const autoLine=auto ? '\n'+t('touch_auto').replace('{k}', t(eff==='inner' ? 'touch_inner' : 'touch_turn')) : '';
     let note='';
     if(noSensor) note=t('touch_none');
     else if(touch.waiting) note=t('touch_hold');
     else if(touch.msg) note=t(touch.msg);
     else if(tiltBad) note=t('touch_tilt_bad');
     else if(touch.step===1) note=t(wall ? 'touch_n1_wall' : 'touch_n1');
-    else if(touch.step===2) note=t(wall ? 'touch_n2_wall' : (touch.kind==='inner' ? 'touch_n2_inner' : 'touch_n2_turn'))+(old ? '\n'+t('touch_old') : '');
-    else { note=t('touch_n3'); if(touch.fix && touch.zero && Math.abs(touch.fix.tilt-touch.zero.tilt)>10) note+='\n'+t('touch_tilt_diff').replace('{a}', fmtAng(r1(touch.zero.tilt))).replace('{b}', fmtAng(r1(touch.fix.tilt))); }
+    else if(touch.step===2) note=t(wall ? 'touch_n2_wall' : ((eff || touch.kind)==='inner' ? 'touch_n2_inner' : 'touch_n2_turn'))+autoLine+(old ? '\n'+t('touch_old') : '');
+    else { note=t('touch_n3')+autoLine; if(touch.fix && touch.zero && Math.abs(touch.fix.tilt-touch.zero.tilt)>10) note+='\n'+t('touch_tilt_diff').replace('{a}', fmtAng(r1(touch.zero.tilt))).replace('{b}', fmtAng(r1(touch.fix.tilt))); }
     $('touchNote').textContent=note;
     const lv=$('touchLevel'), at=(tilt==null) ? null : Math.abs(tilt);
     lv.classList.toggle('ok', at!=null && at<=5); lv.classList.toggle('warn', at!=null && at>5 && !tiltBad); lv.classList.toggle('bad', tiltBad);
     $('touchTilt').textContent=(at==null) ? '—' : t('touch_tilt').replace('{v}', fmtAng(r1(at)));
-    const zb=$('touchZeroBtn'), fb=$('touchFixBtn');
-    setActLabel('touchZeroBtn', t(touch.step===1 ? 'touch_zero' : 'touch_rezero'));
-    zb.disabled=(!cur || !!touch.waiting); fb.disabled=(!touch.zero || !cur || !!touch.waiting);
-    zb.classList.toggle('go', touch.step===1 && !!cur && !touch.waiting); fb.classList.toggle('go', touch.step===2 && !!cur && !touch.waiting);
+    const zb=$('touchZeroBtn'), fb=$('touchFixBtn'), rb=$('touchResetBtn');
+    zb.hidden=(touch.step!==1); fb.hidden=(touch.step!==2); rb.hidden=(touch.step===1);
+    zb.disabled=(!cur || touch.waiting==='fix'); fb.disabled=(!cur || !touch.zero || touch.waiting==='zero');
+    zb.classList.toggle('go', touch.step===1 && !!cur && !touch.waiting); fb.classList.toggle('go', touch.step===2 && !!cur && !touch.waiting); rb.classList.toggle('go', touch.step===3 && !touch.waiting);
+    zb.classList.toggle('busy', touch.waiting==='zero'); fb.classList.toggle('busy', touch.waiting==='fix');
     const ks=$('touchKindSw'); ks.hidden=wall; ks.setAttribute('data-pos', touch.kind==='inner' ? 'right' : 'left'); ks.querySelectorAll('.swOpt').forEach(b=>b.setAttribute('aria-pressed', b.dataset.kind===touch.kind));
-    drawTouchFig(shown, touch.step, wall);
+    renderAll();   // スマホの絵（光らせる方・矢印）を描き直す
   }
 
   // ===== 材料の登録（名前＋幅。面取りを入れていれば、それも） =====
@@ -3008,6 +3035,7 @@
     document.getElementById('methodTrack').addEventListener('click', ()=>setMethod(method==='touch' ? 'cam' : 'touch'));
     document.getElementById('touchZeroBtn').addEventListener('click', ()=>{ touchPrimeAudio(); touch.waiting='zero'; touch.waitT=performance.now(); touch.msg=''; renderTouch(true); });
     document.getElementById('touchFixBtn').addEventListener('click', ()=>{ if(!touch.zero) return; touchPrimeAudio(); touch.waiting='fix'; touch.waitT=performance.now(); touch.msg=''; renderTouch(true); });
+    document.getElementById('touchResetBtn').addEventListener('click', touchReset);
     const setTouchKind=k=>{ if(k!=='turn' && k!=='inner') return; touch.kind=k; try{ localStorage.setItem('cutcalc_touch_kind', k); }catch(e){} if(touch.step===3) touchApply(); renderTouch(true); };
     document.querySelectorAll('#touchKindSw .swOpt').forEach(b=>b.addEventListener('click', ()=>setTouchKind(b.dataset.kind)));
     document.getElementById('touchKindTrack').addEventListener('click', ()=>setTouchKind(touch.kind==='inner' ? 'turn' : 'inner'));
@@ -3090,7 +3118,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c7';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
+  const APP_VERSION = '1.0.8-c8.1';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
