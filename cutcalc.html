@@ -60,10 +60,12 @@
     .readout small{ font-size:13px; font-weight:700 }
     .readout.inch b{ font-size:27px }
     .readout.long b{ font-size:20px }
-    .resMm{ grid-area:cn; display:block; text-align:right; font-size:11.5px; opacity:.85; margin-top:3px; min-height:1.35em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+    .resMm{ grid-area:cn; grid-column:1 / -1; display:block; text-align:right; font-size:11.5px; opacity:.85; margin-top:3px; min-height:1.35em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
     .resMm.need{ opacity:1; color:var(--accent); font-weight:700 }
     .numfield.need{ box-shadow:0 0 0 2px var(--accent) }
     .viewCard.fs .stepRow, .viewCard.fs .sliderRow, .viewCard.fs .answer, .viewCard.fs .canvasTools{ display:none !important }
+    /* 幅の狭い画面（360dp 前後）：①②の行が1行に収まるように詰める（実機 F-52E で折り返したため） */
+    @media (max-width:380px){ .stepRow{ gap:6px } .stepNo{ width:18px; height:18px; font-size:11px } .stepRow .sw .swOpt svg{ display:none } .stepRow .numfield{ width:84px } .sw.sm .swTrack{ width:42px } .sw.sm[data-pos="right"] .swKnob{ transform:translateX(18px) } }
     /* スイッチ（機器のつまみ風の2択。左右の文字を押しても、つまみを押しても切り替わる） */
     .sw{ display:inline-flex; align-items:center; gap:4px; min-width:0 }
     .swOpt{ appearance:none; border:0; background:none; color:var(--txt); font:inherit; font-size:13px; font-weight:700; line-height:1.2; display:inline-flex; align-items:center; gap:5px; min-height:44px; padding:2px 3px; cursor:pointer; opacity:.5; text-align:left; transition:opacity .15s }
@@ -1000,6 +1002,7 @@
   // 画面を点けたままにする（対応ブラウザのみ。アプリ版はネイティブ側でも指定する）
   let wakeLock=null;
   async function keepAwake(on){
+    try{ if(window.AndroidApp && typeof window.AndroidApp.cameraScreen==='function') window.AndroidApp.cameraScreen(!!on); }catch(e){}   // アプリ版：画面を点けたまま＋最大の明るさ（日なた対策）
     try{
       if(on){ if(!wakeLock && navigator.wakeLock){ wakeLock=await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', ()=>{ wakeLock=null; }); } }
       else if(wakeLock){ const w=wakeLock; wakeLock=null; await w.release(); }
@@ -2097,6 +2100,7 @@
     }catch(e){ showStatus(t('st_save_fail'),'error'); }
   }
   window.cutcalcSaved = function(ok){ showStatus(t(ok?'st_saved':'st_save_fail'), ok?'success':'error'); };
+  window.cutcalcShareFailed = function(){ showStatus(t('st_share_fail'),'error'); };
 
   // ===== 記録の書き出し（表・バックアップ）と読み込み =====
   function csvCell(v){ const z=(v==null)?'':String(v); return /[",\r\n]/.test(z) ? '"'+z.replace(/"/g,'""')+'"' : z; }
@@ -2661,7 +2665,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c3';   // 1.0.8（versionCode 10008）の準備中。-c3＝段階C-3（角度を計算で出す：多角形・曲線・角度計）まで。★署名AABの前に '1.0.8' にすること
+  const APP_VERSION = '1.0.8-c3.1';   // 1.0.8（versionCode 10008）の準備中。-c3.1＝段階C-3＋アプリ側とのつなぎ（カメラ中の画面・テスト広告の表示・狭い画面）。★署名AABの前に '1.0.8' にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
@@ -2677,6 +2681,8 @@
     if(!numEl) return;
     const ver = currentVersion();
     numEl.textContent = ver;
+    { let test=false; try{ test=!!(window.AndroidApp && window.AndroidApp.adsTest && window.AndroidApp.adsTest()); }catch(e){}
+      const tb=document.getElementById('aboutAdsTest'); if(tb) tb.hidden=!test; }   // テスト広告のビルド＝署名AABに使わない
     // 件名にバージョンを入れておくと、報告メールだけで版数が分かる
     const a = document.getElementById('aboutMail');
     if(a){
@@ -2914,6 +2920,7 @@
       <div class="about-app">
         <div class="about-name" data-i18n="app_name">角度カットガイド</div>
         <div class="about-ver"><span data-i18n="about_version">バージョン</span> <b id="aboutVerNum">-</b></div>
+        <div class="about-ver" id="aboutAdsTest" hidden style="color:#b91c1c;font-weight:700">TEST ADS</div>
       </div>
 
       <!-- 広告の非表示（IAP）。アプリ内(window.AndroidBilling)でのみ表示。Web版はセクションごと非表示 -->
