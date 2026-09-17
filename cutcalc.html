@@ -225,6 +225,7 @@
     .tool-cam svg{ width:30px; height:30px }
     .tool-cam b{ font-size:14px }
     .tool-cam small{ font-size:11px; color:#64748b; line-height:1.3; text-align:center }
+    .tool-chips .optBtn.go{ border-color:#f59e0b; box-shadow:0 0 0 2px rgba(245,158,11,.35) }
     .tool-link{ appearance:none; display:block; border:0; background:none; color:#1d4ed8; font:inherit; font-size:12.5px; font-weight:700; padding:2px 2px 8px; cursor:pointer; text-decoration:underline }
     .tool-res{ margin:6px 0; padding:8px 12px; border-radius:10px; background:linear-gradient(180deg,#070b14,#131c2e); color:#fff; display:grid; gap:3px }
     .tool-res:empty{ display:none }
@@ -1063,7 +1064,7 @@
     if(!isCaptured){ const cb=document.getElementById('captureBtn'); cb.disabled=true; setActLabel('captureBtn', t('btn_freeze')); }
   }
   document.addEventListener('visibilitychange', ()=>{
-    if(document.hidden){ suspendCamera(); if(svOpen) closeSlopeView(false); }
+    if(document.hidden){ suspendCamera(); if(svOpen) closeSlopeView(false); cornerZero=null; }   // 角を測る：裏に回るとセンサーの基準が変わるので 0 からやり直す
     else if(camAutoResume){ camAutoResume=false; startCamera(true); }
   });
   function toggleCamera(){ if(stream) stopCamera(); else { tiltRequestPermission(); startCamera(); } }
@@ -1436,6 +1437,8 @@
       { const o=curveCalc({ r:5000, side:'out', w:90, anchor:'li', val:1963.25 }); eq(Math.round(o.lo), 2000, '曲線：内側の長さから外側を出す'); }
       eq(Math.round(chordRadius(3000, 230)), 5006, '曲線：弦3000・矢高230 → 半径5006');
       eq(curveCalc({ r:1000, side:'out', anchor:'lo', val:2100 }).err, 'curve_bad', '曲線：長さが長すぎる');
+      { const a=rotLong(eulerToQuat(0,0,0)), b=rotLong(eulerToQuat(-25,0,90)), c=rotLong(eulerToQuat(0,10,0)); eq(Math.round(turnOf(b.h, a.h)*10)/10+'|'+Math.round(b.tilt)+'|'+Math.round(c.tilt)+'|'+Math.round(c.h), '25|0|10|0', '角を測る：寝かせて0 → 長い辺で立てて右へ25°＝25（傾きは無関係）'); }
+      eq(turnOf(-170, 170)+'|'+turnOf(10, 350), '20|20', '角を測る：0°／360° をまたいでも曲がりは正しい');
       { const lg=curLang; try{ curLang='ja'; eq(slopeText(26.5651, 'pct')+'|'+slopeText(26.5651, 'frac')+'|'+slopeText(33.6901, 'ratio')+'|'+wariText(2), '50%|1/2|1:1.5（1割5分）|2割', '勾配：％・1/n・割'); }finally{ curLang=lg; } }
       { const g0=tiltG, t0=tiltT; try{ tiltT=performance.now(); tiltG={ x:0, y:9.8*Math.sin(30*Math.PI/180), z:9.8*Math.cos(30*Math.PI/180) }; eq(Math.round(slopeRaw()*10)/10, 30, '勾配：長い辺を30°'); }finally{ tiltG=g0; tiltT=t0; } }
       const g0=tiltG, t0=tiltT;
@@ -1860,7 +1863,7 @@
     st=(st && typeof st==='object') ? st : {};
     const p=st.poly||{}, c=st.curve||{}, g=st.slope||{}, pick=(v, list, def)=>(list.indexOf(v)>=0 ? v : def);
     return {
-      tab: pick(st.tab, ['poly','curve','slope'], 'poly'),
+      tab: pick(st.tab, ['poly','curve','corner','slope'], 'poly'),
       poly:(function(){   // 大きさは「最後に入れた欄（anchor）とその値」。前の形（mode/size）からも引き継ぐ
         let anchor=pick(p.anchor, ['lo','li','dout','din'], null), val=posLen(p.val);
         if(!anchor){ anchor={ out:'lo', in:'li', across:'dout' }[p.mode] || 'lo'; val=posLen(p.size); }
@@ -1886,7 +1889,7 @@
     document.getElementById('toolModal').classList.add('show');
     switchToolTab(tools.tab);
   }
-  function closeToolModal(){ document.getElementById('toolModal').classList.remove('show'); slopeStop(); }
+  function closeToolModal(){ document.getElementById('toolModal').classList.remove('show'); slopeStop(); cornerStop(); }
   function switchToolTab(tab){
     tools.tab=tab; saveTools();
     document.querySelectorAll('.tool-tab').forEach(b=>{ const on=(b.dataset.tool===tab); b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
@@ -1897,8 +1900,10 @@
     if(!isToolOpen()) return;
     if(tools.tab==='poly') renderPoly();
     else if(tools.tab==='curve') renderCurve();
+    else if(tools.tab==='corner') renderCorner(true);
     else renderSlope(force);
     if(tools.tab==='slope' && !tools.slope.result) slopeStart(); else slopeStop();
+    if(tools.tab==='corner') cornerStart(); else cornerStop();
   }
   function setLenField(id, mm){ const el=document.getElementById(id); if(el && document.activeElement!==el) el.value=fmtLenInput(mm); }
   function setRadios(name, val, disabledVals){ document.querySelectorAll('input[name='+name+']').forEach(x=>{ x.checked=(x.value===val); x.disabled=!!(disabledVals && disabledVals.indexOf(x.value)>=0); }); }
@@ -2182,6 +2187,81 @@
     if(slopeCal1==null){ slopeCal1=r; slopeZero=null; slopeHold=null; }
     else { tools.slope.cal=(slopeCal1+r)/2; slopeCal1=null; saveTools(); showStatus(t('slope_cal_done').replace('{v}', (tools.slope.cal>0 ? '+' : '')+(Math.round(tools.slope.cal*10)/10)), 'success'); }
     renderSlope(true);
+  }
+
+  // ===== 角を測る：1本目に当てて 0 → 2本目に当て直すと、あいだの角度（開き角）。向きは3次元で持ち、スマホの長い辺が水平面で向く方向だけを比べる =====
+  let rotQ=null, rotT=0, rotOn=false, rotSrc='';
+  window.cutcalcRot=function(x, y, z, w){ rotQ=[+x, +y, +z, +w]; rotT=performance.now(); };   // アプリから（ジャイロ＋加速度。磁気は使わない）
+  function eulerToQuat(a, b, g){   // ブラウザの deviceorientation（alpha・beta・gamma、Z-X'-Y''）→ 四元数 [x,y,z,w]
+    const hx=b*D2R/2, hy=g*D2R/2, hz=a*D2R/2, cx=Math.cos(hx), cy=Math.cos(hy), cz=Math.cos(hz), sx=Math.sin(hx), sy=Math.sin(hy), sz=Math.sin(hz);
+    return [sx*cy*cz-cx*sy*sz, cx*sy*cz+sx*cy*sz, cx*cy*sz+sx*sy*cz, cx*cy*cz-sx*sy*sz];
+  }
+  function onDevOrient(e){ if(e.alpha==null || e.beta==null || e.gamma==null) return; rotQ=eulerToQuat(e.alpha, e.beta, e.gamma); rotT=performance.now(); }
+  function rotStart(){
+    if(rotOn) return; rotOn=true; rotQ=null; rotSrc='';
+    try{ if(window.AndroidApp && typeof window.AndroidApp.rotStart==='function' && window.AndroidApp.rotStart()) rotSrc='app'; }catch(e){}
+    if(!rotSrc){
+      rotSrc='web';
+      try{ if(typeof DeviceOrientationEvent!=='undefined' && typeof DeviceOrientationEvent.requestPermission==='function') DeviceOrientationEvent.requestPermission().catch(()=>{}); }catch(e){}   // iPhone は許可が要る
+      window.addEventListener('deviceorientation', onDevOrient);
+    }
+  }
+  function rotStop(){ if(!rotOn) return; rotOn=false; try{ if(rotSrc==='app') window.AndroidApp.rotStop(); }catch(e){} window.removeEventListener('deviceorientation', onDevOrient); rotQ=null; }
+  function rotLong(q){   // スマホの長い辺（端末の y 軸）が水平面で向く方向（上から見て右回りが＋）と、水平からの傾き
+    const x=q[0], y=q[1], z=q[2], w=q[3], vx=2*(x*y-w*z), vy=1-2*(x*x+z*z), vz=2*(y*z+w*x);
+    return { h:Math.atan2(vx, vy)/D2R, tilt:Math.asin(Math.max(-1, Math.min(1, vz)))/D2R };
+  }
+  const turnOf=(h1, h0)=>((h1-h0+540)%360)-180;   // 曲がり（−180〜180、右が＋）
+  let cornerOn=false, cornerRaf=null, cornerT0=0, cornerZero=null, cornerHold=null, cornerKey='';
+  function cornerStart(){ if(cornerOn) return; cornerOn=true; cornerT0=performance.now(); cornerZero=null; cornerHold=null; cornerKey=''; rotStart(); const loop=()=>{ if(!cornerOn) return; renderCorner(); cornerRaf=requestAnimationFrame(loop); }; cornerRaf=requestAnimationFrame(loop); }
+  function cornerStop(){ if(!cornerOn) return; cornerOn=false; if(cornerRaf) cancelAnimationFrame(cornerRaf); cornerRaf=null; rotStop(); }
+  function cornerNow(){ return (rotQ && performance.now()-rotT<1000) ? rotLong(rotQ) : null; }
+  function cornerTurn(){ if(cornerHold!=null) return cornerHold; const n=cornerNow(); if(!n || !cornerZero || Math.abs(n.tilt)>50) return null; return turnOf(n.h, cornerZero.h); }
+  function drawCornerFig(turn, zeroSet){   // 上から見た絵：1本目は固定、2本目がスマホの向きに合わせて回る
+    const svg=document.getElementById('cornerFig'); if(!svg) return; svg.replaceChildren();
+    const C=[168, 90], d=((turn==null) ? 0 : turn)*D2R, A=[C[0]-138, C[1]], B=[C[0]+80*Math.cos(d), C[1]+80*Math.sin(d)];
+    svgLine(svg, A, [C[0]+96, C[1]], '#94a3b8', 1, '5 4');   // 水糸（まっすぐの延長）
+    const band=(p, q, on)=>{ svgLine(svg, p, q, on ? '#475569' : '#b6c0cc', 20); svgLine(svg, p, q, on ? '#e2e8f0' : '#f1f5f9', 13); };
+    band(A, C, true); band(C, B, zeroSet);
+    const phone=(p, q, t, label, on)=>{
+      const ang=Math.atan2(q[1]-p[1], q[0]-p[0])/D2R, m=[p[0]+(q[0]-p[0])*t, p[1]+(q[1]-p[1])*t];
+      const g=svgEl('g', { transform:'translate('+m[0].toFixed(1)+','+m[1].toFixed(1)+') rotate('+ang.toFixed(1)+')' });
+      g.appendChild(svgEl('rect', { x:'-17', y:'-8', width:'34', height:'16', rx:'3', fill:on ? '#1d4ed8' : '#94a3b8', stroke:'#fff', 'stroke-width':'1.5' }));
+      g.appendChild(svgEl('path', { d:'M7,-4.5 L14,0 L7,4.5 Z', fill:'#fff' }));   // スマホの上の向き
+      svg.appendChild(g);
+      svgText(svg, m[0], m[1]-15, label, { color:on ? '#1d4ed8' : '#64748b', size:13 });
+    };
+    phone(A, C, 0.45, '①', !zeroSet); phone(C, B, 0.6, '②', zeroSet);
+    if(zeroSet && turn!=null && Math.abs(turn)>=0.5){   // 開き角の弧
+      const r=28, u=[-1, 0], v=[Math.cos(d), Math.sin(d)], cross=u[0]*v[1]-u[1]*v[0];
+      svg.appendChild(svgEl('path', { d:'M'+(C[0]+u[0]*r).toFixed(1)+','+(C[1]+u[1]*r).toFixed(1)+' A'+r+','+r+' 0 0 '+(cross>0 ? 1 : 0)+' '+(C[0]+v[0]*r).toFixed(1)+','+(C[1]+v[1]*r).toFixed(1), fill:'none', stroke:'#15803d', 'stroke-width':'2' }));
+      let bx=u[0]+v[0], by=u[1]+v[1]; const bl=Math.hypot(bx, by)||1; bx/=bl; by/=bl;
+      svgText(svg, C[0]+bx*(r+20), C[1]+by*(r+20)+4, fmtAng(Math.round((180-Math.abs(turn))*10)/10)+'°', { color:'#15803d', size:12 });
+    }
+  }
+  function renderCorner(force){
+    const $=id=>document.getElementById(id), now=cornerNow(), zeroSet=!!cornerZero || cornerHold!=null;
+    const noSensor=(cornerOn && !now && performance.now()-cornerT0>1500), steep=!!(now && Math.abs(now.tilt)>50 && cornerHold==null);
+    const turn=cornerTurn(), tr=(turn==null) ? null : Math.round(turn*10)/10, open=(tr==null) ? null : 180-Math.abs(tr);
+    const old=!!(cornerZero && cornerHold==null && performance.now()-cornerZero.t>30000);
+    const key=[tr, !!cornerZero, cornerHold!=null, noSensor, steep, old, !!now, curLang].join('|');
+    if(!force && key===cornerKey) return; cornerKey=key;
+    $('cornerVal').textContent=(open==null) ? '—' : fmtAng(open)+'°';
+    $('cornerSub').textContent=(tr==null) ? '' : (Math.abs(tr)<0.05) ? t('corner_straight') : t(tr>0 ? 'corner_right' : 'corner_left').replace('{v}', fmtAng(Math.abs(tr)));
+    let note='';
+    if(noSensor) note=t('corner_none');
+    else if(cornerHold!=null) note=t('corner_held');
+    else if(steep) note=t('corner_steep');
+    else if(!cornerZero) note=t('corner_step1');
+    else note=t('corner_step2')+'\n'+t(old ? 'corner_old' : 'corner_back')+((tr!=null && Math.abs(tr)>150) ? '\n'+t('corner_reverse') : '');
+    $('cornerNote').textContent=note;
+    const zb=$('cornerZeroBtn');
+    zb.textContent=t(cornerZero ? 'corner_rezero' : 'corner_zero'); zb.disabled=(!now || steep); zb.classList.toggle('go', !cornerZero && !!now && !steep);
+    $('cornerHoldBtn').textContent=t(cornerHold!=null ? 'btn_unfreeze' : 'btn_freeze'); $('cornerHoldBtn').disabled=(tr==null);
+    drawCornerFig(tr, zeroSet);
+    const wall=(tr==null) ? null : Math.min(Math.abs(tr), 180-Math.abs(tr)), okD=(open!=null && open>=60), okS=(wall!=null && wall>=30);
+    $('cornerDualBtn').disabled=!okD; $('cornerDualBtn').textContent=t('tool_use_main').replace('{v}', okD ? fmtAng(open) : '—');
+    $('cornerSingleBtn').disabled=!okS; $('cornerSingleBtn').textContent=t('tool_to').replace('{m}', t('mode_single_s')).replace('{l}', t('angle_line')).replace('{v}', okS ? fmtAng(Math.round(wall*10)/10)+'°' : '—');
   }
 
   // ===== 勾配をカメラで測る（のぞく＝十字を目印に合わせる／写す＝水平線に対して、2つの丸を斜面に合わせる） =====
@@ -2989,6 +3069,10 @@
     bindLen('slopeTriV', ()=>tools.slope.triV, v=>{ tools.slope.triV=v; });
     document.getElementById('slopeDualBtn').addEventListener('click', ()=>{ const v=slopeCurrent(); if(v!=null) applyToolAngle('dual', 180-Math.round(v*10)/10, null); });
     document.getElementById('slopeSingleBtn').addEventListener('click', ()=>{ const v=slopeCurrent(); if(v!=null) applyToolAngle('single', 90-Math.round(v*10)/10, null); });
+    document.getElementById('cornerZeroBtn').addEventListener('click', ()=>{ const n=cornerNow(); if(n && Math.abs(n.tilt)<=50){ cornerZero={ h:n.h, tilt:n.tilt, t:performance.now() }; cornerHold=null; renderCorner(true); } });
+    document.getElementById('cornerHoldBtn').addEventListener('click', ()=>{ cornerHold=(cornerHold!=null) ? null : cornerTurn(); renderCorner(true); });
+    document.getElementById('cornerDualBtn').addEventListener('click', ()=>{ const d=cornerTurn(); if(d!=null) applyToolAngle('dual', 180-Math.abs(Math.round(d*10)/10), null); });
+    document.getElementById('cornerSingleBtn').addEventListener('click', ()=>{ const d=cornerTurn(); if(d!=null){ const a=Math.abs(Math.round(d*10)/10); applyToolAngle('single', Math.min(a, 180-a), null); } });
     document.getElementById('svClose').addEventListener('click', ()=>closeSlopeView(false));
     document.getElementById('svDone').addEventListener('click', ()=>closeSlopeView(true));
     document.getElementById('svFreeze').addEventListener('click', svToggleFreeze);
@@ -3073,7 +3157,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c5.1';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
+  const APP_VERSION = '1.0.8-c6';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c6＝角を測る（スマホを当てて開き角）。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
@@ -3385,6 +3469,7 @@
     <div class="help-tabs" role="tablist">
       <button type="button" class="help-tab tool-tab active" data-tool="poly" role="tab" aria-selected="true" data-i18n="tab_poly">枠・多角形</button>
       <button type="button" class="help-tab tool-tab" data-tool="curve" role="tab" aria-selected="false" data-i18n="tab_curve">曲線</button>
+      <button type="button" class="help-tab tool-tab" data-tool="corner" role="tab" aria-selected="false" data-i18n="tab_corner">角を測る</button>
       <button type="button" class="help-tab tool-tab" data-tool="slope" role="tab" aria-selected="false" data-i18n="tab_slope">勾配</button>
     </div>
 
@@ -3443,6 +3528,19 @@
       <p class="tool-sub" id="curveNote"></p>
       <button type="button" class="btn primary tool-apply" id="curveApply">—</button>
       <button type="button" class="btn tool-apply lite" id="curveEndApply">—</button>
+    </div>
+
+    <div class="tool-sec" data-tool-sec="corner" hidden>
+      <p class="tool-hint" data-i18n="corner_hint">2本の材料のあいだの角度を、スマホを当てて測ります</p>
+      <svg class="tool-fig" id="cornerFig" viewBox="0 0 300 176" aria-hidden="true"></svg>
+      <div class="tool-out"><b id="cornerVal">—</b><span id="cornerSub"></span></div>
+      <p class="tool-sub" id="cornerNote"></p>
+      <div class="tool-chips">
+        <button type="button" class="optBtn" id="cornerZeroBtn" data-i18n="corner_zero">0 にする</button>
+        <button type="button" class="optBtn" id="cornerHoldBtn">II</button>
+      </div>
+      <button type="button" class="btn primary tool-apply" id="cornerDualBtn">—</button>
+      <button type="button" class="btn tool-apply lite" id="cornerSingleBtn">—</button>
     </div>
 
     <div class="tool-sec" data-tool-sec="slope" hidden>
