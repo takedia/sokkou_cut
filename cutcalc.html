@@ -220,43 +220,47 @@
     .tool-cell .numfield{ flex:1 1 auto; width:auto; min-width:0 }
     .numfield.calc{ background:#eef2f7; color:#1d4ed8; border-color:transparent }
     .tool-sec .swOpt{ color:#1f2937 }
-    .tool-cams{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 0 6px }
-    .tool-cam{ appearance:none; border:1px solid #cbd5e1; background:#fff; color:#1f2937; border-radius:12px; padding:10px 6px 8px; display:flex; flex-direction:column; align-items:center; gap:2px; font:inherit; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.08) }
-    .tool-cam svg{ width:30px; height:30px }
-    .tool-cam b{ font-size:14px }
-    .tool-cam small{ font-size:11px; color:#64748b; line-height:1.3; text-align:center }
-    .tool-chips .optBtn.go{ border-color:#f59e0b; box-shadow:0 0 0 2px rgba(245,158,11,.35) }
-    .tool-link{ appearance:none; display:block; border:0; background:none; color:#1d4ed8; font:inherit; font-size:12.5px; font-weight:700; padding:2px 2px 8px; cursor:pointer; text-decoration:underline }
     .tool-res{ margin:6px 0; padding:8px 12px; border-radius:10px; background:linear-gradient(180deg,#070b14,#131c2e); color:#fff; display:grid; gap:3px }
     .tool-res:empty{ display:none }
     .tool-res div{ display:flex; justify-content:space-between; align-items:baseline; gap:10px }
     .tool-res dt{ font-size:12px; color:#cbd5e1 }
     .tool-res dd{ margin:0; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:18px; font-weight:700; color:#fcd34d; white-space:nowrap }
     .tool-res dd.sub{ color:#fff; font-size:14px }
-    .tool-out{ margin:6px 0 2px; padding:8px 12px; border-radius:10px; background:linear-gradient(180deg,#070b14,#131c2e); text-align:center; color:#fff }
-    .tool-out b{ display:block; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:40px; line-height:1.15; color:#fcd34d; white-space:nowrap }
-    .tool-out span{ display:block; min-height:1.3em; font-size:12px; color:#cbd5e1; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
     .tool-sub{ margin:4px 2px 6px; font-size:12px; color:#555; line-height:1.45; white-space:pre-line }
     .tool-sub:empty{ margin:0 }
-    .tool-out b small, .sv-read b small{ font-size:.5em; margin-left:.35em; color:#fde68a; font-family:inherit }
     .tool-disc{ color:#1f2937; font-size:13px; min-height:38px; padding:4px 2px }
     .tool-disc .tri{ color:#1d4ed8 }
-    .tool-chips{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin:6px 0 }
-    .tool-chips .optBtn{ min-width:78px; min-height:40px; padding:0 12px }
-    .tool-chips .optBtn:disabled{ opacity:.45; cursor:not-allowed }
     .tool-apply{ display:block; width:100%; min-height:44px; margin-top:8px; font-size:14px }
     .tool-apply.lite{ min-height:40px; margin-top:6px; font-size:13px; box-shadow:none; border:1px solid #cbd5e1 }
-    /* 勾配をカメラで測る（のぞく・写す） */
-    .slope-view{ position:fixed; inset:0; z-index:95; background:#000; color:#fff; display:flex; flex-direction:column; padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) }
-    .sv-top, .sv-bar{ display:flex; align-items:center; gap:10px; padding:6px 8px; background:#0b1220 }
-    .sv-read{ flex:1; min-width:0; display:flex; flex-direction:column; align-items:flex-end }
-    .sv-read b{ font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:32px; line-height:1.1; color:#fcd34d; white-space:nowrap }
-    .sv-read span{ font-size:12px; opacity:.85; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
-    .sv-wrap{ position:relative; flex:1 1 auto; min-height:0; overflow:hidden }
-    #svCanvas{ position:absolute; left:0; top:0; width:100%; height:100%; display:block; touch-action:none }
-    .sv-hint{ position:absolute; left:8px; right:8px; bottom:8px; margin:0; padding:6px 10px; border-radius:8px; background:rgba(0,0,0,.62); font-size:12.5px; line-height:1.45; pointer-events:none }
-    .sv-done{ flex:1; min-height:48px; font-size:15px }
-    .sv-done:disabled{ opacity:.45 }
+    /* 測り方（カメラで測る／当てて測る） */
+    .methodRow{ display:flex; justify-content:center; margin:6px 0 0 }
+    html.touchMode .canvasWrap, html.touchMode .sliderRow, html.touchMode .camOnly{ display:none !important }
+    html:not(.touchMode) .touchOnly{ display:none !important }
+    html.touchMode .actionInner{ grid-template-columns:repeat(4,1fr) }
+    .actBtn.go{ color:var(--accent) }
+    .actBtn.go svg{ filter:drop-shadow(0 0 4px var(--accent)) }
+    @media (max-width:380px){ .methodRow .swOpt svg{ display:none } }
+    .touchWrap{ position:relative; margin-top:4px; width:100%; aspect-ratio:4/3; min-height:170px; max-height:calc(100vh - 424px); border-radius:10px; background:linear-gradient(180deg,#070b14,#131c2e); box-shadow:inset 0 2px 5px rgba(0,0,0,.75); color:#e2e8f0; display:flex; flex-direction:column; overflow:hidden }
+    @supports (height:100dvh){ .touchWrap{ max-height:calc(100dvh - 424px) } }
+    .touchSteps{ display:flex; gap:4px; padding:7px 8px 0; font-size:11px; font-weight:700; flex-wrap:wrap }
+    .touchSteps span{ padding:2px 7px; border-radius:9px; background:rgba(255,255,255,.08); color:rgba(255,255,255,.5); white-space:nowrap }
+    .touchSteps span.on{ background:var(--accent); color:#0b1220 }
+    .touchSteps span.done{ color:#86efac }
+    #touchFig{ flex:1 1 auto; min-height:0; width:100%; display:block }
+    .touchRead{ position:absolute; right:10px; top:30px; text-align:right; pointer-events:none }
+    .touchRead b{ display:block; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:32px; line-height:1.05; color:#fcd34d; text-shadow:0 2px 6px rgba(0,0,0,.9) }
+    .touchRead span{ display:block; font-size:11.5px; color:#cbd5e1; text-shadow:0 1px 3px rgba(0,0,0,.9) }
+    .touchNote{ margin:0; padding:3px 10px 7px; font-size:12px; line-height:1.4; color:#e2e8f0; white-space:pre-line }
+    .touchRow{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; flex-wrap:wrap }
+    .touchLevel{ display:inline-flex; align-items:center; gap:6px; margin-left:auto; font-size:12px; font-weight:700; white-space:nowrap }
+    .touchLevel i{ width:12px; height:12px; border-radius:50%; background:#475569; box-shadow:inset 0 1px 1px rgba(0,0,0,.5) }
+    .touchLevel.ok i{ background:#22c55e; box-shadow:0 0 6px #22c55e }
+    .touchLevel.warn i{ background:#f59e0b; box-shadow:0 0 6px #f59e0b }
+    .touchLevel.bad i{ background:#ef4444; box-shadow:0 0 6px #ef4444 }
+    .cmpRow{ grid-column:1 / -1; display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-top:6px; font-size:12px; flex-wrap:wrap }
+    .cmpVal{ appearance:none; border:1px solid rgba(127,127,127,.45); background:transparent; color:inherit; font:inherit; font-weight:700; border-radius:8px; min-height:32px; padding:2px 9px; cursor:pointer }
+    .cmpVal.on{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) }
+    .cmpRow b{ font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
     .theme-picker{ margin:12px 4px 4px; }
     .theme-title{ font-size:12px; font-weight:700; color:#445; margin-bottom:4px; }
     .theme-desc{ font-size:11px; color:#667; margin-bottom:8px; line-height:1.4; }
@@ -405,6 +409,13 @@
         </div>
       </div>
     </div>
+    <div class="methodRow">
+      <div class="sw" id="methodSw" data-pos="left" role="group" data-i18n-aria="method_aria" aria-label="測り方">
+        <button type="button" class="swOpt" id="methodCamBtn" aria-pressed="true"><span class="led"></span><svg viewBox="0 0 26 18" aria-hidden="true"><rect x="3" y="4.5" width="20" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="13" cy="10.5" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 4.5l1.5-2.5h5L17 4.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span data-i18n="method_cam">カメラで測る</span></button>
+        <button type="button" class="swTrack" id="methodTrack" data-i18n-aria="method_aria" aria-label="測り方"><span class="swKnob"></span></button>
+        <button type="button" class="swOpt" id="methodTouchBtn" aria-pressed="false"><span data-i18n="method_touch">当てて測る</span><svg viewBox="0 0 26 18" aria-hidden="true"><rect x="4" y="2.5" width="18" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M1 15.5h24" fill="none" stroke="currentColor" stroke-width="2.6"/></svg><span class="led"></span></button>
+      </div>
+    </div>
     <div class="canvasWrap">
       <canvas id="angleGuide" role="img" data-i18n-aria="aria_guide" aria-label="ガイド線の図"></canvas>
       <canvas id="loupe" class="loupe" aria-hidden="true"></canvas>
@@ -436,6 +447,20 @@
         <button type="button" class="vpClose" id="vpClose" data-i18n-aria="aria_close" aria-label="閉じる">✕</button>
       </div>
     </div>
+    <div class="touchWrap" id="touchWrap" hidden>
+      <div class="touchSteps" id="touchSteps"><span data-step="1" data-i18n="touch_s1">① 1本目で 0</span><span data-step="2" data-i18n="touch_s2">② 2本目へ</span><span data-step="3" data-i18n="touch_s3">③ 確定</span></div>
+      <svg id="touchFig" viewBox="0 0 300 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+      <div class="touchRead" aria-live="polite"><b id="touchVal">—</b><span id="touchSub"></span></div>
+      <p class="touchNote" id="touchNote"></p>
+    </div>
+    <div class="touchRow" id="touchRow" hidden>
+      <div class="sw sm" id="touchKindSw" data-pos="left" role="group" data-i18n-aria="touch_kind" aria-label="測る角">
+        <button type="button" class="swOpt" data-kind="turn" aria-pressed="true"><span class="led"></span><span data-i18n="touch_turn">外角（曲がり）</span></button>
+        <button type="button" class="swTrack" id="touchKindTrack" data-i18n-aria="touch_kind" aria-label="測る角"><span class="swKnob"></span></button>
+        <button type="button" class="swOpt" data-kind="inner" aria-pressed="false"><span data-i18n="touch_inner">内角</span><span class="led"></span></button>
+      </div>
+      <span class="touchLevel" id="touchLevel"><i></i><b id="touchTilt">—</b></span>
+    </div>
     <div class="sliderRow">
       <div id="leftWrap" class="sWrap"><input type="range" id="leftSlider" min="0" max="100" step="any" value="25" data-i18n-aria="aria_left" aria-label="左の線" /></div>
       <button type="button" class="iconBtn" id="flipBtn" data-i18n-title="tip_flip" title="左右反転" data-i18n-aria="tip_flip" aria-label="左右反転">⇄</button>
@@ -451,6 +476,7 @@
       <span class="stepLbl cLbl"><button type="button" class="shareBtn" id="shareBtn" data-i18n-aria="share_btn" data-i18n-title="share_btn" aria-label="結果を画像で送る" title="結果を画像で送る"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="17.5" cy="5.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><circle cx="17.5" cy="18.5" r="2.5"/><path d="M8.7 10.7l6.6-3.9M8.7 13.3l6.6 3.9"/></svg></button><span class="stepNo" aria-hidden="true">4</span><span data-i18n="res_cut">切る長さ</span></span>
       <div class="readout" id="readout" aria-live="polite"><b id="resCut">—</b><small id="resUnit">mm</small></div>
       <span class="resMm" id="resCutMm"></span>
+      <div class="cmpRow" id="cmpRow" hidden><button type="button" class="cmpVal" id="cmpCam">—</button><button type="button" class="cmpVal" id="cmpTouch">—</button><b id="cmpDiff">—</b></div>
     </div>
     <div class="fsBar">
       <button type="button" class="fsBtn" id="fsCamBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7l1.5-2.5h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg><span class="fsLbl">カメラ</span></button>
@@ -507,9 +533,11 @@
 <div id="statusMsg" class="status" style="display:none" role="status"></div>
 <nav class="actionBar" data-i18n-aria="aria_actions" aria-label="操作">
   <div class="actionInner">
-    <button type="button" class="actBtn" id="cameraToggleBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7l1.5-2.5h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg><span class="actLbl">カメラ</span></button>
-    <button type="button" class="actBtn" id="captureBtn" data-i18n-title="tip_freeze" title="画面を止めて合わせやすくする" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span class="actLbl">止める</span></button>
-    <label class="actBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg><span class="actLbl" data-i18n="btn_image">写真</span><input id="imageInput" class="vh" type="file" accept="image/*" /></label>
+    <button type="button" class="actBtn camOnly" id="cameraToggleBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7l1.5-2.5h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg><span class="actLbl">カメラ</span></button>
+    <button type="button" class="actBtn camOnly" id="captureBtn" data-i18n-title="tip_freeze" title="画面を止めて合わせやすくする" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span class="actLbl">止める</span></button>
+    <label class="actBtn camOnly"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg><span class="actLbl" data-i18n="btn_image">写真</span><input id="imageInput" class="vh" type="file" accept="image/*" /></label>
+    <button type="button" class="actBtn touchOnly" id="touchZeroBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg><span class="actLbl" data-i18n="touch_zero">0 にする</span></button>
+    <button type="button" class="actBtn touchOnly" id="touchFixBtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg><span class="actLbl" data-i18n="touch_fix">確定</span></button>
     <button type="button" class="actBtn" id="toolsBtn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18v10H3z"/><path d="M8 9V6h8v3"/><path d="M3 13.5h18"/><path d="M10 13.5v2h4v-2"/></svg><span class="actLbl" data-i18n="btn_tools">道具</span></button>
     <button type="button" class="actBtn" id="logBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7M9 16h7"/></svg><span class="actLbl" data-i18n="btn_log">記録</span></button>
   </div>
@@ -956,7 +984,7 @@
   }
 
   function renderAll(){ drawBackground(); drawGuide(); drawLevel(CW, CH); drawLoupe(); syncZoomUI(); syncFsBar(); }
-  function requestRender(){ renderAll(); updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); scheduleSave(); }
+  function requestRender(){ renderAll(); updateOffset(); if(typeof FIG!=='undefined' && FIG && document.getElementById('figSecSvg')) FIG.render(); syncCompare(); scheduleSave(); }
   // ケガキ補正値（底面・面取り）＝ 面の横幅 × 比率（切る長さ ÷ 幅）
   function faceRowEls(){ return [].slice.call(document.querySelectorAll('#faceRows .faceRow')); }
   function syncRectUI(){   // 四角チェックで面取り位置(rectSub)を開閉。面は最大2固定・テーパーはメイン欄offTaperに統一
@@ -1039,7 +1067,7 @@
     }
     finally{ if(gen===camGen) camStarting=false; }
   }
-  function startLiveLoop(){ tiltStart(); if(liveRAF) return; const loop=()=>{ if(!stream){ liveRAF=null; tiltStop(); return; } if(!svOpen) renderAll(); liveRAF=requestAnimationFrame(loop); }; liveRAF=requestAnimationFrame(loop); }
+  function startLiveLoop(){ tiltStart(); if(liveRAF) return; const loop=()=>{ if(!stream){ liveRAF=null; tiltStop(); return; } renderAll(); liveRAF=requestAnimationFrame(loop); }; liveRAF=requestAnimationFrame(loop); }
   function stopLiveLoop(){ tiltStop(); if(liveRAF){ cancelAnimationFrame(liveRAF); liveRAF=null; } }
   function stopCamera(){ camGen++; camStarting=false; camAutoResume=false; stopLiveLoop(); if(stream){ stream.getTracks().forEach(tr=>tr.stop()); stream=null; } video.pause(); video.srcObject=null; keepAwake(false); setActLabel('cameraToggleBtn', t('btn_camera')); document.getElementById('cameraToggleBtn').classList.remove('on'); { const cb=document.getElementById('captureBtn'); cb.disabled=true; setActLabel('captureBtn', t('btn_freeze')); } isCaptured=false; photo.width=photo.height=0; capTilt=null; view={ s:1, u:0.5, v:0.5 }; camTrack=null; expCaps=null; expVal=0; endLineDrag(); renderAll(); syncViewPanel(); showStatus(t('st_cam_off'),'info'); }
   // 画面を点けたままにする（対応ブラウザのみ。アプリ版はネイティブ側でも指定する）
@@ -1064,7 +1092,7 @@
     if(!isCaptured){ const cb=document.getElementById('captureBtn'); cb.disabled=true; setActLabel('captureBtn', t('btn_freeze')); }
   }
   document.addEventListener('visibilitychange', ()=>{
-    if(document.hidden){ suspendCamera(); if(svOpen) closeSlopeView(false); cornerZero=null; }   // 角を測る：裏に回るとセンサーの基準が変わるので 0 からやり直す
+    if(document.hidden){ suspendCamera(); touchSuspend(); }   // 当てて測る：裏に回るとセンサーの基準が変わるので 0 からやり直す
     else if(camAutoResume){ camAutoResume=false; startCamera(true); }
   });
   function toggleCamera(){ if(stream) stopCamera(); else { tiltRequestPermission(); startCamera(); } }
@@ -1439,8 +1467,8 @@
       eq(curveCalc({ r:1000, side:'out', anchor:'lo', val:2100 }).err, 'curve_bad', '曲線：長さが長すぎる');
       { const a=rotLong(eulerToQuat(0,0,0)), b=rotLong(eulerToQuat(-25,0,90)), c=rotLong(eulerToQuat(0,10,0)); eq(Math.round(turnOf(b.h, a.h)*10)/10+'|'+Math.round(b.tilt)+'|'+Math.round(c.tilt)+'|'+Math.round(c.h), '25|0|10|0', '角を測る：寝かせて0 → 長い辺で立てて右へ25°＝25（傾きは無関係）'); }
       eq(turnOf(-170, 170)+'|'+turnOf(10, 350), '20|20', '角を測る：0°／360° をまたいでも曲がりは正しい');
-      { const lg=curLang; try{ curLang='ja'; eq(slopeText(26.5651, 'pct')+'|'+slopeText(26.5651, 'frac')+'|'+slopeText(33.6901, 'ratio')+'|'+wariText(2), '50%|1/2|1:1.5（1割5分）|2割', '勾配：％・1/n・割'); }finally{ curLang=lg; } }
-      { const g0=tiltG, t0=tiltT; try{ tiltT=performance.now(); tiltG={ x:0, y:9.8*Math.sin(30*Math.PI/180), z:9.8*Math.cos(30*Math.PI/180) }; eq(Math.round(slopeRaw()*10)/10, 30, '勾配：長い辺を30°'); }finally{ tiltG=g0; tiltT=t0; } }
+      { const m0=mode, k0=touch.kind; try{ mode='dual'; touch.kind='turn'; const a=touchAngle(-23.7); touch.kind='inner'; const b=touchAngle(90); mode='single'; const c=touchAngle(100); eq(Math.round(a*10)/10+'|'+b+'|'+c, '156.3|90|80', '当てて測る：外角23.7°→開き角156.3・内角90→90・壁は鋭角80'); }finally{ mode=m0; touch.kind=k0; } }
+      { const h0=rotHist, q0=rotQ, t0=rotT; try{ const now=performance.now(); rotHist=[]; for(let i=0;i<20;i++) rotHist.push({ t:now-700+i*35, h:(i%2) ? -179.9 : 179.9, tilt:1 }); rotQ=[0,0,0,1]; rotT=now; const st=rotSteady(600, 0.3); rotHist.push({ t:now, h:-170, tilt:1 }); const mv=rotSteady(600, 0.3); eq((st ? String(Math.round(turnOf(st.h, 180)*10)/10+0) : 'null')+'|'+(mv ? 'steady' : 'moving'), '0|moving', '当てて測る：止まっていれば平均（180°をまたいでも）、動いていれば待つ'); }finally{ rotHist=h0; rotQ=q0; rotT=t0; } }
       const g0=tiltG, t0=tiltT;
       try{
         const c10=Math.cos(10*Math.PI/180), s10=Math.sin(10*Math.PI/180);
@@ -1794,7 +1822,6 @@
   // 端末の「戻る」から呼ぶ：開いている画面があれば閉じて true、何も無ければ false（アプリ版のネイティブ側が使う）
   window.cutcalcBack = function(){
     const ob=document.getElementById('onboard'); if(ob && ob.classList.contains('show')){ closeOnboard(); return true; }
-    if(svOpen){ closeSlopeView(false); return true; }
     if(isToolOpen()){ closeToolModal(); return true; }
     const sh=document.getElementById('shareModal'); if(sh && sh.classList.contains('show')){ closeShareModal(); return true; }
     const mm=document.getElementById('matModal'); if(mm && mm.classList.contains('show')){ closeMatModal(); return true; }
@@ -1861,9 +1888,9 @@
   const tools=(function(){
     let st=null; try{ st=JSON.parse(localStorage.getItem(TOOL_KEY)||'null'); }catch(e){ st=null; }
     st=(st && typeof st==='object') ? st : {};
-    const p=st.poly||{}, c=st.curve||{}, g=st.slope||{}, pick=(v, list, def)=>(list.indexOf(v)>=0 ? v : def);
+    const p=st.poly||{}, c=st.curve||{}, pick=(v, list, def)=>(list.indexOf(v)>=0 ? v : def);
     return {
-      tab: pick(st.tab, ['poly','curve','corner','slope'], 'poly'),
+      tab: pick(st.tab, ['poly','curve'], 'poly'),
       poly:(function(){   // 大きさは「最後に入れた欄（anchor）とその値」。前の形（mode/size）からも引き継ぐ
         let anchor=pick(p.anchor, ['lo','li','dout','din'], null), val=posLen(p.val);
         if(!anchor){ anchor={ out:'lo', in:'li', across:'dout' }[p.mode] || 'lo'; val=posLen(p.size); }
@@ -1876,11 +1903,10 @@
         const r=posLen(c.r) || ((c.c>0 && c.h>0) ? posLen(c.c*c.c/(8*c.h)+c.h/2) : null);
         return { r, side, w:posLen(c.w), anchor, val, a:(typeof c.a==='number' && c.a>0 && c.a<=360) ? c.a : null, c:posLen(c.c), h:posLen(c.h), chordOpen:!!c.chordOpen };
       })(),
-      slope:{ unit:pick(g.unit,['deg','pct','ratio','rise','frac'],'deg'), cal:(typeof g.cal==='number' && Math.abs(g.cal)<10) ? g.cal : 0, tri:pick(g.tri,['h','len','d'],'h'), triV:posLen(g.triV), triOpen:!!g.triOpen, result:null }
     };
   })();
   let toolSaveTimer=null;
-  function saveTools(){ clearTimeout(toolSaveTimer); toolSaveTimer=setTimeout(()=>{ try{ const c=JSON.parse(JSON.stringify(tools)); c.slope.result=null; localStorage.setItem(TOOL_KEY, JSON.stringify(c)); }catch(e){} }, 300); }
+  function saveTools(){ clearTimeout(toolSaveTimer); toolSaveTimer=setTimeout(()=>{ try{ localStorage.setItem(TOOL_KEY, JSON.stringify(tools)); }catch(e){} }, 300); }
   function isToolOpen(){ const m=document.getElementById('toolModal'); return !!(m && m.classList.contains('show')); }
   function openToolModal(tab){
     if(tab) tools.tab=tab;
@@ -1889,7 +1915,7 @@
     document.getElementById('toolModal').classList.add('show');
     switchToolTab(tools.tab);
   }
-  function closeToolModal(){ document.getElementById('toolModal').classList.remove('show'); slopeStop(); cornerStop(); }
+  function closeToolModal(){ document.getElementById('toolModal').classList.remove('show'); }
   function switchToolTab(tab){
     tools.tab=tab; saveTools();
     document.querySelectorAll('.tool-tab').forEach(b=>{ const on=(b.dataset.tool===tab); b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
@@ -1900,10 +1926,6 @@
     if(!isToolOpen()) return;
     if(tools.tab==='poly') renderPoly();
     else if(tools.tab==='curve') renderCurve();
-    else if(tools.tab==='corner') renderCorner(true);
-    else renderSlope(force);
-    if(tools.tab==='slope' && !tools.slope.result) slopeStart(); else slopeStop();
-    if(tools.tab==='corner') cornerStart(); else cornerStop();
   }
   function setLenField(id, mm){ const el=document.getElementById(id); if(el && document.activeElement!==el) el.value=fmtLenInput(mm); }
   function setRadios(name, val, disabledVals){ document.querySelectorAll('input[name='+name+']').forEach(x=>{ x.checked=(x.value===val); x.disabled=!!(disabledVals && disabledVals.indexOf(x.value)>=0); }); }
@@ -2111,94 +2133,28 @@
     $('curveEndApply').textContent=t('curve_use_end').replace('{v}', o.endOpen!=null ? fmtAng(o.endOpen) : '—');
   }
 
-  // ---- 勾配 ----
-  function wariText(n){ let w=Math.floor(n+1e-9), b=Math.round((n-w)*10); if(b>=10){ w++; b=0; } return ((w ? w+'割' : '')+(b ? b+'分' : '')) || '—'; }
-  function slopeParts(deg, u){   // 度・％・1:n（日本語は 何割何分 を添える）・寸（日本語以外とインチは x/12）・1/n
-    if(deg==null || !isFinite(deg)) return ['—', ''];
-    const d=Math.max(0, Math.min(90, deg)), tn=Math.tan(Math.min(89.99, d)*D2R);
-    if(u==='pct') return [(d>=89.5) ? '—' : (Math.round(tn*1000)/10)+'%', ''];
-    if(u==='ratio'){ if(d<0.3) return ['—', '']; const n=1/tn; return ['1:'+(Math.round(n*100)/100), (curLang==='ja' && n<=10.05) ? wariText(n) : '']; }
-    if(u==='rise'){ if(d>=89.5) return ['—', '']; return [(curLang==='ja' && unit!=='in') ? (Math.round(tn*100)/10)+t('slope_u_rise') : (Math.round(tn*120)/10)+'/12', '']; }
-    if(u==='frac') return [(d<0.05 || d>45) ? '—' : '1/'+(Math.round(10/tn)/10), ''];
-    return [fmtAng(Math.round(d*10)/10)+'°', ''];
+  // ===== 測り方：カメラで測る／当てて測る（スマホを1本目に当てて 0 → 2本目に当てて確定）。両方で測ったら差をくらべる =====
+  var method=(function(){ try{ return (localStorage.getItem('cutcalc_method')==='touch') ? 'touch' : 'cam'; }catch(e){ return 'cam'; } })();
+  var measured={ cam:null, touch:null };   // くらべる用：{ v:角度, mode:切り方 }
+  var touch={ on:false, raf:null, t0:0, step:1, zero:null, fix:null, waiting:'', waitT:0, msg:'', key:'', lastMode:'',
+    kind:(function(){ try{ return (localStorage.getItem('cutcalc_touch_kind')==='inner') ? 'inner' : 'turn'; }catch(e){ return 'turn'; } })() };
+  var TOUCH_TILT_MAX=30;   // これより傾けると向きが不安定になるので取り込まない
+  // 向きのセンサー：アプリ＝ジャイロ＋加速度（磁気は使わない＝鉄筋やグレーチングで狂わない）、ブラウザ＝deviceorientation
+  var rotQ=null, rotT=0, rotOn=false, rotSrc='', rotHist=[];
+  function rotLong(q){   // スマホの長い辺（端末の y 軸）が水平面で向く方向（上から見て右回りが＋）と、水平からの傾き
+    const x=q[0], y=q[1], z=q[2], w=q[3], vx=2*(x*y-w*z), vy=1-2*(x*x+z*z), vz=2*(y*z+w*x);
+    return { h:Math.atan2(vx, vy)/D2R, tilt:Math.asin(Math.max(-1, Math.min(1, vz)))/D2R };
   }
-  function slopeText(deg, u){ const p=slopeParts(deg, u); return p[0]+(p[1] ? '（'+p[1]+'）' : ''); }
-  function setSlopeBig(el, deg, u, arrow){ const p=slopeParts(deg, u); el.replaceChildren(document.createTextNode(p[0]+(p[0]!=='—' && arrow ? ' '+arrow : ''))); if(p[1]){ const sm=document.createElement('small'); sm.textContent=p[1]; el.appendChild(sm); } }
-  function slopeAllText(deg, except){ return ['deg','pct','ratio','rise','frac'].filter(u=>u!==except).map(u=>slopeParts(deg,u)[0]).filter(x=>x!=='—').join('  ·  '); }
-  let slopeOn=false, slopeRaf=null, slopeT0=0, slopeZero=null, slopeHold=null, slopeCal1=null, slopeKey='';
-  function slopeRaw(){   // スマホの長い辺の、水平からの角度（符号つき）。平らに置いても、立てて当てても同じ
-    if(!tiltG || performance.now()-tiltT>1500) return null;
-    const n=Math.hypot(tiltG.x, tiltG.y, tiltG.z); if(!(n>4)) return null;
-    return Math.asin(Math.max(-1, Math.min(1, tiltG.y/n)))/D2R;
-  }
-  function slopeElev(){ const r=slopeRaw(); return (r==null) ? null : r-tools.slope.cal; }
-  function slopeTouchValue(){ if(slopeHold!=null) return slopeHold; const e=slopeElev(); if(e==null) return null; return (slopeZero==null) ? Math.abs(e) : Math.min(180, Math.abs(e-slopeZero)); }
-  function slopeStart(){ if(slopeOn) return; slopeOn=true; slopeT0=performance.now(); slopeKey=''; tiltRequestPermission(); tiltStart('slope'); const loop=()=>{ if(!slopeOn) return; renderSlope(); slopeRaf=requestAnimationFrame(loop); }; slopeRaf=requestAnimationFrame(loop); }
-  function slopeStop(){ if(!slopeOn) return; slopeOn=false; if(slopeRaf) cancelAnimationFrame(slopeRaf); slopeRaf=null; tiltStop('slope'); slopeCal1=null; }
-  function slopeCurrent(){ const g=tools.slope; return g.result ? g.result.deg : slopeTouchValue(); }
-  function drawSlopeTri(deg){
-    const svg=document.getElementById('slopeTriFig'); if(!svg) return; svg.replaceChildren();
-    const d=Math.max(8, Math.min(60, (deg!=null && isFinite(deg)) ? deg : 30))*D2R, x0=40, y0=88, hh=Math.min(70, 150*Math.tan(d)), bw=hh/Math.tan(d);
-    svg.appendChild(svgEl('path', { d:'M'+x0+','+y0+' L'+(x0+bw).toFixed(1)+','+y0+' L'+(x0+bw).toFixed(1)+','+(y0-hh).toFixed(1)+' Z', fill:'#e2e8f0', stroke:'#334155', 'stroke-width':'1.4' }));
-    svg.appendChild(svgEl('line', { x1:x0, y1:y0, x2:(x0+bw).toFixed(1), y2:(y0-hh).toFixed(1), stroke:'#16a34a', 'stroke-width':'3' }));
-    const txt=(x,y,str,color,anchor)=>svg.appendChild(svgEl('text', { x:x.toFixed(1), y:y.toFixed(1), 'font-size':'11', 'font-weight':'700', fill:color, 'text-anchor':anchor||'middle' }, str));
-    txt(x0+bw/2, y0+15, t('slope_tri_d'), '#475569'); txt(x0+bw+5, y0-hh/2+4, t('slope_tri_hh'), '#1d4ed8', 'start'); txt(x0+bw/2-8, y0-hh/2-6, t('slope_tri_len'), '#15803d', 'end');
-  }
-  function renderSlope(force){
-    const $=id=>document.getElementById(id), g=tools.slope, res=g.result, v=slopeCurrent(), vr=(v==null) ? null : Math.round(v*10)/10;
-    const raw=slopeRaw(), noSensor=(!res && raw==null && performance.now()-slopeT0>1500);
-    const key=[res ? res.via+res.deg : '', g.unit, vr, noSensor, raw==null, slopeZero!=null, slopeHold!=null, slopeCal1!=null, g.cal, g.tri, g.triV, g.triOpen, curLang, unit].join('|');
-    if(!force && key===slopeKey) return; slopeKey=key;
-    setRadios('slopeUnit', g.unit); setRadios('slopeTri', g.tri);
-    { const rl=document.querySelector('input[name=slopeUnit][value=rise] + span'); if(rl) rl.textContent=(curLang==='ja' && unit!=='in') ? t('slope_u_rise') : 'x/12'; }
-    setSlopeBig($('slopeVal'), vr, g.unit, (res && res.via==='sight' && vr) ? (res.dir>0 ? '↑' : '↓') : '');
-    $('slopeAll').textContent=(vr==null) ? '' : slopeAllText(vr, g.unit);
-    let note='';
-    if(res) note=t(res.via==='sight' ? 'slope_from_sight' : 'slope_from_photo');
-    else if(noSensor) note=t('slope_none');
-    else if(slopeCal1!=null) note=t('slope_cal_1');
-    else if(slopeHold==null) note=t('slope_hint_touch')+(slopeZero!=null ? '\n'+t('slope_rel') : '')+(g.cal ? '\n'+t('slope_cal_done').replace('{v}', (g.cal>0 ? '+' : '')+(Math.round(g.cal*10)/10)) : '');
-    $('slopeNote').textContent=note;
-    $('slopeBackLive').hidden=!res;
-    $('slopeTouchBtns').hidden=!!res;
-    $('slopeZeroBtn').textContent=t(slopeZero!=null ? 'slope_unzero' : 'slope_zero'); $('slopeZeroBtn').disabled=(slopeZero==null && raw==null);
-    $('slopeHoldBtn').textContent=t(slopeHold!=null ? 'btn_unfreeze' : 'btn_freeze'); $('slopeHoldBtn').disabled=(v==null && slopeHold==null);
-    $('slopeCalBtn').disabled=(raw==null);
-    // 高さ・法長・水平距離（どれか1つ → 残り）
-    setDisc('slopeTriToggle', 'slopeTriBody', g.triOpen);
-    $('slopeTriLbl').textContent=t({ h:'slope_tri_hh', len:'slope_tri_len', d:'slope_tri_d' }[g.tri]);
-    setLenField('slopeTriV', g.triV);
-    const rows=[];
-    if(vr!=null && vr>0.05 && vr<89.95 && g.triV!=null){
-      const sn=Math.sin(vr*D2R), cs=Math.cos(vr*D2R), tn=Math.tan(vr*D2R); let H, L, D;
-      if(g.tri==='h'){ H=g.triV; L=H/sn; D=H/tn; } else if(g.tri==='len'){ L=g.triV; H=L*sn; D=L*cs; } else { D=g.triV; H=D*tn; L=D/cs; }
-      rows.push([t('slope_tri_hh'), fmtLenFull(H,0)], [t('slope_tri_len'), fmtLenFull(L,0)], [t('slope_tri_d'), fmtLenFull(D,0)]);
-    }
-    resRows($('slopeTriRes'), rows);
-    if(g.triOpen) drawSlopeTri(vr);
-    // メイン画面へ：2本をつなぐ＝180−角度、壁（垂直）に当てる＝90−角度
-    const dd=(vr==null) ? null : 180-vr, sg=(vr==null) ? null : 90-vr, okD=(dd!=null && dd>=60), okS=(sg!=null && sg>=30);
-    const lab=(mk, lk, val, ok)=>t('tool_to').replace('{m}', t(mk)).replace('{l}', t(lk)).replace('{v}', ok ? fmtAng(val)+'°' : '—');
-    $('slopeDualBtn').textContent=lab('mode_dual_s', 'angle_open', dd, okD); $('slopeDualBtn').disabled=!okD;
-    $('slopeSingleBtn').textContent=lab('mode_single_s', 'angle_line', sg, okS); $('slopeSingleBtn').disabled=!okS;
-  }
-  function slopeCalibrate(){   // 同じ面で、向きを180°変えて2回 → 平均でセンサーのずれを出す（e1＝θ＋δ、e2＝−θ＋δ）
-    const r=slopeRaw(); if(r==null) return;
-    if(slopeCal1==null){ slopeCal1=r; slopeZero=null; slopeHold=null; }
-    else { tools.slope.cal=(slopeCal1+r)/2; slopeCal1=null; saveTools(); showStatus(t('slope_cal_done').replace('{v}', (tools.slope.cal>0 ? '+' : '')+(Math.round(tools.slope.cal*10)/10)), 'success'); }
-    renderSlope(true);
-  }
-
-  // ===== 角を測る：1本目に当てて 0 → 2本目に当て直すと、あいだの角度（開き角）。向きは3次元で持ち、スマホの長い辺が水平面で向く方向だけを比べる =====
-  let rotQ=null, rotT=0, rotOn=false, rotSrc='';
-  window.cutcalcRot=function(x, y, z, w){ rotQ=[+x, +y, +z, +w]; rotT=performance.now(); };   // アプリから（ジャイロ＋加速度。磁気は使わない）
-  function eulerToQuat(a, b, g){   // ブラウザの deviceorientation（alpha・beta・gamma、Z-X'-Y''）→ 四元数 [x,y,z,w]
+  function turnOf(h1, h0){ return ((h1-h0+540)%360)-180; }   // 回転（−180〜180、右が＋）
+  function rotPush(q){ rotQ=q; rotT=performance.now(); const L=rotLong(q); rotHist.push({ t:rotT, h:L.h, tilt:L.tilt }); while(rotHist.length>2 && rotT-rotHist[0].t>1500) rotHist.shift(); }
+  window.cutcalcRot=function(x, y, z, w){ rotPush([+x, +y, +z, +w]); };   // アプリから約30回/秒
+  function eulerToQuat(a, b, g){   // deviceorientation（alpha・beta・gamma、Z-X'-Y''）→ 四元数 [x,y,z,w]
     const hx=b*D2R/2, hy=g*D2R/2, hz=a*D2R/2, cx=Math.cos(hx), cy=Math.cos(hy), cz=Math.cos(hz), sx=Math.sin(hx), sy=Math.sin(hy), sz=Math.sin(hz);
     return [sx*cy*cz-cx*sy*sz, cx*sy*cz+sx*cy*sz, cx*cy*sz+sx*sy*cz, cx*cy*cz-sx*sy*sz];
   }
-  function onDevOrient(e){ if(e.alpha==null || e.beta==null || e.gamma==null) return; rotQ=eulerToQuat(e.alpha, e.beta, e.gamma); rotT=performance.now(); }
+  function onDevOrient(e){ if(e.alpha==null || e.beta==null || e.gamma==null) return; rotPush(eulerToQuat(e.alpha, e.beta, e.gamma)); }
   function rotStart(){
-    if(rotOn) return; rotOn=true; rotQ=null; rotSrc='';
+    if(rotOn) return; rotOn=true; rotQ=null; rotHist=[]; rotSrc='';
     try{ if(window.AndroidApp && typeof window.AndroidApp.rotStart==='function' && window.AndroidApp.rotStart()) rotSrc='app'; }catch(e){}
     if(!rotSrc){
       rotSrc='web';
@@ -2206,152 +2162,141 @@
       window.addEventListener('deviceorientation', onDevOrient);
     }
   }
-  function rotStop(){ if(!rotOn) return; rotOn=false; try{ if(rotSrc==='app') window.AndroidApp.rotStop(); }catch(e){} window.removeEventListener('deviceorientation', onDevOrient); rotQ=null; }
-  function rotLong(q){   // スマホの長い辺（端末の y 軸）が水平面で向く方向（上から見て右回りが＋）と、水平からの傾き
-    const x=q[0], y=q[1], z=q[2], w=q[3], vx=2*(x*y-w*z), vy=1-2*(x*x+z*z), vz=2*(y*z+w*x);
-    return { h:Math.atan2(vx, vy)/D2R, tilt:Math.asin(Math.max(-1, Math.min(1, vz)))/D2R };
+  function rotStop(){ if(!rotOn) return; rotOn=false; try{ if(rotSrc==='app') window.AndroidApp.rotStop(); }catch(e){} window.removeEventListener('deviceorientation', onDevOrient); rotQ=null; rotHist=[]; }
+  function rotSteady(ms, tol){   // 直近 ms のあいだ向きの揺れが tol° 以内なら、その平均（置いたまま動いていない）
+    const now=performance.now(); if(!rotQ || now-rotT>500) return null;
+    const pts=rotHist.filter(p=>now-p.t<=ms); if(pts.length<5 || now-pts[0].t<ms*0.8) return null;
+    const ref=pts[pts.length-1].h; let sum=0, mn=Infinity, mx=-Infinity, tilt=0;
+    pts.forEach(p=>{ const d=turnOf(p.h, ref); sum+=d; mn=Math.min(mn, d); mx=Math.max(mx, d); tilt+=p.tilt; });
+    if(mx-mn>tol) return null;
+    return { h:ref+sum/pts.length, tilt:tilt/pts.length };
   }
-  const turnOf=(h1, h0)=>((h1-h0+540)%360)-180;   // 曲がり（−180〜180、右が＋）
-  let cornerOn=false, cornerRaf=null, cornerT0=0, cornerZero=null, cornerHold=null, cornerKey='';
-  function cornerStart(){ if(cornerOn) return; cornerOn=true; cornerT0=performance.now(); cornerZero=null; cornerHold=null; cornerKey=''; rotStart(); const loop=()=>{ if(!cornerOn) return; renderCorner(); cornerRaf=requestAnimationFrame(loop); }; cornerRaf=requestAnimationFrame(loop); }
-  function cornerStop(){ if(!cornerOn) return; cornerOn=false; if(cornerRaf) cancelAnimationFrame(cornerRaf); cornerRaf=null; rotStop(); }
-  function cornerNow(){ return (rotQ && performance.now()-rotT<1000) ? rotLong(rotQ) : null; }
-  function cornerTurn(){ if(cornerHold!=null) return cornerHold; const n=cornerNow(); if(!n || !cornerZero || Math.abs(n.tilt)>50) return null; return turnOf(n.h, cornerZero.h); }
-  function drawCornerFig(turn, zeroSet){   // 上から見た絵：1本目は固定、2本目がスマホの向きに合わせて回る
-    const svg=document.getElementById('cornerFig'); if(!svg) return; svg.replaceChildren();
-    const C=[168, 90], d=((turn==null) ? 0 : turn)*D2R, A=[C[0]-138, C[1]], B=[C[0]+80*Math.cos(d), C[1]+80*Math.sin(d)];
-    svgLine(svg, A, [C[0]+96, C[1]], '#94a3b8', 1, '5 4');   // 水糸（まっすぐの延長）
-    const band=(p, q, on)=>{ svgLine(svg, p, q, on ? '#475569' : '#b6c0cc', 20); svgLine(svg, p, q, on ? '#e2e8f0' : '#f1f5f9', 13); };
-    band(A, C, true); band(C, B, zeroSet);
-    const phone=(p, q, t, label, on)=>{
-      const ang=Math.atan2(q[1]-p[1], q[0]-p[0])/D2R, m=[p[0]+(q[0]-p[0])*t, p[1]+(q[1]-p[1])*t];
-      const g=svgEl('g', { transform:'translate('+m[0].toFixed(1)+','+m[1].toFixed(1)+') rotate('+ang.toFixed(1)+')' });
-      g.appendChild(svgEl('rect', { x:'-17', y:'-8', width:'34', height:'16', rx:'3', fill:on ? '#1d4ed8' : '#94a3b8', stroke:'#fff', 'stroke-width':'1.5' }));
-      g.appendChild(svgEl('path', { d:'M7,-4.5 L14,0 L7,4.5 Z', fill:'#fff' }));   // スマホの上の向き
+  var beepCtx=null;
+  function touchPrimeAudio(){ try{ if(!beepCtx){ const AC=window.AudioContext || window.webkitAudioContext; if(AC) beepCtx=new AC(); } if(beepCtx && beepCtx.state==='suspended') beepCtx.resume(); }catch(e){} }   // 押したときに用意（音は取り込んだときに鳴らす）
+  function touchBeep(){ try{ if(!beepCtx) return; const c=beepCtx, o=c.createOscillator(), g=c.createGain(), t0=c.currentTime; o.type='sine'; o.frequency.value=1400; g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.15, t0+0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0+0.12); o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+0.13); }catch(e){} }
+  function touchAngle(turn){   // 回転 → ③に入れる角度
+    const r=Math.abs(turn);
+    if(mode==='single') return Math.min(r, 180-r);           // 壁との角度（鋭角のほう）
+    return (touch.kind==='inner') ? r : 180-r;                // 開き角：外角（曲がり）なら 180−回転、内角なら回転そのまま
+  }
+  function touchApply(){
+    if(!touch.fix) return;
+    const v=Math.round(touchAngle(touch.fix.turn)*10)/10, el=document.getElementById('manualAngle');
+    el.value=String(v); applyManualAngle(true);
+    measured.touch={ v, mode };
+    requestRender();
+  }
+  function camMeasuring(){ return !!(stream || (isCaptured && photo.width>0)); }
+  function syncCompare(){
+    const row=document.getElementById('cmpRow'); if(!row || typeof measured==='undefined' || !measured) return;
+    const c=measured.cam, u=measured.touch, show=!!(c && u && c.mode===mode && u.mode===mode);
+    if(row.hidden!==!show) row.hidden=!show;
+    if(!show) return;
+    const cam=document.getElementById('cmpCam'), tch=document.getElementById('cmpTouch'), cur=Math.round(shownAngle()*10)/10;
+    cam.textContent=t('cmp_cam').replace('{v}', fmtAng(c.v)); tch.textContent=t('cmp_touch').replace('{v}', fmtAng(u.v));
+    cam.classList.toggle('on', Math.abs(cur-c.v)<0.05); tch.classList.toggle('on', Math.abs(cur-u.v)<0.05);
+    document.getElementById('cmpDiff').textContent=t('cmp_diff').replace('{v}', fmtAng(Math.round(Math.abs(c.v-u.v)*10)/10));
+  }
+  function setMethod(m){
+    if(m!=='cam' && m!=='touch') return;
+    if(m===method){ syncMethodUI(); return; }
+    if(m==='touch' && camMeasuring()) measured.cam={ v:Math.round(shownAngle()*10)/10, mode };   // カメラ（写真）で合わせた値を、くらべる用に残す
+    method=m; try{ localStorage.setItem('cutcalc_method', m); }catch(e){}
+    if(m==='touch'){ if(isFullscreen()) setFullscreen(false); try{ toggleViewPanel(false); }catch(e){} if(stream) stopCamera(); touchBegin(); }
+    else touchEnd();
+    syncMethodUI();
+    if(m==='cam'){ fitCanvas(); requestRender(); }
+    syncCompare();
+  }
+  function syncMethodUI(){
+    const on=(method==='touch'), $=id=>document.getElementById(id);
+    document.documentElement.classList.toggle('touchMode', on);
+    $('methodSw').setAttribute('data-pos', on ? 'right' : 'left');
+    $('methodCamBtn').setAttribute('aria-pressed', !on); $('methodTouchBtn').setAttribute('aria-pressed', on);
+    $('touchWrap').hidden=!on; $('touchRow').hidden=!on;
+  }
+  function touchBegin(){ if(touch.on) return; touch.on=true; touch.t0=performance.now(); touch.key=''; touch.step=1; touch.zero=null; touch.fix=null; touch.waiting=''; touch.msg=''; rotStart(); const loop=()=>{ if(!touch.on) return; renderTouch(); touch.raf=requestAnimationFrame(loop); }; touch.raf=requestAnimationFrame(loop); }
+  function touchEnd(){ if(!touch.on) return; touch.on=false; if(touch.raf) cancelAnimationFrame(touch.raf); touch.raf=null; touch.waiting=''; rotStop(); }
+  function touchSuspend(){ if(typeof touch==='undefined' || !touch || !touch.on) return; touch.zero=null; touch.fix=null; touch.step=1; touch.waiting=''; touch.msg=''; touch.key=''; }
+  function touchRefresh(){ if(typeof touch==='undefined' || !touch) return; touch.key=''; if(touch.on) renderTouch(true); syncCompare(); }
+  function drawTouchFig(turn, step, wall){   // 上から見た絵：1本目（壁）は固定、2本目がスマホの向きに合わせて回る
+    const svg=document.getElementById('touchFig'); if(!svg) return; svg.replaceChildren();
+    const ang=(turn==null) ? null : touchAngle(turn), sg=(turn!=null && turn<0) ? -1 : 1;
+    const dev=(ang==null) ? 0 : (wall ? ang : 180-ang)*sg*D2R;   // 1本目のまっすぐから、2本目がどれだけ曲がるか（絵の上）
+    const C=[170, 78], L2=70, A=wall ? [C[0]-150, C[1]] : [C[0]-132, C[1]], B=wall ? [C[0]+L2*Math.cos(-Math.abs(dev)), C[1]+L2*Math.sin(-Math.abs(dev))] : [C[0]+L2*Math.cos(dev), C[1]+L2*Math.sin(dev)];
+    const txt=(x, y, str, color, size)=>svg.appendChild(svgEl('text', { x:x.toFixed(1), y:y.toFixed(1), 'font-size':String(size||12), 'font-weight':'700', fill:color, 'text-anchor':'middle', 'paint-order':'stroke', stroke:'#0b1220', 'stroke-width':'3', 'stroke-linejoin':'round' }, str));
+    if(wall){   // 壁：太い線と斜線
+      svgLine(svg, A, [C[0]+110, C[1]], '#94a3b8', 4);
+      for(let x=A[0]+6; x<C[0]+110; x+=12) svgLine(svg, [x, C[1]+2], [x-7, C[1]+10], '#64748b', 1.2);
+    } else {
+      svgLine(svg, A, [C[0]+96, C[1]], '#475569', 1, '5 4');   // 水糸（まっすぐの延長）
+      svgLine(svg, A, C, '#94a3b8', 20); svgLine(svg, A, C, '#1e293b', 12);
+    }
+    const on2=(step>=2);
+    svgLine(svg, C, B, on2 ? '#94a3b8' : '#475569', 20); svgLine(svg, C, B, on2 ? '#1e293b' : '#111827', 12);
+    const phone=(p, q, tpos, flip, label, active)=>{
+      const a=Math.atan2(q[1]-p[1], q[0]-p[0])/D2R+(flip ? 180 : 0), m=[p[0]+(q[0]-p[0])*tpos, p[1]+(q[1]-p[1])*tpos];
+      const g=svgEl('g', { transform:'translate('+m[0].toFixed(1)+','+m[1].toFixed(1)+') rotate('+a.toFixed(1)+')' });
+      g.appendChild(svgEl('rect', { x:'-17', y:'-8', width:'34', height:'16', rx:'3', fill:active ? '#fcd34d' : '#475569', stroke:'#0b1220', 'stroke-width':'1.5' }));
+      g.appendChild(svgEl('path', { d:'M7,-4.5 L14,0 L7,4.5 Z', fill:active ? '#0b1220' : '#cbd5e1' }));   // スマホの上の向き
       svg.appendChild(g);
-      svgText(svg, m[0], m[1]-15, label, { color:on ? '#1d4ed8' : '#64748b', size:13 });
+      txt(m[0], m[1]-15, label, active ? '#fcd34d' : '#94a3b8', 13);
     };
-    phone(A, C, 0.45, '①', !zeroSet); phone(C, B, 0.6, '②', zeroSet);
-    if(zeroSet && turn!=null && Math.abs(turn)>=0.5){   // 開き角の弧
-      const r=28, u=[-1, 0], v=[Math.cos(d), Math.sin(d)], cross=u[0]*v[1]-u[1]*v[0];
-      svg.appendChild(svgEl('path', { d:'M'+(C[0]+u[0]*r).toFixed(1)+','+(C[1]+u[1]*r).toFixed(1)+' A'+r+','+r+' 0 0 '+(cross>0 ? 1 : 0)+' '+(C[0]+v[0]*r).toFixed(1)+','+(C[1]+v[1]*r).toFixed(1), fill:'none', stroke:'#15803d', 'stroke-width':'2' }));
-      let bx=u[0]+v[0], by=u[1]+v[1]; const bl=Math.hypot(bx, by)||1; bx/=bl; by/=bl;
-      svgText(svg, C[0]+bx*(r+20), C[1]+by*(r+20)+4, fmtAng(Math.round((180-Math.abs(turn))*10)/10)+'°', { color:'#15803d', size:12 });
+    phone(wall ? [C[0]-100, C[1]] : A, C, wall ? 0.5 : 0.45, false, '①', step===1);
+    phone(C, B, 0.62, (!wall && touch.kind==='inner'), '②', step>=2);   // 内角：2本目では上を角に向ける
+    if(ang!=null && step>=2 && Math.abs(dev)>=0.5*D2R){   // 角の弧と数字
+      const r=26, u=wall ? [1, 0] : [-1, 0], bl=Math.hypot(B[0]-C[0], B[1]-C[1])||1, v=[(B[0]-C[0])/bl, (B[1]-C[1])/bl], cross=u[0]*v[1]-u[1]*v[0];
+      svg.appendChild(svgEl('path', { d:'M'+(C[0]+u[0]*r).toFixed(1)+','+(C[1]+u[1]*r).toFixed(1)+' A'+r+','+r+' 0 0 '+(cross>0 ? 1 : 0)+' '+(C[0]+v[0]*r).toFixed(1)+','+(C[1]+v[1]*r).toFixed(1), fill:'none', stroke:'#86efac', 'stroke-width':'2' }));
+      let bx=u[0]+v[0], by=u[1]+v[1]; const bn=Math.hypot(bx, by)||1; bx/=bn; by/=bn;
+      txt(C[0]+bx*(r+19), C[1]+by*(r+19)+4, fmtAng(Math.round(ang*10)/10)+'°', '#86efac', 12);
     }
   }
-  function renderCorner(force){
-    const $=id=>document.getElementById(id), now=cornerNow(), zeroSet=!!cornerZero || cornerHold!=null;
-    const noSensor=(cornerOn && !now && performance.now()-cornerT0>1500), steep=!!(now && Math.abs(now.tilt)>50 && cornerHold==null);
-    const turn=cornerTurn(), tr=(turn==null) ? null : Math.round(turn*10)/10, open=(tr==null) ? null : 180-Math.abs(tr);
-    const old=!!(cornerZero && cornerHold==null && performance.now()-cornerZero.t>30000);
-    const key=[tr, !!cornerZero, cornerHold!=null, noSensor, steep, old, !!now, curLang].join('|');
-    if(!force && key===cornerKey) return; cornerKey=key;
-    $('cornerVal').textContent=(open==null) ? '—' : fmtAng(open)+'°';
-    $('cornerSub').textContent=(tr==null) ? '' : (Math.abs(tr)<0.05) ? t('corner_straight') : t(tr>0 ? 'corner_right' : 'corner_left').replace('{v}', fmtAng(Math.abs(tr)));
+  function renderTouch(force){
+    if(!touch.on) return;
+    const $=id=>document.getElementById(id), now=performance.now(), r1=v=>(v==null) ? null : Math.round(v*10)/10;
+    const cur=(rotQ && now-rotT<1000) ? rotLong(rotQ) : null, noSensor=(!cur && now-touch.t0>1500);
+    if(touch.waiting){   // 0 にする／確定：押した指の揺れがおさまり、置いたまま動かなくなったら取り込む
+      const st=rotSteady(600, 0.3);
+      if(st && Math.abs(st.tilt)<=TOUCH_TILT_MAX){
+        if(touch.waiting==='zero'){ touch.zero={ h:st.h, tilt:st.tilt, t:now }; touch.fix=null; touch.step=2; }
+        else if(touch.zero){ touch.fix={ turn:turnOf(st.h, touch.zero.h), tilt:st.tilt, t:now }; touch.step=3; touchApply(); }
+        touch.waiting=''; touch.msg=''; touchBeep();
+      } else if(now-touch.waitT>4000){ touch.msg=(touch.waiting==='zero') ? 'touch_move_zero' : 'touch_move_fix'; touch.waiting=''; }
+    }
+    if(touch.step===3 && touch.lastMode && touch.lastMode!==mode) touchApply();   // 確定のあとで切り方を変えたら入れ直す
+    touch.lastMode=mode;
+    const tilt=cur ? cur.tilt : null, tiltBad=(tilt!=null && Math.abs(tilt)>TOUCH_TILT_MAX), wall=(mode==='single');
+    const live=(touch.zero && cur && !tiltBad) ? turnOf(cur.h, touch.zero.h) : null;
+    const shown=(touch.step===3 && touch.fix) ? touch.fix.turn : live;
+    const old=!!(touch.zero && touch.step===2 && now-touch.zero.t>30000);
+    const key=[touch.step, r1(shown), r1(live), (tilt==null) ? '' : Math.round(Math.abs(tilt)), touch.waiting, touch.msg, noSensor, tiltBad, old, touch.kind, mode, curLang].join('|');
+    if(!force && key===touch.key) return; touch.key=key;
+    document.querySelectorAll('#touchSteps [data-step]').forEach(el=>{ const n=+el.dataset.step; el.classList.toggle('on', n===touch.step); el.classList.toggle('done', n<touch.step); });
+    const ang=(shown==null) ? null : r1(touchAngle(shown));
+    $('touchVal').textContent=(ang==null) ? '—' : fmtAng(ang)+'°';
+    let sub='';
+    if(shown!=null){ const a=r1(Math.abs(shown)); sub=t('touch_rot').replace('{v}', fmtAng(a))+((a>=0.05) ? ' '+t(shown>0 ? 'touch_right' : 'touch_left') : ''); }
+    if(touch.step===3 && live!=null) sub+=(sub ? '　' : '')+t('touch_now').replace('{v}', fmtAng(r1(Math.abs(live))));
+    $('touchSub').textContent=sub;
     let note='';
-    if(noSensor) note=t('corner_none');
-    else if(cornerHold!=null) note=t('corner_held');
-    else if(steep) note=t('corner_steep');
-    else if(!cornerZero) note=t('corner_step1');
-    else note=t('corner_step2')+'\n'+t(old ? 'corner_old' : 'corner_back')+((tr!=null && Math.abs(tr)>150) ? '\n'+t('corner_reverse') : '');
-    $('cornerNote').textContent=note;
-    const zb=$('cornerZeroBtn');
-    zb.textContent=t(cornerZero ? 'corner_rezero' : 'corner_zero'); zb.disabled=(!now || steep); zb.classList.toggle('go', !cornerZero && !!now && !steep);
-    $('cornerHoldBtn').textContent=t(cornerHold!=null ? 'btn_unfreeze' : 'btn_freeze'); $('cornerHoldBtn').disabled=(tr==null);
-    drawCornerFig(tr, zeroSet);
-    const wall=(tr==null) ? null : Math.min(Math.abs(tr), 180-Math.abs(tr)), okD=(open!=null && open>=60), okS=(wall!=null && wall>=30);
-    $('cornerDualBtn').disabled=!okD; $('cornerDualBtn').textContent=t('tool_use_main').replace('{v}', okD ? fmtAng(open) : '—');
-    $('cornerSingleBtn').disabled=!okS; $('cornerSingleBtn').textContent=t('tool_to').replace('{m}', t('mode_single_s')).replace('{l}', t('angle_line')).replace('{v}', okS ? fmtAng(Math.round(wall*10)/10)+'°' : '—');
+    if(noSensor) note=t('touch_none');
+    else if(touch.waiting) note=t('touch_hold');
+    else if(touch.msg) note=t(touch.msg);
+    else if(tiltBad) note=t('touch_tilt_bad');
+    else if(touch.step===1) note=t(wall ? 'touch_n1_wall' : 'touch_n1');
+    else if(touch.step===2) note=t(wall ? 'touch_n2_wall' : (touch.kind==='inner' ? 'touch_n2_inner' : 'touch_n2_turn'))+(old ? '\n'+t('touch_old') : '');
+    else { note=t('touch_n3'); if(touch.fix && touch.zero && Math.abs(touch.fix.tilt-touch.zero.tilt)>10) note+='\n'+t('touch_tilt_diff').replace('{a}', fmtAng(r1(touch.zero.tilt))).replace('{b}', fmtAng(r1(touch.fix.tilt))); }
+    $('touchNote').textContent=note;
+    const lv=$('touchLevel'), at=(tilt==null) ? null : Math.abs(tilt);
+    lv.classList.toggle('ok', at!=null && at<=5); lv.classList.toggle('warn', at!=null && at>5 && !tiltBad); lv.classList.toggle('bad', tiltBad);
+    $('touchTilt').textContent=(at==null) ? '—' : t('touch_tilt').replace('{v}', fmtAng(r1(at)));
+    const zb=$('touchZeroBtn'), fb=$('touchFixBtn');
+    setActLabel('touchZeroBtn', t(touch.step===1 ? 'touch_zero' : 'touch_rezero'));
+    zb.disabled=(!cur || !!touch.waiting); fb.disabled=(!touch.zero || !cur || !!touch.waiting);
+    zb.classList.toggle('go', touch.step===1 && !!cur && !touch.waiting); fb.classList.toggle('go', touch.step===2 && !!cur && !touch.waiting);
+    const ks=$('touchKindSw'); ks.hidden=wall; ks.setAttribute('data-pos', touch.kind==='inner' ? 'right' : 'left'); ks.querySelectorAll('.swOpt').forEach(b=>b.setAttribute('aria-pressed', b.dataset.kind===touch.kind));
+    drawTouchFig(shown, touch.step, wall);
   }
-
-  // ===== 勾配をカメラで測る（のぞく＝十字を目印に合わせる／写す＝水平線に対して、2つの丸を斜面に合わせる） =====
-  let svMode='photo', svOpen=false, svRaf=null, svStream=null, svFrozen=false, svHoriz=null, svUp=null, svA=null, svB=null, svDrag=null, svVal=null, svDir=0, svKey='', svW=1, svH=1;
-  const svPhoto=document.createElement('canvas');
-  function svSource(){
-    if(svFrozen && svPhoto.width>0) return { el:svPhoto, w:svPhoto.width, h:svPhoto.height };
-    const ve=document.getElementById('svVideo');
-    const v=(stream && video.readyState>=2 && video.videoWidth>0) ? video : ((svStream && ve && ve.readyState>=2 && ve.videoWidth>0) ? ve : null);
-    return v ? { el:v, w:v.videoWidth, h:v.videoHeight } : null;
-  }
-  function screenUp(){   // 画面の座標（右＝x、下＝y）で見た「真上」の向きと、画面に垂直な成分 z
-    if(!tiltG || performance.now()-tiltT>1500) return null;
-    const n=Math.hypot(tiltG.x, tiltG.y, tiltG.z); if(!(n>4)) return null;
-    const x=tiltG.x/n, y=-tiltG.y/n, ang=(((screen.orientation && screen.orientation.angle) || window.orientation || 0))*D2R, c=Math.cos(ang), s=Math.sin(ang);
-    return { x:x*c+y*s, y:-x*s+y*c, z:tiltG.z/n };
-  }
-  async function openSlopeView(m){
-    if(m!=='sight' && m!=='photo') return;
-    svMode=m;
-    document.getElementById('toolModal').classList.remove('show'); slopeStop();
-    svOpen=true; svFrozen=false; svPhoto.width=svPhoto.height=0; svA=svB=null; svVal=null; svDir=0; svKey=''; svDrag=null;
-    document.getElementById('slopeView').hidden=false; document.documentElement.classList.add('fsOpen');
-    tiltRequestPermission(); tiltStart('slopecam'); keepAwake(true);
-    const loop=()=>{ if(!svOpen) return; svRender(); svRaf=requestAnimationFrame(loop); }; svRaf=requestAnimationFrame(loop);
-    if(!stream){   // メイン画面のカメラを使っていなければ、この画面だけのカメラを開く（メイン画面の状態は変えない）
-      try{
-        const st=await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment', width:{ ideal:1920 }, height:{ ideal:1080 } }, audio:false });
-        if(!svOpen){ st.getTracks().forEach(tr=>tr.stop()); return; }
-        svStream=st; const ve=document.getElementById('svVideo'); ve.srcObject=st; await ve.play().catch(()=>{});
-      }catch(e){
-        const n=(e && e.name) || '';
-        showStatus((n==='NotAllowedError' || n==='SecurityError') ? t('st_cam_denied') : (n==='NotFoundError' || n==='OverconstrainedError') ? t('st_cam_none') : t('st_cam_fail')+((e && e.message) || n), 'error');
-      }
-    }
-  }
-  function closeSlopeView(accept){
-    if(!svOpen) return;
-    svOpen=false; if(svRaf) cancelAnimationFrame(svRaf); svRaf=null; svDrag=null;
-    if(svStream){ svStream.getTracks().forEach(tr=>tr.stop()); svStream=null; const ve=document.getElementById('svVideo'); ve.pause(); ve.srcObject=null; }
-    tiltStop('slopecam'); if(!stream) keepAwake(false);
-    document.getElementById('slopeView').hidden=true;
-    if(!isFullscreen()) document.documentElement.classList.remove('fsOpen');
-    if(accept && svVal!=null) tools.slope.result={ deg:svVal, dir:svDir, via:svMode };
-    openToolModal('slope');
-  }
-  function svRender(){
-    const cv=document.getElementById('svCanvas'), ctx=cv.getContext('2d'), rc=cv.getBoundingClientRect();
-    const dpr=Math.min(3, Math.max(1, window.devicePixelRatio||1)), W=Math.max(1, Math.round(rc.width)), H=Math.max(1, Math.round(rc.height));
-    if(cv.width!==Math.round(W*dpr) || cv.height!==Math.round(H*dpr)){ cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
-    if(svA && (W!==svW || H!==svH)){ const k=(p)=>({ x:p.x*W/svW, y:p.y*H/svH }); svA=k(svA); svB=k(svB); }   // 画面を回したとき
-    svW=W; svH=H;
-    ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-    const src=svSource();
-    if(src){ const k=Math.max(W/src.w, H/src.h), iw=src.w*k, ih=src.h*k; ctx.drawImage(src.el, (W-iw)/2, (H-ih)/2, iw, ih); }
-    const m=svMode;
-    if(!svFrozen){ svUp=screenUp(); svHoriz=svUp ? Math.atan2(svUp.x, -svUp.y) : null; }   // 本当の水平線の向き（画面の上で）。止めたら、そのときの向きのまま
-    const line=(px, py, ang, color, dash, w)=>{ const L=W+H; ctx.save(); ctx.setLineDash(dash||[]); ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(px-Math.cos(ang)*L, py-Math.sin(ang)*L); ctx.lineTo(px+Math.cos(ang)*L, py+Math.sin(ang)*L); ctx.strokeStyle='rgba(0,0,0,.7)'; ctx.lineWidth=(w||2)+2.5; ctx.stroke(); ctx.strokeStyle=color; ctx.lineWidth=w||2; ctx.stroke(); ctx.restore(); };
-    if(m==='sight'){
-      const cx=W/2, cy=H/2;
-      if(svHoriz!=null) line(cx, cy, svHoriz, 'rgba(252,211,77,.9)', [8,6], 1.5);
-      ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, 26, 0, Math.PI*2); ctx.moveTo(cx-50, cy); ctx.lineTo(cx-8, cy); ctx.moveTo(cx+8, cy); ctx.lineTo(cx+50, cy); ctx.moveTo(cx, cy-50); ctx.lineTo(cx, cy-8); ctx.moveTo(cx, cy+8); ctx.lineTo(cx, cy+50);
-      ctx.strokeStyle='rgba(0,0,0,.8)'; ctx.lineWidth=4; ctx.stroke(); ctx.strokeStyle='#c8ff5a'; ctx.lineWidth=1.8; ctx.stroke(); ctx.restore();
-      if(!svFrozen){ if(svUp){ const p=Math.asin(Math.max(-1, Math.min(1, -svUp.z)))/D2R; svVal=Math.abs(p); svDir=(p>=0) ? 1 : -1; } else svVal=null; }   // カメラの向きの、水平からの角度
-    }else{
-      if(!svA){ svA={ x:W*0.22, y:H*0.64 }; svB={ x:W*0.78, y:H*0.36 }; }
-      const ang=Math.atan2(svB.y-svA.y, svB.x-svA.x);
-      if(svHoriz!=null){ const low=(svUp && (svA.x*svUp.x+svA.y*svUp.y) > (svB.x*svUp.x+svB.y*svUp.y)) ? svB : svA; line(low.x, low.y, svHoriz, 'rgba(252,211,77,.95)', [10,6], 1.6); }   // 水平線は低いほうの丸を通す
-      line(svA.x, svA.y, ang, '#c8ff5a', [], 2.2);
-      [svA, svB].forEach(p=>{ ctx.save(); ctx.beginPath(); ctx.arc(p.x, p.y, 17, 0, Math.PI*2); ctx.strokeStyle='rgba(0,0,0,.75)'; ctx.lineWidth=5; ctx.stroke(); ctx.strokeStyle='#fff'; ctx.lineWidth=2.5; ctx.stroke(); ctx.beginPath(); ctx.arc(p.x, p.y, 2.5, 0, Math.PI*2); ctx.fillStyle='#c8ff5a'; ctx.fill(); ctx.restore(); });
-      if(svHoriz!=null && Math.hypot(svB.x-svA.x, svB.y-svA.y)>20){ let d=Math.abs(ang-svHoriz)%Math.PI; if(d>Math.PI/2) d=Math.PI-d; svVal=d/D2R; svDir=0; } else svVal=null;
-    }
-    syncSlopeView();
-  }
-  function syncSlopeView(force){
-    const vr=(svVal==null) ? null : Math.round(svVal*10)/10, u=tools.slope.unit, m=svMode;
-    const key=[vr, u, svDir, svFrozen, m, curLang, unit].join('|'); if(!force && key===svKey) return; svKey=key;
-    setSlopeBig(document.getElementById('svVal'), vr, u, (m==='sight' && vr) ? (svDir>0 ? '↑' : '↓') : '');
-    document.getElementById('svAll').textContent=(vr==null) ? t('slope_none_cam') : slopeAllText(vr, u);
-    document.getElementById('svHint').textContent=t('slope_hint_'+m);
-    document.getElementById('svFreezeLbl').textContent=t(svFrozen ? 'btn_unfreeze' : 'btn_freeze');
-    document.getElementById('svDone').disabled=(vr==null);
-  }
-  function svToggleFreeze(){
-    if(svFrozen){ svFrozen=false; svPhoto.width=svPhoto.height=0; syncSlopeView(true); return; }
-    const src=svSource();
-    if(src){ svPhoto.width=src.w; svPhoto.height=src.h; svPhoto.getContext('2d').drawImage(src.el, 0, 0, src.w, src.h); }
-    svFrozen=true; syncSlopeView(true);
-  }
-  function svPoint(e){ const r=document.getElementById('svCanvas').getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
 
   // ===== 材料の登録（名前＋幅。面取りを入れていれば、それも） =====
   const MAT_KEY='cutcalc_materials_v1', MAT_MAX=30;
@@ -2676,7 +2621,7 @@
     if(typeof syncMatName==='function') syncMatName(true);
     { const mm=document.getElementById('matModal'); if(mm && mm.classList.contains('show')) renderMatModal(); }
     if(isToolOpen()) renderTools(true);
-    if(svOpen) syncSlopeView(true);
+    touchRefresh();
     if(typeof requestRender==='function') requestRender();          // 上部バー等を再描画
     if(typeof updateHelpCutLen==='function') updateHelpCutLen();    // ＋数mm 等
     if(typeof renderLogModal==='function' && document.getElementById('logModal') && document.getElementById('logModal').classList.contains('show')) renderLogModal();
@@ -3057,35 +3002,23 @@
       el.addEventListener('change', ()=>renderTools(true)); }
     document.getElementById('curveApply').addEventListener('click', ()=>{ const o=curveCalc(tools.curve); applyToolAngle('dual', o.open, tools.curve.w); });
     document.getElementById('curveEndApply').addEventListener('click', ()=>{ const o=curveCalc(tools.curve); applyToolAngle('dual', o.endOpen, tools.curve.w); });
-    bindRadio('slopeUnit', v=>{ tools.slope.unit=v; });
-    bindRadio('slopeTri', v=>{ tools.slope.tri=v; });
-    document.getElementById('slopeZeroBtn').addEventListener('click', ()=>{ if(slopeZero!=null) slopeZero=null; else { const e=slopeElev(); if(e!=null){ slopeZero=e; slopeHold=null; } } renderSlope(true); });
-    document.getElementById('slopeHoldBtn').addEventListener('click', ()=>{ slopeHold=(slopeHold!=null) ? null : slopeTouchValue(); renderSlope(true); });
-    document.getElementById('slopeCalBtn').addEventListener('click', slopeCalibrate);
-    document.getElementById('slopeSightBtn').addEventListener('click', ()=>openSlopeView('sight'));
-    document.getElementById('slopePhotoBtn').addEventListener('click', ()=>openSlopeView('photo'));
-    document.getElementById('slopeBackLive').addEventListener('click', ()=>{ tools.slope.result=null; slopeHold=null; slopeZero=null; renderTools(true); });
-    document.getElementById('slopeTriToggle').addEventListener('click', ()=>{ tools.slope.triOpen=!tools.slope.triOpen; saveTools(); renderTools(true); });
-    bindLen('slopeTriV', ()=>tools.slope.triV, v=>{ tools.slope.triV=v; });
-    document.getElementById('slopeDualBtn').addEventListener('click', ()=>{ const v=slopeCurrent(); if(v!=null) applyToolAngle('dual', 180-Math.round(v*10)/10, null); });
-    document.getElementById('slopeSingleBtn').addEventListener('click', ()=>{ const v=slopeCurrent(); if(v!=null) applyToolAngle('single', 90-Math.round(v*10)/10, null); });
-    document.getElementById('cornerZeroBtn').addEventListener('click', ()=>{ const n=cornerNow(); if(n && Math.abs(n.tilt)<=50){ cornerZero={ h:n.h, tilt:n.tilt, t:performance.now() }; cornerHold=null; renderCorner(true); } });
-    document.getElementById('cornerHoldBtn').addEventListener('click', ()=>{ cornerHold=(cornerHold!=null) ? null : cornerTurn(); renderCorner(true); });
-    document.getElementById('cornerDualBtn').addEventListener('click', ()=>{ const d=cornerTurn(); if(d!=null) applyToolAngle('dual', 180-Math.abs(Math.round(d*10)/10), null); });
-    document.getElementById('cornerSingleBtn').addEventListener('click', ()=>{ const d=cornerTurn(); if(d!=null){ const a=Math.abs(Math.round(d*10)/10); applyToolAngle('single', Math.min(a, 180-a), null); } });
-    document.getElementById('svClose').addEventListener('click', ()=>closeSlopeView(false));
-    document.getElementById('svDone').addEventListener('click', ()=>closeSlopeView(true));
-    document.getElementById('svFreeze').addEventListener('click', svToggleFreeze);
-    { const cv=document.getElementById('svCanvas');   // 写す：近いほうの丸をつかんで動かす（指の位置と丸のずれは保つ。遠くを触ったら、近いほうの丸をそこへ）
-      cv.addEventListener('pointerdown', e=>{ if(svMode!=='photo' || !svA || svDrag) return; const p=svPoint(e), da=Math.hypot(p.x-svA.x, p.y-svA.y), db=Math.hypot(p.x-svB.x, p.y-svB.y), h=(da<=db) ? svA : svB;
-        if(Math.min(da, db)>70){ h.x=p.x; h.y=p.y; }
-        svDrag={ id:e.pointerId, h, dx:h.x-p.x, dy:h.y-p.y }; try{ cv.setPointerCapture(e.pointerId); }catch(_){ } e.preventDefault(); });
-      cv.addEventListener('pointermove', e=>{ if(!svDrag || e.pointerId!==svDrag.id) return; const p=svPoint(e); svDrag.h.x=Math.max(0, Math.min(svW, p.x+svDrag.dx)); svDrag.h.y=Math.max(0, Math.min(svH, p.y+svDrag.dy)); e.preventDefault(); });
-      ['pointerup','pointercancel'].forEach(tp=>cv.addEventListener(tp, e=>{ if(svDrag && e.pointerId===svDrag.id) svDrag=null; })); }
+    // 測り方（カメラで測る／当てて測る）
+    document.getElementById('methodCamBtn').addEventListener('click', ()=>setMethod('cam'));
+    document.getElementById('methodTouchBtn').addEventListener('click', ()=>setMethod('touch'));
+    document.getElementById('methodTrack').addEventListener('click', ()=>setMethod(method==='touch' ? 'cam' : 'touch'));
+    document.getElementById('touchZeroBtn').addEventListener('click', ()=>{ touchPrimeAudio(); touch.waiting='zero'; touch.waitT=performance.now(); touch.msg=''; renderTouch(true); });
+    document.getElementById('touchFixBtn').addEventListener('click', ()=>{ if(!touch.zero) return; touchPrimeAudio(); touch.waiting='fix'; touch.waitT=performance.now(); touch.msg=''; renderTouch(true); });
+    const setTouchKind=k=>{ if(k!=='turn' && k!=='inner') return; touch.kind=k; try{ localStorage.setItem('cutcalc_touch_kind', k); }catch(e){} if(touch.step===3) touchApply(); renderTouch(true); };
+    document.querySelectorAll('#touchKindSw .swOpt').forEach(b=>b.addEventListener('click', ()=>setTouchKind(b.dataset.kind)));
+    document.getElementById('touchKindTrack').addEventListener('click', ()=>setTouchKind(touch.kind==='inner' ? 'turn' : 'inner'));
+    const useMeasured=m=>{ if(!m) return; const el=document.getElementById('manualAngle'); el.value=String(m.v); applyManualAngle(true); requestRender(); };   // くらべる：押した値を③に
+    document.getElementById('cmpCam').addEventListener('click', ()=>useMeasured(measured.cam));
+    document.getElementById('cmpTouch').addEventListener('click', ()=>useMeasured(measured.touch));
     syncMatName(true);
     document.addEventListener('keydown', e=>{ if(e.key==='Escape' && window.cutcalcBack()) e.preventDefault(); });
     document.addEventListener('fullscreenchange', ()=>{ if(!document.fullscreenElement && isFullscreen()) setFullscreen(false); else fitCanvas(); });   // ブラウザの戻る等で本当の全画面が解けたら、こちらも閉じる
     applyUnitUI();
+    syncMethodUI(); if(method==='touch') touchBegin();   // 前に選んだ測り方で始める
     maybeShowOnboard();
   });
 
@@ -3157,7 +3090,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c6';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c6＝角を測る（スマホを当てて開き角）。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
+  const APP_VERSION = '1.0.8-c7';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
@@ -3220,6 +3153,7 @@
         <li data-i18n="h_hidden_li9"></li>
         <li data-i18n="h_hidden_li10"></li>
         <li data-i18n="h_hidden_li11"></li>
+        <li data-i18n="h_hidden_li12"></li>
       </ul>
 
       <h4 data-i18n="h_dual_h">2本をつなぐ</h4>
@@ -3469,8 +3403,6 @@
     <div class="help-tabs" role="tablist">
       <button type="button" class="help-tab tool-tab active" data-tool="poly" role="tab" aria-selected="true" data-i18n="tab_poly">枠・多角形</button>
       <button type="button" class="help-tab tool-tab" data-tool="curve" role="tab" aria-selected="false" data-i18n="tab_curve">曲線</button>
-      <button type="button" class="help-tab tool-tab" data-tool="corner" role="tab" aria-selected="false" data-i18n="tab_corner">角を測る</button>
-      <button type="button" class="help-tab tool-tab" data-tool="slope" role="tab" aria-selected="false" data-i18n="tab_slope">勾配</button>
     </div>
 
     <div class="tool-sec" data-tool-sec="poly">
@@ -3530,59 +3462,7 @@
       <button type="button" class="btn tool-apply lite" id="curveEndApply">—</button>
     </div>
 
-    <div class="tool-sec" data-tool-sec="corner" hidden>
-      <p class="tool-hint" data-i18n="corner_hint">2本の材料のあいだの角度を、スマホを当てて測ります</p>
-      <svg class="tool-fig" id="cornerFig" viewBox="0 0 300 176" aria-hidden="true"></svg>
-      <div class="tool-out"><b id="cornerVal">—</b><span id="cornerSub"></span></div>
-      <p class="tool-sub" id="cornerNote"></p>
-      <div class="tool-chips">
-        <button type="button" class="optBtn" id="cornerZeroBtn" data-i18n="corner_zero">0 にする</button>
-        <button type="button" class="optBtn" id="cornerHoldBtn">II</button>
-      </div>
-      <button type="button" class="btn primary tool-apply" id="cornerDualBtn">—</button>
-      <button type="button" class="btn tool-apply lite" id="cornerSingleBtn">—</button>
-    </div>
-
-    <div class="tool-sec" data-tool-sec="slope" hidden>
-      <div class="tool-out"><b id="slopeVal">—</b><span id="slopeAll"></span></div>
-      <p class="tool-sub" id="slopeNote"></p>
-      <button type="button" class="tool-link" id="slopeBackLive" data-i18n="slope_back_live" hidden>当てて測るに戻す</button>
-      <div class="tool-chips" id="slopeTouchBtns">
-        <button type="button" class="optBtn" id="slopeZeroBtn">0</button>
-        <button type="button" class="optBtn" id="slopeHoldBtn">II</button>
-        <button type="button" class="optBtn" id="slopeCalBtn" data-i18n="slope_cal">校正</button>
-      </div>
-      <div class="tool-row"><span class="tool-lbl" data-i18n="slope_unit">表し方</span><div class="posSeg tool-seg" role="radiogroup"><label><input type="radio" name="slopeUnit" value="deg" class="vh" checked><span data-i18n="slope_u_deg">度</span></label><label><input type="radio" name="slopeUnit" value="pct" class="vh"><span data-i18n="slope_u_pct">％</span></label><label><input type="radio" name="slopeUnit" value="ratio" class="vh"><span data-i18n="slope_u_ratio">割</span></label><label><input type="radio" name="slopeUnit" value="rise" class="vh"><span data-i18n="slope_u_rise">寸</span></label><label><input type="radio" name="slopeUnit" value="frac" class="vh"><span data-i18n="slope_u_frac">1/n</span></label></div></div>
-      <p class="tool-grp" data-i18n="slope_cam_h">カメラで測る</p>
-      <div class="tool-cams">
-        <button type="button" class="tool-cam" id="slopeSightBtn"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="16" cy="16" r="9"/><path d="M16 3v8M16 21v8M3 16h8M21 16h8"/></svg><b data-i18n="slope_sight_btn">のぞく</b><small data-i18n="slope_sight_cap">目印に十字を合わせる</small></button>
-        <button type="button" class="tool-cam" id="slopePhotoBtn"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="26" height="20" rx="3"/><path d="M7.5 21.5 L24.5 11"/><path d="M7.5 21.5 H24.5" stroke-dasharray="2 2.6"/><circle cx="7.5" cy="21.5" r="1.9" fill="currentColor"/><circle cx="24.5" cy="11" r="1.9" fill="currentColor"/></svg><b data-i18n="slope_photo_btn">写す</b><small data-i18n="slope_photo_cap">写真に線を合わせる</small></button>
-      </div>
-      <button type="button" class="disclosure tool-disc" id="slopeTriToggle" aria-expanded="false" aria-controls="slopeTriBody"><span class="tri">▸</span> <span data-i18n="slope_tri_h">高さ・長さを出す</span></button>
-      <div id="slopeTriBody" hidden>
-        <div class="tool-row"><div class="posSeg tool-seg" role="radiogroup"><label><input type="radio" name="slopeTri" value="h" class="vh" checked><span data-i18n="slope_tri_hh">高さ</span></label><label><input type="radio" name="slopeTri" value="len" class="vh"><span data-i18n="slope_tri_len">法長</span></label><label><input type="radio" name="slopeTri" value="d" class="vh"><span data-i18n="slope_tri_d">水平の距離</span></label></div></div>
-        <div class="tool-row"><label class="tool-lbl" for="slopeTriV" id="slopeTriLbl">—</label><div class="tool-ctl"><input id="slopeTriV" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
-        <svg class="tool-fig" id="slopeTriFig" viewBox="0 0 230 110" aria-hidden="true"></svg>
-        <dl class="tool-res" id="slopeTriRes"></dl>
-      </div>
-      <button type="button" class="btn tool-apply lite" id="slopeDualBtn">—</button>
-      <button type="button" class="btn tool-apply lite" id="slopeSingleBtn">—</button>
-    </div>
   </div>
-</div>
-
-<!-- 勾配をカメラで測る（のぞく・写す） -->
-<div id="slopeView" class="slope-view" hidden>
-  <div class="sv-top">
-    <button type="button" class="fsBtn" id="svClose" data-i18n-aria="aria_close" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    <div class="sv-read"><b id="svVal">—</b><span id="svAll"></span></div>
-  </div>
-  <div class="sv-wrap"><canvas id="svCanvas"></canvas><p class="sv-hint" id="svHint"></p></div>
-  <div class="sv-bar">
-    <button type="button" class="fsBtn" id="svFreeze"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span class="fsLbl" id="svFreezeLbl">止める</span></button>
-    <button type="button" class="btn primary sv-done" id="svDone" data-i18n="sv_done">この値にする</button>
-  </div>
-  <video id="svVideo" playsinline muted style="display:none"></video>
 </div>
 
 <!-- 材料の登録 -->
