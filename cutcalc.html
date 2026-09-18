@@ -1499,6 +1499,8 @@
       { const c={ r:5000, side:'out', w:300, a:90, anchor:'len', val:600, gap:10, jn:13 }; eq(curveJoint(c, curveCalc(c)).err, 'curve_j_long', '目地：本数が多すぎるときは知らせる'); }
       { const c={ sizeBy:'chord', c:6000, h:1500, side:'out', w:300, anchor:'len', val:600 }, o=curveCalc(c);
         eq(Math.round(o.open*10)/10+'|'+fmtCount(Math.round(o.n*10)/10), '170.8|11.6', '曲線：ふくらみを入れたら、全体の角度と本数も出る'); }
+      { const c={ sizeBy:'chord', c:6000, h:1500, side:'out', w:100, anchor:'len', val:600 }, a=curveSetAngles(c, curveCalc(c));
+        eq(a.length+'|'+Math.round(a[0]*10)/10+'|'+Math.round(a[a.length-1]*10)/10, '12|48.7|-48.7', '曲線：切って据えるときの糸からの角度（12本）'); }
       { const c={ c:6000, h:1500, side:'out', w:100, len:600, gap:10 }, r=jointOf(c), ang=jointSetAngles(r.j);
         eq(r.j.n+'|'+Math.round(ang[0]*10)/10+'|'+Math.round(ang[ang.length-1]*10)/10, '11|48.3|-48.3', '目地：糸からの角度は、1本目と最後が同じで向きだけ逆'); }
       { const a=arcFromChord(4000, 2000); eq(Math.round(a.R)+'|'+Math.round(a.A), '2000|180', '半円：幅4000・高さ2000 → 半径2000・180°'); }
@@ -1947,7 +1949,7 @@
         if(!anchor){ anchor='len'; val=posLen((c.anchor==='lo' || c.anchor==='li') ? c.val : c.l); }
         const sizeBy=pick(c.sizeBy, ['r','chord'], (posLen(c.r)!=null) ? 'r' : 'chord');   // はじめは「ふくらみ」（現場では半径が分からないことが多い）
         return { r:posLen(c.r), side, w:posLen(c.w), anchor, val, a:(typeof c.a==='number' && c.a>0 && c.a<=360) ? c.a : null,
-          c:posLen(c.c), h:posLen(c.h), sizeBy };
+          c:posLen(c.c), h:posLen(c.h), sizeBy, setOpen:!!c.setOpen };
       })(),
       joint:(function(){   // 目地で据える（半円の幅・高さだけで出せる）
         const q=st.joint||{};
@@ -1961,7 +1963,7 @@
   function resetToolTab(){   // 開いているタブの入力だけ消す
     const tb=tools.tab;
     if(tb==='poly') tools.poly={ n:8, w:null, anchor:'lo', val:null, stock:null, kerf:3, stockOpen:tools.poly.stockOpen };
-    else if(tb==='curve') tools.curve={ r:null, side:'out', w:null, anchor:'len', val:null, a:null, c:null, h:null, sizeBy:'chord' };
+    else if(tb==='curve') tools.curve={ r:null, side:'out', w:null, anchor:'len', val:null, a:null, c:null, h:null, sizeBy:'chord', setOpen:tools.curve.setOpen };
     else tools.joint={ c:null, h:null, side:'out', w:null, len:null, gap:10, n:null, setOpen:tools.joint.setOpen };
     saveTools(); renderTools(true); showStatus(t('st_tool_reset'), 'info');
   }
@@ -2250,11 +2252,28 @@
     const src={ sizeBy:'chord', c:q.c, h:q.h, side:q.side, w:q.w, anchor:'len', val:q.len, a:(arc ? arc.A : null), gap:q.gap, jn:q.n };
     return { arc, j:curveJoint(src, null) };
   }
-  function jointSetAngles(j){   // 両端に張った糸から、k本目が何度振れているか（真ん中の材料は糸と平行＝0°）
-    if(!(j && j.n>0 && j.theta>0)) return [];
-    const A=j.theta*j.n, out=[];
-    for(let k=1;k<=j.n;k++) out.push(A/2-(k-0.5)*j.theta);
+  function angleList(A, n){   // 両端に張った糸から、k本目が何度振れているか（真ん中は糸と平行＝0°）
+    if(!(A>0 && n>=1)) return [];
+    const th=A/n, out=[];
+    for(let k=1;k<=n;k++) out.push(A/2-(k-0.5)*th);
     return out;
+  }
+  function curveSetAngles(c, o){   // 曲線（切って据える）：全体の角度を、切った本数で分ける
+    const A=curveTotal(c);
+    if(!(o && o.theta>0 && A>0)) return [];
+    const n=Math.min(99, (c.anchor==='n' && c.val>=1) ? c.val : Math.max(1, Math.round(A/o.theta)));
+    return angleList(A, n);
+  }
+  function renderSetList(dlId, btnId, angles){
+    const rows=[];
+    angles.slice(0, 24).forEach((d, i)=>rows.push([t('joint_set_no').replace('{k}', i+1), fmtAng(Math.abs(d))+'°', (i===0 ? '' : 'sub')]));
+    resRows(document.getElementById(dlId), rows);
+    const b=document.getElementById(btnId);
+    b.disabled=!angles.length;
+    b.textContent=t('check_start').replace('{n}', angles.length || '—');
+  }
+  function jointSetAngles(j){   // 両端に張った糸から、k本目が何度振れているか（真ん中の材料は糸と平行＝0°）
+    return (j && j.n>0 && j.theta>0) ? angleList(j.theta*j.n, j.n) : [];
   }
   function renderJoint(){
     const $=id=>document.getElementById(id), q=tools.joint;
@@ -2284,11 +2303,7 @@
     // ---- 据えるときの角度（両端に張った糸から、何度振れているか） ----
     setDisc('jntSetToggle', 'jntSetBody', q.setOpen);
     if(q.setOpen){
-      const sr=[], first=jointSetAngles(j);
-      first.slice(0, 24).forEach((d, i)=>sr.push([t('joint_set_no').replace('{k}', i+1), fmtAng(Math.abs(d))+'°', (i===0 ? '' : 'sub')]));
-      resRows($('jntSetRes'), sr);
-      const b=$('jntSetApply'); b.disabled=!first.length;
-      b.textContent=t('joint_set_use').replace('{v}', first.length ? fmtAng(Math.abs(first[0])) : '—');
+      renderSetList('jntSetRes', 'jntSetApply', jointSetAngles(j));
     }
     const open=(j.theta!=null && !j.err) ? 180-j.theta : null;
     $('jntApply').disabled=(open==null);
@@ -2319,6 +2334,8 @@
     $('curveNote').textContent=o.err ? t(o.err) : ((o.theta==null) ? t('curve_need') : '');
     $('curveApply').disabled=(o.open==null);
     $('curveApply').textContent=t('tool_use_main').replace('{v}', o.open!=null ? fmtAng(o.open) : '—');
+    setDisc('curveSetToggle', 'curveSetBody', c.setOpen);
+    if(c.setOpen) renderSetList('curveSetRes', 'curveSetApply', curveSetAngles(c, o));
     try{ drawCurveFig(c, o); }catch(e){ console.log('curveFig', e); }   // 絵で失敗しても、数字は出したまま
   }
 
@@ -2389,9 +2406,43 @@
   function lockGuard(e){ if(!measureLocked()) return; e.preventDefault(); e.stopPropagation(); showStatus(t('st_locked'), 'info'); }
   function measureReset(){   // 測り直し：測った値を消して、はじめの状態へ（角度と材料はそのまま）
     measured={ cam:null, touch:null, tool:null };
+    checkStop(true);
     if(method==='touch') touchReset();
     else if(isCaptured){ isCaptured=false; photo.width=photo.height=0; if(stream) startLiveLoop(); setActLabel('captureBtn', t('btn_freeze')); }
     syncCompare(); syncLocks(); requestRender(); showStatus(t('st_meas_reset'), 'info');
+  }
+  // ---- 据付チェック：水糸を基準に、1本目から順に当てて、目安との差を見る ----
+  var check={ on:false, list:[], i:0, res:[], done:false };
+  function startCheck(angles, w){
+    if(!angles || !angles.length) return;
+    check={ on:true, list:angles.map(x=>Math.abs(Math.round(x*10)/10)), i:0, res:[], done:false };
+    if(w!=null && w>0){ widthMm=Math.max(W_MIN_MM, Math.min(W_MAX_MM, w)); const pw=document.getElementById('productWidth'); if(pw) pw.value=fmtLenInput(widthMm); }
+    closeToolModal();
+    setMode('single');           // 糸を「面」とみて、糸からの角度を測る
+    setMethod('touch');
+    touchReset(); touch.msg='';
+    measured={ cam:null, touch:null, tool:null }; syncCompare();
+    requestRender(); syncMatName(true);
+    showStatus(t('st_check_start').replace('{n}', check.list.length), 'info');
+  }
+  function checkStop(quiet){
+    if(!check.on) return;
+    check={ on:false, list:[], i:0, res:[], done:false };
+    if(!quiet) showStatus(t('st_check_off'), 'info');
+  }
+  function checkRecord(){   // 「確定」で1本ぶん記録して、次の材料へ
+    if(!check.on || !touch.fix || check.done) return;
+    const tgt=check.list[check.i], m=Math.round(touchAngle(touch.fix.turn)*10)/10, d=Math.round((m-tgt)*10)/10;
+    check.res[check.i]={ target:tgt, meas:m, diff:d };
+    const sign=(d>0 ? '+' : (d<0 ? '−' : '±'));
+    showStatus(t('check_hit').replace('{k}', check.i+1).replace('{b}', fmtAng(m)).replace('{a}', fmtAng(tgt)).replace('{d}', sign+fmtAng(Math.abs(d))), (Math.abs(d)<=1 ? 'success' : 'warn'));
+    check.i++;
+    if(check.i<check.list.length){ touch.step=2; touch.fix=null; }   // 基準（水糸）はそのまま、次の材料へ
+    else {
+      check.done=true;
+      let mx=0, mk=1; check.res.forEach((r, i)=>{ if(r && Math.abs(r.diff)>Math.abs(mx)){ mx=r.diff; mk=i+1; } });
+      showStatus(t('check_done').replace('{n}', check.res.length).replace('{d}', fmtAng(Math.abs(mx))).replace('{k}', mk), 'success');
+    }
   }
   var fitPend=false;
   function fitOneScreen(){   // 下の帯にかからないように、図の高さだけを自動で詰める（1画面に収める）
@@ -2433,6 +2484,7 @@
     if(m===method){ syncMethodUI(); return; }
     if(m==='touch' && camMeasuring()) measured.cam={ v:Math.round(shownAngle()*10)/10, mode };   // カメラ（写真）で合わせた値を、くらべる用に残す
     method=m; try{ localStorage.setItem('cutcalc_method', m); }catch(e){}
+    if(m==='cam') checkStop(true);
     if(m==='touch'){ if(isFullscreen()) setFullscreen(false); try{ toggleViewPanel(false); }catch(e){} if(stream) stopCamera(); touchBegin(); }
     else touchEnd();
     syncMethodUI(); requestRender();
@@ -2517,14 +2569,16 @@
     if(!touch.on) return;
     const $=id=>document.getElementById(id), now=performance.now(), r1=v=>(v==null) ? null : Math.round(v*10)/10;
     const cur=(rotQ && now-rotT<1000) ? rotAlong(rotQ) : null, noSensor=(!cur && now-touch.t0>1500);
+    let fixedNow=false;
     if(touch.waiting){   // 0 にする／確定：押した指の揺れがおさまり、置いたまま動かなくなったら取り込む
       const st=rotSteady(600, 0.3);
       if(st && Math.abs(st.tilt)<=TOUCH_TILT_MAX){
         if(touch.waiting==='zero'){ touch.before=Math.round(shownAngle()*10)/10; touch.zero={ h:st.h, tilt:st.tilt, upright:st.upright, t:now }; touch.fix=null; touch.step=2; }
-        else if(touch.zero){ touch.fix={ turn:turnOf(st.h, touch.zero.h), tilt:st.tilt, upright:st.upright, t:now }; touch.step=3; touchApply(); }
+        else if(touch.zero){ touch.fix={ turn:turnOf(st.h, touch.zero.h), tilt:st.tilt, upright:st.upright, t:now }; touch.step=3; touchApply(); fixedNow=true; }
         touch.waiting=''; touch.msg=''; touchBeep();
       } else if(now-touch.waitT>4000){ touch.msg=(touch.waiting==='zero') ? 'touch_move_zero' : 'touch_move_fix'; touch.waiting=''; }
     }
+    if(fixedNow && check.on){ checkRecord(); force=true; }
     if(touch.step===3 && touch.lastMode && touch.lastMode!==mode) touchApply();   // 確定のあとで切り方を変えたら入れ直す
     touch.lastMode=mode;
     const tilt=cur ? cur.tilt : null, tiltBad=(tilt!=null && Math.abs(tilt)>TOUCH_TILT_MAX), wall=(mode==='single');
@@ -2534,12 +2588,16 @@
     const shown=(touch.step===3 && touch.fix) ? touch.fix.turn : live;
     const eff=(shown==null) ? null : touchKindFor(Math.abs(shown)), auto=!!(eff && !wall && eff!==touch.kind);
     const old=!!(touch.zero && touch.step===2 && now-touch.zero.t>30000);
-    const key=[touch.step, r1(shown), r1(live), (tilt==null) ? '' : Math.round(Math.abs(tilt)), touch.waiting, touch.msg, noSensor, tiltBad, old, touch.kind, eff, mode, curLang].join('|');
+    const key=[touch.step, r1(shown), r1(live), (tilt==null) ? '' : Math.round(Math.abs(tilt)), touch.waiting, touch.msg, noSensor, tiltBad, old, touch.kind, eff, mode, curLang, check.on, check.i, check.done].join('|');
     if(!force && key===touch.key) return; touch.key=key;
     document.querySelectorAll('#touchSteps [data-step]').forEach(el=>{ const n=+el.dataset.step; el.classList.toggle('on', n===touch.step); el.classList.toggle('done', n<touch.step); });
     let sub='';
     if(shown!=null){ const a=r1(Math.abs(shown)); sub=t('touch_rot').replace('{v}', fmtAng(a))+((a>=0.05) ? ' '+t(shown>0 ? 'touch_right' : 'touch_left') : ''); }
     if(touch.step===3 && live!=null) sub+=(sub ? '　' : '')+t('touch_now').replace('{v}', fmtAng(r1(Math.abs(live))));
+    if(check.on && !check.done && touch.step===2 && live!=null){   // 目安と、いまの差
+      const tg=check.list[check.i], nowA=r1(touchAngle(live)), d=Math.round((nowA-tg)*10)/10;
+      sub=t('check_sub').replace('{a}', fmtAng(tg)).replace('{b}', fmtAng(nowA)).replace('{d}', (d>0 ? '+' : (d<0 ? '−' : '±'))+fmtAng(Math.abs(d)));
+    }
     $('touchSub').textContent=sub;
     const autoLine=auto ? '\n'+t('touch_auto').replace('{k}', t(eff==='inner' ? 'touch_inner' : 'touch_turn')) : '';
     let note='';
@@ -2547,6 +2605,8 @@
     else if(touch.waiting) note=t('touch_hold');
     else if(touch.msg) note=t(touch.msg);
     else if(tiltBad) note=t('touch_tilt_bad');
+    else if(check.on && !check.done) note=(touch.step===1) ? t('check_n1') : t('check_n2').replace('{k}', check.i+1).replace('{n}', check.list.length).replace('{v}', fmtAng(check.list[check.i]));
+    else if(check.on && check.done) note=t('check_n3');
     else if(touch.step===1) note=t(wall ? 'touch_n1_wall' : 'touch_n1');
     else if(touch.step===2) note=t(wall ? 'touch_n2_wall' : ((eff || touch.kind)==='inner' ? 'touch_n2_inner' : 'touch_n2_turn'))+autoLine+(old ? '\n'+t('touch_old') : '');
     else { note=t('touch_n3')+autoLine; if(touch.fix && touch.zero && touch.fix.upright===touch.zero.upright && Math.abs(touch.fix.tilt-touch.zero.tilt)>10) note+='\n'+t('touch_tilt_diff').replace('{a}', fmtAng(r1(touch.zero.tilt))).replace('{b}', fmtAng(r1(touch.fix.tilt))); }
@@ -3285,7 +3345,9 @@
       el.addEventListener('change', ()=>renderTools(true)); }
     document.getElementById('jntApply').addEventListener('click', ()=>{ const r=jointOf(tools.joint); if(r.j.theta!=null && !r.j.err) applyToolAngle('dual', 180-r.j.theta, tools.joint.w); });
     document.getElementById('jntSetToggle').addEventListener('click', ()=>{ tools.joint.setOpen=!tools.joint.setOpen; saveTools(); renderTools(); });
-    document.getElementById('jntSetApply').addEventListener('click', ()=>{ const r=jointOf(tools.joint), a=jointSetAngles(r.j); if(a.length) applyToolAngle('single', Math.abs(a[0]), tools.joint.w); });
+    document.getElementById('jntSetApply').addEventListener('click', ()=>{ const r=jointOf(tools.joint); startCheck(jointSetAngles(r.j), tools.joint.w); });
+    document.getElementById('curveSetToggle').addEventListener('click', ()=>{ tools.curve.setOpen=!tools.curve.setOpen; saveTools(); renderTools(); });
+    document.getElementById('curveSetApply').addEventListener('click', ()=>{ const c=tools.curve; startCheck(curveSetAngles(c, curveCalc(c)), c.w); });
     document.getElementById('toolResetBtn').addEventListener('click', resetToolTab);
     // 測り方（カメラで測る／当てて測る）
     document.getElementById('methodCamBtn').addEventListener('click', ()=>setMethod('cam'));
@@ -3384,7 +3446,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c15.6';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
+  const APP_VERSION = '1.0.8-c16';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
@@ -3762,6 +3824,12 @@
       <dl class="tool-res" id="curveRes"></dl>
       <p class="tool-sub" id="curveNote"></p>
       <button type="button" class="btn primary tool-apply" id="curveApply">—</button>
+      <button type="button" class="disclosure tool-disc" id="curveSetToggle" aria-expanded="false" aria-controls="curveSetBody"><span class="tri">▸</span> <span data-i18n="joint_set_h">据えるときの角度（糸から）</span></button>
+      <div id="curveSetBody" hidden>
+        <p class="tool-sub" data-i18n="joint_set_help"></p>
+        <dl class="tool-res" id="curveSetRes"></dl>
+        <button type="button" class="btn tool-apply lite" id="curveSetApply">—</button>
+      </div>
     </div>
 
     <div class="tool-sec" data-tool-sec="joint" hidden>

@@ -368,9 +368,17 @@ window.I18N = {
       st_meas_reset:'測り直せます（角度と材料はそのまま）',
       st_locked:'測り比べの間は変えられません。リセットを押すと変えられます',
       joint_set_h:'据えるときの角度（糸から）',
-      joint_set_help:'①切り方を「面につなぐ」にして、両端に張った糸にスマホを当てて「基準にする」→ 材料に当てると、その角度が出ます。真ん中の材料は糸と平行（0°）です',
+      joint_set_help:'両端に張った水糸にスマホを当てて基準にし、1本目から順に当てて確かめます。真ん中の材料は水糸と平行（0°）です',
       joint_set_no:'{k}本目',
-      joint_set_use:'面につなぐで確かめる（{v}°）'
+      check_start:'据付チェックを始める（{n}本）',
+      st_check_start:'据付チェック：まず水糸に当てて「基準にする」（全{n}本）',
+      st_check_off:'据付チェックをやめました',
+      check_n1:'据付チェック：両端に張った水糸にスマホを当てて「基準にする」を押します',
+      check_n2:'据付チェック {k}／{n}本目：材料に当てて「確定」（目安 {v}°）',
+      check_n3:'据付チェック 完了。もう一度やるときは「リセット」→ 便利機能から始めます',
+      check_sub:'目安 {a}° ／ いま {b}°（{d}°）',
+      check_hit:'{k}本目 {b}°（目安 {a}°／差 {d}°）',
+      check_done:'据付チェック 完了（{n}本）。いちばん大きいズレ {d}°（{k}本目）'
     },
     en:{
       mode_dual:'Join two pieces',
@@ -732,9 +740,17 @@ window.I18N = {
       st_meas_reset:'Ready to measure again (angle and material kept)',
       st_locked:'Locked while you cross-check. Press Reset to change it',
       joint_set_h:'Angle when setting (from the string)',
-      joint_set_use:'Check in “join to a surface” ({v}°)',
-      joint_set_help:'Set ① to “Join to a surface”, hold the phone against the string across the ends and press “Set base”, then hold it on the piece. The middle piece is parallel to the string (0°)',
-      joint_set_no:'Piece {k}'
+      joint_set_help:'Hold the phone against the string across the ends to set the base, then check each piece in turn. The middle piece is parallel to the string (0°)',
+      joint_set_no:'Piece {k}',
+      check_start:'Start the setting check ({n} pieces)',
+      st_check_start:'Setting check: first hold the phone on the string and press “Set base” ({n} pieces)',
+      st_check_off:'Setting check stopped',
+      check_n1:'Setting check: hold the phone against the string stretched across the ends and press “Set base”',
+      check_n2:'Setting check {k}/{n}: hold it on the piece and press “Set” (target {v}°)',
+      check_n3:'Setting check done. To run it again, press Reset and start from Tools',
+      check_sub:'Target {a}° / now {b}° ({d}°)',
+      check_hit:'Piece {k}: {b}° (target {a}°, off by {d}°)',
+      check_done:'Setting check done ({n} pieces). Largest deviation {d}° (piece {k})'
     },
     vi:{
       mode_dual:'Nối hai thanh',
@@ -1096,9 +1112,17 @@ window.I18N = {
       st_meas_reset:'Có thể đo lại (góc và vật liệu giữ nguyên)',
       st_locked:'Bị khóa trong lúc đối chiếu. Bấm Đặt lại để thay đổi',
       joint_set_h:'Góc khi đặt (so với dây)',
-      joint_set_use:'Kiểm tra ở “nối vào mặt” ({v}°)',
-      joint_set_help:'Đặt ① thành “Nối vào mặt”, áp điện thoại vào dây căng giữa hai đầu rồi bấm “Đặt gốc”, sau đó áp vào vật liệu. Thanh ở giữa song song với dây (0°)',
-      joint_set_no:'Thanh {k}'
+      joint_set_help:'Áp điện thoại vào dây căng giữa hai đầu để đặt gốc, rồi kiểm tra lần lượt từng thanh. Thanh ở giữa song song với dây (0°)',
+      joint_set_no:'Thanh {k}',
+      check_start:'Bắt đầu kiểm tra lắp đặt ({n} thanh)',
+      st_check_start:'Kiểm tra lắp đặt: trước tiên áp máy vào dây và bấm “Đặt gốc” ({n} thanh)',
+      st_check_off:'Đã dừng kiểm tra lắp đặt',
+      check_n1:'Kiểm tra lắp đặt: áp điện thoại vào dây căng giữa hai đầu rồi bấm “Đặt gốc”',
+      check_n2:'Kiểm tra lắp đặt {k}/{n}: áp vào thanh rồi bấm “Chốt” (mục tiêu {v}°)',
+      check_n3:'Đã kiểm tra xong. Muốn làm lại thì bấm Đặt lại rồi bắt đầu từ Công cụ',
+      check_sub:'Mục tiêu {a}° / hiện {b}° ({d}°)',
+      check_hit:'Thanh {k}: {b}° (mục tiêu {a}°, lệch {d}°)',
+      check_done:'Kiểm tra xong ({n} thanh). Lệch lớn nhất {d}° (thanh {k})'
     },
     zh:{
       mode_dual:'两根对接',
@@ -1460,9 +1484,17 @@ window.I18N = {
       st_meas_reset:'可以重新测量了（角度和材料保持不变）',
       st_locked:'对比测量期间不可更改。按“重置”即可更改',
       joint_set_h:'安装时的角度（相对拉线）',
-      joint_set_use:'用“接到面”确认（{v}°）',
-      joint_set_help:'把①设为“接到面”，把手机贴在两端拉的线上按“设为基准”，再贴到材料上即可读出角度。正中间那根与拉线平行（0°）',
-      joint_set_no:'第{k}根'
+      joint_set_help:'把手机贴在两端拉的线上设为基准，然后从第一根开始逐根检查。正中间那根与拉线平行（0°）',
+      joint_set_no:'第{k}根',
+      check_start:'开始安装检查（{n}根）',
+      st_check_start:'安装检查：先把手机贴在拉线上按“设为基准”（共{n}根）',
+      st_check_off:'已停止安装检查',
+      check_n1:'安装检查：把手机贴在两端拉的线上，按“设为基准”',
+      check_n2:'安装检查 {k}/{n}：贴到材料上按“确定”（目标 {v}°）',
+      check_n3:'安装检查完成。要再做一次，请按“重置”后从“便利功能”开始',
+      check_sub:'目标 {a}° / 当前 {b}°（{d}°）',
+      check_hit:'第{k}根 {b}°（目标 {a}°，差 {d}°）',
+      check_done:'安装检查完成（{n}根）。最大偏差 {d}°（第{k}根）'
     },
     pt:{
       mode_dual:'Unir duas peças',
@@ -1824,9 +1856,17 @@ window.I18N = {
       st_meas_reset:'Pode medir de novo (ângulo e material mantidos)',
       st_locked:'Travado durante a conferência. Toque em Limpar para mudar',
       joint_set_h:'Ângulo ao assentar (a partir da linha)',
-      joint_set_use:'Conferir em “unir à superfície” ({v}°)',
-      joint_set_help:'Coloque ① em “Unir à superfície”, encoste o celular na linha esticada entre as pontas e toque em “Definir base”, depois encoste na peça. A peça do meio fica paralela à linha (0°)',
-      joint_set_no:'Peça {k}'
+      joint_set_help:'Encoste o celular na linha entre as pontas para definir a base e confira peça por peça. A peça do meio fica paralela à linha (0°)',
+      joint_set_no:'Peça {k}',
+      check_start:'Iniciar a conferência de assentamento ({n} peças)',
+      st_check_start:'Conferência: primeiro encoste o celular na linha e toque em “Definir base” ({n} peças)',
+      st_check_off:'Conferência de assentamento encerrada',
+      check_n1:'Conferência: encoste o celular na linha esticada entre as pontas e toque em “Definir base”',
+      check_n2:'Conferência {k}/{n}: encoste na peça e toque em “Fixar” (alvo {v}°)',
+      check_n3:'Conferência concluída. Para repetir, toque em Limpar e comece pelas Ferramentas',
+      check_sub:'Alvo {a}° / agora {b}° ({d}°)',
+      check_hit:'Peça {k}: {b}° (alvo {a}°, diferença {d}°)',
+      check_done:'Conferência concluída ({n} peças). Maior desvio {d}° (peça {k})'
     },
     fil:{
       mode_dual:'Pagdugtungin ang dalawa',
@@ -2188,8 +2228,16 @@ window.I18N = {
       st_meas_reset:'Puwede nang sukatin muli (nanatili ang anggulo at materyal)',
       st_locked:'Naka-lock habang naghahambing. Pindutin ang I-reset para baguhin',
       joint_set_h:'Anggulo sa paglalagay (mula sa pisi)',
-      joint_set_use:'Suriin sa “idugtong sa ibabaw” ({v}°)',
-      joint_set_help:'Itakda ang ① sa “Idugtong sa ibabaw”, ilapat ang telepono sa pising nakahila sa dalawang dulo at pindutin ang “Itakda base”, tapos ilapat sa piraso. Ang gitnang piraso ay kapareho ng pisi (0°)',
-      joint_set_no:'Piraso {k}'
+      joint_set_help:'Ilapat ang telepono sa pisi sa dalawang dulo para itakda ang base, tapos suriin ang bawat piraso. Ang gitnang piraso ay kapareho ng pisi (0°)',
+      joint_set_no:'Piraso {k}',
+      check_start:'Simulan ang pagsusuri sa paglalagay ({n} piraso)',
+      st_check_start:'Pagsusuri: ilapat muna ang telepono sa pisi at pindutin ang “Itakda base” ({n} piraso)',
+      st_check_off:'Itinigil ang pagsusuri sa paglalagay',
+      check_n1:'Pagsusuri: ilapat ang telepono sa pising nakahila sa dalawang dulo at pindutin ang “Itakda base”',
+      check_n2:'Pagsusuri {k}/{n}: ilapat sa piraso at pindutin ang “Itakda” (target {v}°)',
+      check_n3:'Tapos na ang pagsusuri. Para ulitin, pindutin ang I-reset at magsimula sa Tools',
+      check_sub:'Target {a}° / ngayon {b}° ({d}°)',
+      check_hit:'Piraso {k}: {b}° (target {a}°, lihis {d}°)',
+      check_done:'Tapos ang pagsusuri ({n} piraso). Pinakamalaking lihis {d}° (piraso {k})'
     }
 };
