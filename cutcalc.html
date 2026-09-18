@@ -8,32 +8,33 @@
     :root { --bg1:#172554; --bg2:#1e3a8a; --panel:rgba(255,255,255,.10); --txt:#fff; --accent:#fcd34d; --rightLine:#ffcc33 }
     *{ box-sizing:border-box }
     html{ -webkit-text-size-adjust:100% }
-    body{ margin:0; padding:10px 10px calc(86px + env(safe-area-inset-bottom)); min-height:100vh; color:var(--txt); background:linear-gradient(135deg,var(--bg1),var(--bg2)) fixed; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif }
-    .container{ position:relative; max-width:460px; margin:0 auto; display:flex; flex-direction:column; gap:10px }
+    body{ margin:0; padding:8px 10px calc(68px + env(safe-area-inset-bottom)); min-height:100vh; color:var(--txt); background:linear-gradient(135deg,var(--bg1),var(--bg2)) fixed; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif }
+    .container{ position:relative; max-width:460px; margin:0 auto; display:flex; flex-direction:column; gap:6px }
     canvas, span, input, button { font-variant-numeric: tabular-nums; }
     /* ヘッダー */
     .appHeader{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; column-gap:6px; padding:0 2px }
-    h1{ font-size:17px; margin:0; text-align:center; white-space:nowrap; letter-spacing:.02em }
-    .langWrap{ justify-self:start; display:inline-flex; align-items:center; gap:3px; min-height:36px }
+    h1{ font-size:16px; margin:0; text-align:center; white-space:nowrap; letter-spacing:.02em }
+    .langWrap{ justify-self:start; display:inline-flex; align-items:center; gap:3px; min-height:30px }
     .langWrap .globeIco{ width:15px; height:15px; flex:none; color:var(--accent) }
     .langSel{ font-size:11px; padding:2px 1px; border:none; background:transparent; color:var(--txt); cursor:pointer; max-width:92px; -webkit-appearance:none; appearance:none; text-align:left }
     .langSel option{ color:#111 }
-    .help-btn{ justify-self:end; display:inline-flex; align-items:center; gap:4px; min-height:36px; padding:3px 12px; border-radius:18px; border:1.5px solid var(--accent); background:rgba(255,255,255,.10); color:var(--txt); cursor:pointer; font-size:12.5px; font-weight:700; white-space:nowrap }
+    .help-btn{ justify-self:end; display:inline-flex; align-items:center; gap:4px; min-height:32px; padding:3px 12px; border-radius:18px; border:1.5px solid var(--accent); background:rgba(255,255,255,.10); color:var(--txt); cursor:pointer; font-size:12.5px; font-weight:700; white-space:nowrap }
     .help-btn .qmk{ color:var(--accent); font-weight:800; font-size:14px; line-height:1 }
     /* カード */
     .card{ background:var(--panel); border:1px solid rgba(255,255,255,.16); border-radius:14px; padding:10px }
     /* 計測パネル：①切り方 ②材料の幅 ③測り方 → 図 → 角度 → 切る長さ（上から順に） */
-    .viewCard{ padding:6px 10px 10px }
-    #angleGuide{ width:100%; aspect-ratio:4/3; min-height:170px; max-height:calc(100vh - 424px); background:rgba(0,0,0,.22); border-radius:10px; display:block; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none }
-    @supports (height:100dvh){ #angleGuide{ max-height:calc(100dvh - 424px) } }
-    html.touchMode #angleGuide{ max-height:calc(100vh - 378px) }   /* 当てて測るはスライダーの行が無いぶん、図を大きく */
-    @supports (height:100dvh){ html.touchMode #angleGuide{ max-height:calc(100dvh - 378px) } }
+    .viewCard{ padding:4px 10px 4px }
+    #angleGuide{ width:100%; aspect-ratio:4/3; min-height:158px; max-height:calc(100vh - 430px); background:rgba(0,0,0,.22); border-radius:10px; display:block; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none }
+    @supports (height:100dvh){ #angleGuide{ max-height:calc(100dvh - 430px) } }
+    html.touchMode #angleGuide{ max-height:calc(100vh - 458px) }   /* 当てて測るはスライダーの行が無いぶん、図を大きく */
+    @supports (height:100dvh){ html.touchMode #angleGuide{ max-height:calc(100dvh - 458px) } }
     #angleGuide.dragging{ cursor:grabbing }
-    .stepRow{ display:flex; align-items:center; gap:8px; min-height:42px }
+    .stepRow{ display:flex; align-items:center; gap:8px; min-height:36px }
+    html.locked .lockable{ opacity:.6 }
     .stepRow .sw{ margin:0 auto }
     .stepRow .fld{ margin-left:auto }
     .stepNo{ flex:none; width:20px; height:20px; border-radius:50%; border:1.5px solid var(--accent); color:var(--accent); font-size:11.5px; font-weight:800; line-height:1; display:inline-flex; align-items:center; justify-content:center }
-    .stepLbl{ display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; margin-bottom:4px; min-width:0 }
+    .stepLbl{ display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; margin-bottom:2px; min-width:0 }
     .canvasWrap{ margin-top:4px }
     .canvasTools{ position:absolute; top:5px; right:6px; z-index:2; display:flex; gap:6px; pointer-events:none; white-space:nowrap }
     .canvasTools.left{ right:auto; left:6px }   /* ケガキ図の反対側へ */
@@ -52,11 +53,11 @@
     .viewPanel .posSeg label span{ min-height:34px; min-width:46px }
     .vpClose{ position:absolute; top:4px; right:4px; appearance:none; border:0; background:none; color:#fff; font-size:17px; width:32px; height:32px; cursor:pointer; opacity:.8 }
     .canvasTools .chipBtn{ pointer-events:auto; min-height:30px; padding:0 10px; font-size:12px; background:rgba(0,0,0,.58); color:#fff; border-color:rgba(255,255,255,.45) }
-    .answer{ display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-areas:"al cl" "ac cv" ". cn"; column-gap:12px; align-items:center; margin-top:6px }
+    .answer{ display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-areas:"al cl" "ac cv" ". cn"; column-gap:12px; align-items:center; margin-top:4px }
     .answer .aLbl{ grid-area:al; white-space:nowrap }
     .answer .aCtl{ grid-area:ac }
     .answer .cLbl{ grid-area:cl; justify-content:flex-end; text-align:right }
-    .readout{ grid-area:cv; display:flex; align-items:baseline; justify-content:flex-end; gap:4px; min-width:0; min-height:46px; padding:4px 10px; border-radius:10px; background:linear-gradient(180deg,#070b14,#131c2e); box-shadow:inset 0 2px 5px rgba(0,0,0,.75), 0 1px 0 rgba(255,255,255,.12); color:#fff; white-space:nowrap; overflow:hidden }
+    .readout{ grid-area:cv; display:flex; align-items:baseline; justify-content:flex-end; gap:4px; min-width:0; min-height:42px; padding:4px 10px; border-radius:10px; background:linear-gradient(180deg,#070b14,#131c2e); box-shadow:inset 0 2px 5px rgba(0,0,0,.75), 0 1px 0 rgba(255,255,255,.12); color:#fff; white-space:nowrap; overflow:hidden }
     .readout b{ font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:34px; line-height:1.1; font-weight:700; color:#fcd34d; letter-spacing:-.01em }
     .readout small{ font-size:13px; font-weight:700 }
     .readout.inch b{ font-size:27px }
@@ -98,7 +99,7 @@
     .swOpt:focus-visible, .swTrack:focus-visible, .posSeg input:focus-visible + span, .tgl input:focus-visible + .tglTrack{ outline:2px solid var(--accent); outline-offset:2px }
     @media (prefers-reduced-motion: reduce){ .swKnob, .tglKnob{ transition:none } }
     /* スライダー */
-    .sliderRow{ display:flex; align-items:center; gap:10px; margin-top:6px }
+    .sliderRow{ display:flex; align-items:center; gap:10px; margin-top:4px }
     .sliderRow .sWrap{ flex:1; display:flex; min-width:0 }
     input[type="range"]{ flex:1; min-width:0; height:36px; background:transparent; -webkit-appearance:none; appearance:none }
     input[type="range"]::-webkit-slider-runnable-track{ height:6px; background:#fff; border-radius:7px }
@@ -119,10 +120,10 @@
     .status{ position:fixed; left:50%; bottom:calc(80px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:120; width:calc(100% - 32px); max-width:420px; padding:9px 12px; border-radius:10px; text-align:center; font-size:13px; line-height:1.45; background:rgba(15,23,42,.94); color:#fff; box-shadow:0 6px 18px rgba(0,0,0,.35); cursor:pointer }
     .error{ background:rgba(200,40,40,.96); color:#fff }
     /* 下の操作バー */
-    .actionBar{ position:fixed; left:0; right:0; bottom:0; z-index:50; padding:6px 8px calc(6px + env(safe-area-inset-bottom)); background:rgba(8,12,24,.88); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border-top:1px solid rgba(255,255,255,.12) }
-    .actionInner{ max-width:440px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); gap:2px }
-    html.touchMode .actionInner{ grid-template-columns:repeat(3,1fr); max-width:360px }
-    .actBtn{ appearance:none; border:0; background:transparent; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:58px; border-radius:12px; font:inherit; font-size:11.5px; font-weight:700; line-height:1.1; text-align:center; padding:4px 2px; cursor:pointer; position:relative }
+    .actionBar{ position:fixed; left:0; right:0; bottom:0; z-index:50; padding:4px 6px calc(4px + env(safe-area-inset-bottom)); background:rgba(8,12,24,.88); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border-top:1px solid rgba(255,255,255,.12) }
+    .actionInner{ max-width:480px; margin:0 auto; display:grid; grid-template-columns:repeat(5,1fr); gap:1px }
+    html.touchMode .actionInner{ grid-template-columns:repeat(4,1fr); max-width:420px }
+    .actBtn{ appearance:none; border:0; background:transparent; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:50px; border-radius:12px; font:inherit; font-size:11px; font-weight:700; line-height:1.1; text-align:center; padding:4px 2px; cursor:pointer; position:relative }
     .actBtn svg{ width:25px; height:25px; flex:none }
     .actBtn:active{ background:rgba(255,255,255,.12) }
     .actBtn:disabled{ opacity:.38; cursor:not-allowed }
@@ -150,6 +151,9 @@
     .btn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none }
     .btn:focus-visible, .iconBtn:focus-visible, .disclosure:focus-visible, .help-btn:focus-visible, .actBtn:focus-visible, label.actBtn:focus-within{ outline:2px solid var(--accent); outline-offset:2px }
     /* 明るい配色 */
+    .offsetCard{ padding:0; margin-top:0; background:none; border:0; border-radius:0 }
+    .offsetCard .disclosure{ min-height:30px; font-size:12.5px }
+    .viewCard.fs .offsetCard{ display:none !important }
     .light-theme .card{ border-color:rgba(0,0,0,.10) }
     .light-theme .swOpt .led{ background:#94a3b8 }
     /* 計測ログ モーダル */
@@ -237,7 +241,7 @@
     .tool-apply{ display:block; width:100%; min-height:44px; margin-top:8px; font-size:14px }
     .tool-apply.lite{ min-height:40px; margin-top:6px; font-size:13px; box-shadow:none; border:1px solid #cbd5e1 }
     /* 測り方（カメラで測る／当てて測る） */
-    .methodRow{ margin-top:0; min-height:40px }
+    .methodRow{ margin-top:0; min-height:38px }
     html.touchMode .canvasTools, html.touchMode .sliderRow, html.touchMode .camOnly{ display:none !important }
     html:not(.touchMode) .touchOnly{ display:none !important }
     @media (max-width:380px){ .methodRow .swOpt svg{ display:none } }
@@ -270,8 +274,8 @@
     .touchLevel.bad i{ background:#ef4444; box-shadow:0 0 6px #ef4444 }
     .touchLevel small{ font-size:11px; font-weight:600; color:#cbd5e1 }
     .touchLevel small:empty{ display:none }
-    .touchRow{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; margin-top:8px }
-    .touchNote{ margin:0; font-size:12.5px; line-height:1.45; min-height:2.9em; white-space:pre-line }
+    .touchRow{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; margin-top:6px }
+    .touchNote{ margin:0; font-size:12px; line-height:1.3; min-height:1.5em; white-space:pre-line }
     .cmpRow{ grid-column:1 / -1; display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-top:6px; font-size:12px; flex-wrap:wrap }
     .cmpVal{ appearance:none; border:1px solid rgba(127,127,127,.45); background:transparent; color:inherit; font:inherit; font-weight:700; border-radius:8px; min-height:32px; padding:2px 9px; cursor:pointer }
     .cmpVal.on{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) }
@@ -403,7 +407,7 @@
       <button type="button" class="fsBtn" id="fsZoomBtn" data-i18n-aria="aria_zoom_reset" aria-label="拡大を元に戻す" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/></svg><span class="zLbl">1.0×</span></button>
       <div class="fsRes" id="fsRes"><span data-i18n="res_cut">切る長さ</span><b id="fsCut">—</b><small id="fsUnit">mm</small></div>
     </div>
-    <div class="stepRow">
+    <div class="stepRow lockable" id="stepMode">
       <span class="stepNo" aria-hidden="true">1</span>
       <div class="sw" id="modeSw" data-pos="left" role="group" data-i18n-aria="aria_mode" aria-label="切り方">
         <button type="button" class="swOpt" id="modeDualBtn" aria-pressed="true"><span class="led"></span><svg viewBox="0 0 26 18" aria-hidden="true"><path d="M2 15 L13 4 L24 15" fill="none" stroke="currentColor" stroke-width="3"/></svg><span data-i18n="mode_dual_s">2本をつなぐ</span></button>
@@ -412,7 +416,7 @@
       </div>
     </div>
     <input type="checkbox" id="modeToggle" class="vh" tabindex="-1" aria-hidden="true" />
-    <div class="stepRow">
+    <div class="stepRow lockable" id="stepWidth">
       <span class="stepNo" aria-hidden="true">2</span>
       <button type="button" class="matBtn" id="matBtn" aria-haspopup="dialog" data-i18n-title="mat_open" title="登録した材料から選ぶ・登録する"><span class="matName" id="matName">材料の幅</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <label class="vh" for="productWidth" data-i18n="wh">材料の幅</label>
@@ -510,9 +514,7 @@
         <button type="button" class="fsBtn fsPm" id="fsPlus" data-i18n-aria="aria_plus" aria-label="0.5度大きく">＋</button>
       </div>
     </div>
-  </section>
-
-  <section class="card">
+  <section class="card offsetCard">
     <button class="disclosure" id="offsetToggle" aria-expanded="false" aria-controls="offsetBody"><span class="tri">▸</span> 面取り・底面のずれも出す</button>
     <div id="offsetBody" style="display:none">
       <div class="optLine">
@@ -551,12 +553,15 @@
       </figure>
     </div>
   </section>
+  </section>
+
 </div>
 
 <div id="statusMsg" class="status" style="display:none" role="status"></div>
 <nav class="actionBar" data-i18n-aria="aria_actions" aria-label="操作">
   <div class="actionInner">
     <button type="button" class="actBtn camOnly" id="fsBarBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span class="actLbl" data-i18n="btn_fullscreen">全画面</span></button>
+    <button type="button" class="actBtn" id="measResetBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v5h5"/></svg><span class="actLbl" data-i18n="btn_meas_reset">リセット</span></button>
     <button type="button" class="actBtn" id="flipBtn2" data-i18n-title="tip_flip" title="左右反転"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8H3l4-4M3 8h18"/><path d="M17 16h4l-4 4M21 16H3"/></svg><span class="actLbl" data-i18n="btn_flip">反転</span></button>
     <button type="button" class="actBtn" id="toolsBtn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18v10H3z"/><path d="M8 9V6h8v3"/><path d="M3 13.5h18"/><path d="M10 13.5v2h4v-2"/></svg><span class="actLbl" data-i18n="btn_tools">道具</span></button>
     <button type="button" class="actBtn" id="logBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7M9 16h7"/></svg><span class="actLbl" data-i18n="btn_log">記録</span></button>
@@ -1407,6 +1412,7 @@
 
   // ===== UI補助 =====
   function applyModeUI(){
+    fitOneScreen();
     const single=(mode==='single');
     const rightWrap=document.getElementById('rightWrap');
     const rightSlider=document.getElementById('rightSlider');
@@ -1491,6 +1497,10 @@
       { const c={ r:5000, side:'out', w:300, a:90, anchor:'len', val:600, gap:10 }, j=curveJoint(c, curveCalc(c)), d=2*300*Math.tan(j.theta/2*D2R);
         eq(j.n+'|'+(Math.abs((j.gOut-j.gIn)-d)<1e-9)+'|'+(j.gIn>0), '12|true|true', '目地：R5000・90°に600mmを12本、外と内の差は切る長さの2倍'); }
       { const c={ r:5000, side:'out', w:300, a:90, anchor:'len', val:600, gap:10, jn:13 }; eq(curveJoint(c, curveCalc(c)).err, 'curve_j_long', '目地：本数が多すぎるときは知らせる'); }
+      { const c={ sizeBy:'chord', c:6000, h:1500, side:'out', w:300, anchor:'len', val:600 }, o=curveCalc(c);
+        eq(Math.round(o.open*10)/10+'|'+fmtCount(Math.round(o.n*10)/10), '170.8|11.6', '曲線：ふくらみを入れたら、全体の角度と本数も出る'); }
+      { const c={ c:6000, h:1500, side:'out', w:100, len:600, gap:10 }, r=jointOf(c), ang=jointSetAngles(r.j);
+        eq(r.j.n+'|'+Math.round(ang[0]*10)/10+'|'+Math.round(ang[ang.length-1]*10)/10, '11|48.3|-48.3', '目地：糸からの角度は、1本目と最後が同じで向きだけ逆'); }
       { const a=arcFromChord(4000, 2000); eq(Math.round(a.R)+'|'+Math.round(a.A), '2000|180', '半円：幅4000・高さ2000 → 半径2000・180°'); }
       { const a=arcFromChord(4000, 500); eq(Math.round(a.R)+'|'+Math.round(a.A*10)/10, '4250|56.1', '幅4000・高さ500 → 半径4250・56.1°'); }
       { const a=arcFromChord(4000, 3000); eq(Math.round(a.A)>180, true, '半円より大きいふくらみも出せる'); }
@@ -1942,7 +1952,7 @@
       joint:(function(){   // 目地で据える（半円の幅・高さだけで出せる）
         const q=st.joint||{};
         return { c:posLen(q.c), h:posLen(q.h), side:pick(q.side, ['out','in'], 'out'), w:posLen(q.w), len:posLen(q.len),
-          gap:(typeof q.gap==='number' && q.gap>=0 && q.gap<=200) ? q.gap : 10, n:clampInt(q.n,1,99,null) };
+          gap:(typeof q.gap==='number' && q.gap>=0 && q.gap<=200) ? q.gap : 10, n:clampInt(q.n,1,99,null), setOpen:!!q.setOpen };
       })(),
     };
   })();
@@ -1952,7 +1962,7 @@
     const tb=tools.tab;
     if(tb==='poly') tools.poly={ n:8, w:null, anchor:'lo', val:null, stock:null, kerf:3, stockOpen:tools.poly.stockOpen };
     else if(tb==='curve') tools.curve={ r:null, side:'out', w:null, anchor:'len', val:null, a:null, c:null, h:null, sizeBy:'chord' };
-    else tools.joint={ c:null, h:null, side:'out', w:null, len:null, gap:10, n:null };
+    else tools.joint={ c:null, h:null, side:'out', w:null, len:null, gap:10, n:null, setOpen:tools.joint.setOpen };
     saveTools(); renderTools(true); showStatus(t('st_tool_reset'), 'info');
   }
   function isToolOpen(){ const m=document.getElementById('toolModal'); return !!(m && m.classList.contains('show')); }
@@ -2090,9 +2100,14 @@
     const R=(c.sizeBy==='chord') ? chordRadius(c.c, c.h) : c.r;
     return (typeof R==='number' && isFinite(R) && R>0 && R<=999999) ? R : null;
   }
+  function curveTotal(c){   // 曲線全体の角度：入っていればそれ、無ければ「ふくらみ」から
+    if(c.a>0) return c.a;
+    if(c.sizeBy==='chord'){ const a=arcFromChord(c.c, c.h); if(a && a.A) return a.A; }
+    return null;
+  }
   function curveCalc(c){
     const o={ theta:null, lo:null, li:null, ref:null, other:null, n:null, open:null, endOpen:null, off:null, err:'' };
-    const R=curveR(c), w=(c.w>0) ? c.w : null, A=(c.a>0) ? c.a : null;
+    const R=curveR(c), w=(c.w>0) ? c.w : null, A=curveTotal(c);
     if(R==null) return o;
     const tq=x=>Math.tan(x/2*D2R), refLen=x=>2*R*Math.sin(x/2*D2R);   // 長さは「曲線に沿う側」で測る
     const otherLen=x=>(w==null) ? null : ((c.side==='out') ? refLen(x)-2*w*tq(x) : refLen(x)+2*w*tq(x));
@@ -2154,7 +2169,7 @@
     const have=(o.theta!=null), R=have ? curveR(c) : 3000, th=have ? o.theta : 20, L=2*R*Math.sin(th/2*D2R);
     let count=3;
     if(have && c.anchor==='n' && c.val>=1) count=Math.min(24, c.val);
-    else if(have && c.a>0) count=Math.max(1, Math.min(24, Math.ceil(c.a/th-1e-6)));
+    else { const AA=curveTotal(c); if(have && AA>0) count=Math.max(1, Math.min(24, Math.ceil(AA/th-1e-6))); }
     const PAD={ l:12, r:12, t:26, b:24 }, fitH=pts=>{ let x0=Infinity, x1=-Infinity, y0=Infinity, y1=-Infinity; pts.forEach(q=>{ x0=Math.min(x0,q[0]); x1=Math.max(x1,q[0]); y0=Math.min(y0,q[1]); y1=Math.max(y1,q[1]); }); return Math.max(120, Math.min(200, (y1-y0)*(300-PAD.l-PAD.r)/Math.max(1e-9, x1-x0)+PAD.t+PAD.b)); };   // 横長の絵は図の高さを詰める
     let wd=(have && c.w>0) ? c.w : L*0.12, ch=curveChain(R, c.side, wd, th, count, L), FH=fitH(ch.line.concat(ch.other)), fb=fitBox(ch.line.concat(ch.other), 300, FH, PAD);
     if(wd*fb.s<3){ wd=3/fb.s; ch=curveChain(R, c.side, wd, th, count, L); FH=fitH(ch.line.concat(ch.other)); fb=fitBox(ch.line.concat(ch.other), 300, FH, PAD); }   // 細すぎると見えない
@@ -2235,6 +2250,12 @@
     const src={ sizeBy:'chord', c:q.c, h:q.h, side:q.side, w:q.w, anchor:'len', val:q.len, a:(arc ? arc.A : null), gap:q.gap, jn:q.n };
     return { arc, j:curveJoint(src, null) };
   }
+  function jointSetAngles(j){   // 両端に張った糸から、k本目が何度振れているか（真ん中の材料は糸と平行＝0°）
+    if(!(j && j.n>0 && j.theta>0)) return [];
+    const A=j.theta*j.n, out=[];
+    for(let k=1;k<=j.n;k++) out.push(A/2-(k-0.5)*j.theta);
+    return out;
+  }
   function renderJoint(){
     const $=id=>document.getElementById(id), q=tools.joint;
     setLenField('jntC', q.c); setLenField('jntH', q.h); setLenField('jntW', q.w); setLenField('jntLen', q.len); setLenField('jntGap', q.gap);
@@ -2242,8 +2263,7 @@
     const { arc, j }=jointOf(q);
     $('jntArcOut').textContent=(arc && arc.A) ? t('joint_arc').replace('{r}', fmtLenFull(arc.R,0)).replace('{a}', fmtAng(arc.A)) : '';
     { const el=$('jntN'); el.classList.toggle('calc', q.n==null); if(document.activeElement!==el) el.value=(j.n!=null) ? String(j.n) : ''; }
-    drawJointArc(q, j, arc);
-    const fig=drawJointFig({ w:q.w }, j), rows=[];
+    const rows=[];
     if(j.gOut!=null){
       rows.push([t('curve_j_out'), fmtLenFull(j.gOut,1)]);
       rows.push([t('curve_j_in'), fmtLenFull(j.gIn,1)]);
@@ -2251,6 +2271,8 @@
       rows.push([t('curve_j_turn'), fmtAng(j.theta)+'°', 'sub']);
     }
     resRows($('jntRes'), rows);
+    let fig=null;
+    try{ drawJointArc(q, j, arc); fig=drawJointFig({ w:q.w }, j); }catch(e){ console.log('jointFig', e); }
     const note=[];
     if(j.err) note.push(t(j.err));
     else {
@@ -2259,6 +2281,15 @@
       if(fig && fig.big) note.push(t('curve_j_fig'));
     }
     $('jntNote').textContent=note.join(' ／ ');
+    // ---- 据えるときの角度（両端に張った糸から、何度振れているか） ----
+    setDisc('jntSetToggle', 'jntSetBody', q.setOpen);
+    if(q.setOpen){
+      const sr=[], first=jointSetAngles(j);
+      first.slice(0, 24).forEach((d, i)=>sr.push([t('joint_set_no').replace('{k}', i+1), fmtAng(Math.abs(d))+'°', (i===0 ? '' : 'sub')]));
+      resRows($('jntSetRes'), sr);
+      const b=$('jntSetApply'); b.disabled=!first.length;
+      b.textContent=t('joint_set_use').replace('{v}', first.length ? fmtAng(Math.abs(first[0])) : '—');
+    }
     const open=(j.theta!=null && !j.err) ? 180-j.theta : null;
     $('jntApply').disabled=(open==null);
     $('jntApply').textContent=t('joint_use_main').replace('{v}', open!=null ? fmtAng(open) : '—');
@@ -2274,9 +2305,9 @@
     { const sw=$('curveSideSw'); sw.setAttribute('data-pos', c.side==='out' ? 'left' : 'right'); sw.querySelectorAll('.swOpt').forEach(b=>b.setAttribute('aria-pressed', b.dataset.side===c.side)); }
     $('curveLenCap').textContent=t('curve_len')+'（'+t(c.side==='out' ? 'curve_side_out' : 'curve_side_in')+'）';
     setCalcLen('curveLen', c.anchor==='len' ? c.val : o.ref, c.anchor==='len');
-    { const el=$('curveA'); if(document.activeElement!==el) el.value=(c.a!=null) ? String(Math.round(c.a*10)/10) : ''; }
+    { const el=$('curveA'), au=curveTotal(c); el.classList.toggle('calc', c.a==null);
+      if(document.activeElement!==el) el.value=(c.a!=null) ? String(Math.round(c.a*10)/10) : ((au!=null) ? String(Math.round(au*10)/10) : ''); }
     { const el=$('curveN'); el.classList.toggle('calc', c.anchor!=='n'); if(document.activeElement!==el) el.value=(c.anchor==='n') ? (c.val!=null ? String(c.val) : '') : (o.n!=null ? fmtCount(o.n) : ''); }
-    drawCurveFig(c, o);
     const rows=[];
     if(o.theta!=null){
       rows.push([t('curve_joint'), fmtAng(o.open)+'°']);
@@ -2288,6 +2319,7 @@
     $('curveNote').textContent=o.err ? t(o.err) : ((o.theta==null) ? t('curve_need') : '');
     $('curveApply').disabled=(o.open==null);
     $('curveApply').textContent=t('tool_use_main').replace('{v}', o.open!=null ? fmtAng(o.open) : '—');
+    try{ drawCurveFig(c, o); }catch(e){ console.log('curveFig', e); }   // 絵で失敗しても、数字は出したまま
   }
 
   // ===== 測り方：カメラで測る／当てて測る（スマホを1本目に当てて 0 → 2本目に当てて確定）。両方で測ったら差をくらべる =====
@@ -2345,6 +2377,40 @@
   function touchSetAngle(v, commit){ const el=document.getElementById('manualAngle'), sv=String(Math.round(v*10)/10); if(!commit && el.value===sv) return; el.value=sv; applyManualAngle(!!commit); }
   function touchApply(){ if(!touch.fix) return; const v=Math.round(touchAngle(touch.fix.turn)*10)/10; touchSetAngle(v, true); measured.touch={ v, mode }; syncCompare(); }
   function camMeasuring(){ return !!(stream || (isCaptured && photo.width>0)); }
+  function measureLocked(){   // 測り比べの途中（カメラ／当てて測る／便利機能のどれかで決めたあと）
+    const m=(typeof measured!=='undefined' && measured) ? measured : null; if(!m) return false;
+    return !!((m.cam && m.cam.mode===mode) || (m.touch && m.touch.mode===mode) || (m.tool && m.tool.mode===mode));
+  }
+  function syncLocks(){
+    const on=measureLocked();
+    document.documentElement.classList.toggle('locked', on);
+    const w=document.getElementById('productWidth'); if(w) w.readOnly=on;
+  }
+  function lockGuard(e){ if(!measureLocked()) return; e.preventDefault(); e.stopPropagation(); showStatus(t('st_locked'), 'info'); }
+  function measureReset(){   // 測り直し：測った値を消して、はじめの状態へ（角度と材料はそのまま）
+    measured={ cam:null, touch:null, tool:null };
+    if(method==='touch') touchReset();
+    else if(isCaptured){ isCaptured=false; photo.width=photo.height=0; if(stream) startLiveLoop(); setActLabel('captureBtn', t('btn_freeze')); }
+    syncCompare(); syncLocks(); requestRender(); showStatus(t('st_meas_reset'), 'info');
+  }
+  var fitPend=false;
+  function fitOneScreen(){   // 下の帯にかからないように、図の高さだけを自動で詰める（1画面に収める）
+    if(fitPend) return; fitPend=true;
+    requestAnimationFrame(function(){
+      fitPend=false;
+      try{
+        const cv=document.getElementById('angleGuide'), bar=document.querySelector('.actionBar'), cont=document.querySelector('.container');
+        if(!cv || !bar || !cont || isFullscreen()) return;
+        cv.style.maxHeight='';   // いちど戻して、入るなら大きく
+        const room=innerHeight-bar.getBoundingClientRect().height-6, over=cont.getBoundingClientRect().bottom-room;
+        if(over>0){
+          cv.style.maxHeight=Math.max(150, Math.round(cv.getBoundingClientRect().height-over))+'px';
+          const rest=cont.getBoundingClientRect().bottom-room;   // 端数が残ったら、もう一度だけ
+          if(rest>0) cv.style.maxHeight=Math.max(150, Math.round(cv.getBoundingClientRect().height-rest))+'px';
+        }
+      }catch(e){}
+    });
+  }
   function syncCompare(){
     const row=document.getElementById('cmpRow'); if(!row || typeof measured==='undefined' || !measured) return;
     const c=(measured.cam && measured.cam.mode===mode) ? measured.cam : null, u=(measured.touch && measured.touch.mode===mode) ? measured.touch : null,
@@ -2355,6 +2421,7 @@
     [cam, tch, df].forEach(el=>{ if(el) el.hidden=!show; });
     if(tr){ tr.hidden=!tg; if(tg){ tr.dataset.target=tg; tr.textContent=t(tg==='touch' ? 'cmp_try_touch' : 'cmp_try_cam'); } }
     const want=!(show || tg); if(row.hidden!==want) row.hidden=want;
+    syncLocks(); fitOneScreen();
     if(!show) return;
     const cur=Math.round(shownAngle()*10)/10;
     cam.textContent=t('cmp_cam').replace('{v}', fmtAng(c.v)); tch.textContent=t('cmp_touch').replace('{v}', fmtAng(u.v));
@@ -2371,6 +2438,7 @@
     syncMethodUI(); requestRender();
   }
   function syncMethodUI(){
+    fitOneScreen();
     const on=(method==='touch'), $=id=>document.getElementById(id);
     document.documentElement.classList.toggle('touchMode', on);
     $('methodSw').setAttribute('data-pos', on ? 'right' : 'left');
@@ -3097,7 +3165,7 @@
     document.querySelectorAll('.help-tab').forEach(b => b.addEventListener('click', ()=>switchHelpTab(b.dataset.tab)));
     document.getElementById('helpUseBtn').addEventListener('click', ()=> openHelpModal('use'));
     // ずらし量計算（折りたたみ）
-    document.getElementById('offsetToggle').addEventListener('click', ()=>{
+    document.getElementById('offsetToggle').addEventListener('click', ()=>{ setTimeout(fitOneScreen, 0);
       const b=document.getElementById('offsetBody'), t=document.getElementById('offsetToggle');
       const show = (b.style.display==='none');
       b.style.display = show?'block':'none';
@@ -3216,6 +3284,8 @@
       el.addEventListener('input', ()=>{ const v=zen2han(el.value).replace(/[^0-9]/g,'').slice(0,2); if(v!==el.value) el.value=v; if(+v>=1 && +v<=99) setJntN(v); });
       el.addEventListener('change', ()=>renderTools(true)); }
     document.getElementById('jntApply').addEventListener('click', ()=>{ const r=jointOf(tools.joint); if(r.j.theta!=null && !r.j.err) applyToolAngle('dual', 180-r.j.theta, tools.joint.w); });
+    document.getElementById('jntSetToggle').addEventListener('click', ()=>{ tools.joint.setOpen=!tools.joint.setOpen; saveTools(); renderTools(); });
+    document.getElementById('jntSetApply').addEventListener('click', ()=>{ const r=jointOf(tools.joint), a=jointSetAngles(r.j); if(a.length) applyToolAngle('single', Math.abs(a[0]), tools.joint.w); });
     document.getElementById('toolResetBtn').addEventListener('click', resetToolTab);
     // 測り方（カメラで測る／当てて測る）
     document.getElementById('methodCamBtn').addEventListener('click', ()=>setMethod('cam'));
@@ -3228,6 +3298,13 @@
     document.querySelectorAll('#touchKindSw .swOpt').forEach(b=>b.addEventListener('click', ()=>setTouchKind(b.dataset.kind)));
     document.getElementById('touchKindTrack').addEventListener('click', ()=>setTouchKind(touch.kind==='inner' ? 'turn' : 'inner'));
     const useMeasured=m=>{ if(!m) return; const el=document.getElementById('manualAngle'); el.value=String(m.v); applyManualAngle(true); requestRender(); };   // くらべる：押した値を③に
+    document.getElementById('measResetBtn').addEventListener('click', measureReset);
+    window.addEventListener('resize', fitOneScreen);
+    try{ const ro=new ResizeObserver(()=>fitOneScreen());   // 説明文の行数や、折り畳みの開閉で高さが変わったとき
+      [document.querySelector('.touchRow'), document.getElementById('offsetBody')].forEach(el=>{ if(el) ro.observe(el); }); }catch(e){}
+    window.addEventListener('orientationchange', ()=>setTimeout(fitOneScreen, 300));
+    setTimeout(fitOneScreen, 60); setTimeout(fitOneScreen, 600);
+    ['stepMode','stepWidth'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('click', lockGuard, true); });
     document.getElementById('cmpTry').addEventListener('click', e=>{ const tg=e.currentTarget.dataset.target; if(tg==='cam' || tg==='touch') setMethod(tg); });
     document.getElementById('cmpCam').addEventListener('click', ()=>useMeasured(measured.cam));
     document.getElementById('cmpTouch').addEventListener('click', ()=>useMeasured(measured.touch));
@@ -3307,7 +3384,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c14.1';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
+  const APP_VERSION = '1.0.8-c15.6';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
@@ -3690,6 +3767,7 @@
     <div class="tool-sec" data-tool-sec="joint" hidden>
       <p class="tool-hint" data-i18n="joint_hint"></p>
       <svg class="tool-fig" id="jointArcFig" viewBox="0 0 300 150" aria-hidden="true"></svg>
+      <p class="tool-sub" data-i18n="curve_chord_help"></p>
       <div class="tool-row"><label class="tool-lbl" for="jntC" data-i18n="joint_c">両端の間（幅）</label><div class="tool-ctl"><input id="jntC" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
       <div class="tool-row"><label class="tool-lbl" for="jntH" data-i18n="joint_h">ふくらみ（高さ）</label><div class="tool-ctl"><input id="jntH" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
       <p class="tool-sub" id="jntArcOut"></p>
@@ -3708,6 +3786,12 @@
       <dl class="tool-res" id="jntRes"></dl>
       <p class="tool-sub" id="jntNote"></p>
       <button type="button" class="btn primary tool-apply" id="jntApply">—</button>
+      <button type="button" class="disclosure tool-disc" id="jntSetToggle" aria-expanded="false" aria-controls="jntSetBody"><span class="tri">▸</span> <span data-i18n="joint_set_h">据えるときの角度（糸から）</span></button>
+      <div id="jntSetBody" hidden>
+        <p class="tool-sub" data-i18n="joint_set_help"></p>
+        <dl class="tool-res" id="jntSetRes"></dl>
+        <button type="button" class="btn tool-apply lite" id="jntSetApply">—</button>
+      </div>
     </div>
 
   </div>
