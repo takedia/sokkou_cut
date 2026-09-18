@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>角度カットガイド 2.01｜掲載文とスクショの確認</title>
+<style>
+  :root{ --bg:#0f172a; --card:#111c33; --line:#26344f; --txt:#e8eefc; --sub:#9fb0cc; --acc:#fcd34d }
+  *{ box-sizing:border-box }
+  body{ margin:0; padding:14px 14px 60px; background:var(--bg); color:var(--txt);
+        font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;
+        font-size:15px; line-height:1.7 }
+  .wrap{ max-width:760px; margin:0 auto }
+  h1{ font-size:19px; margin:0 0 4px }
+  h2{ font-size:16px; margin:26px 0 8px; padding-bottom:6px; border-bottom:2px solid var(--acc) }
+  h3{ font-size:14px; margin:16px 0 6px; color:var(--acc) }
+  p{ margin:6px 0 }
+  .sub{ color:var(--sub); font-size:13px }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; margin:10px 0 }
+  pre{ margin:0; padding:12px; background:#0b1428; border:1px solid var(--line); border-radius:10px;
+       white-space:pre-wrap; word-break:break-word; font-size:13.5px; line-height:1.65; font-family:inherit }
+  .len{ color:var(--sub); font-size:12px; margin-top:4px }
+  .shots{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px }
+  figure{ margin:0 }
+  figure img{ width:100%; height:auto; border-radius:10px; border:1px solid var(--line); display:block }
+  figcaption{ font-size:13px; margin-top:6px }
+  figcaption b{ color:var(--acc) }
+  .ok{ color:#86efac } .warn{ color:#fca5a5 }
+  ul{ margin:6px 0 6px 20px; padding:0 }
+  li{ margin:3px 0 }
+  .tbl{ width:100%; border-collapse:collapse; font-size:13.5px }
+  .tbl th,.tbl td{ border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top }
+  .tbl th{ background:#0b1428; color:var(--sub); white-space:nowrap }
+  a{ color:#93c5fd }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>角度カットガイド 2.01｜掲載文とスクショの確認</h1>
+<p class="sub">2026.09.19 作成。ここに載っているものは、まだ Play Console に入れていません。ここで直してから入れます。</p>
+
+<h2>1. スクリーンショット（新しい画面・帯なし）</h2>
+<p class="sub">広告とナビゲーションバーは切り落としています（720×1330）。帯（白帯＋黒文字）の文言は下の案を直してください。</p>
+<div class="shots">
+  <figure><img src="store2.01/main.png" alt="メイン画面" />
+    <figcaption>① メイン<br /><b>角度を測れば、切る長さが出る</b></figcaption></figure>
+  <figure><img src="store2.01/touch.png" alt="当てて測る" />
+    <figcaption>② 当てて測る<br /><b>スマホを当てるだけで角度が出る</b></figcaption></figure>
+  <figure><img src="store2.01/curve.png" alt="曲線" />
+    <figcaption>③ 便利機能：曲線<br /><b>曲線は、半径が分からなくても出せる</b></figcaption></figure>
+  <figure><img src="store2.01/joint.png" alt="目地" />
+    <figcaption>④ 便利機能：目地<br /><b>半円に切らずに据える。目地の開きを計算</b></figcaption></figure>
+  <figure><img src="store2.01/check.png" alt="据付チェック" />
+    <figcaption>⑤ 据付チェック<br /><b>水糸を基準に、据えた1本ずつを確かめる</b></figcaption></figure>
+</div>
+
+<h2>2. アプリ名（30字以内）</h2>
+<div class="card">
+  <h3>日本語（現行のまま・変更なしを提案）</h3>
+  <pre>角度カットガイド｜側溝カット・斜め切りの寸法計算</pre>
+  <div class="len">24字。名前から「側溝」が消えると検索に不利なので、｜の後ろに残しています。</div>
+  <h3>English（新規）</h3>
+  <pre>Angle Cut Guide – Miter Calc</pre>
+  <div class="len">28字</div>
+</div>
+
+<h2>3. 簡単な説明（80字以内）</h2>
+<div class="card">
+  <h3>現行</h3>
+  <pre>側溝カット・縁石・ブロック・木材の斜め切りに。カメラで角度を合わせて、切る長さとケガキ補正値を計算。6言語対応</pre>
+  <h3>2.01 案</h3>
+  <pre>側溝カット・縁石・ブロック・木材の斜め切りに。カメラかスマホを当てて角度を測り、切る長さを計算。6言語対応</pre>
+  <div class="len">52字。「当てて測る」を足し、字数のため「ケガキ補正値」を落としました。どちらを残すか決めてください。</div>
+  <h3>English（新規）</h3>
+  <pre>Measure the angle by camera or by holding the phone, and get the cut length.</pre>
+</div>
+
+<h2>4. 詳しい説明（日本語・案）</h2>
+<div class="card">
+<pre>側溝カット・ブロックの斜め切りに。
+切る角度を測って、切る長さを出すアプリです。
+U字溝・縁石・平板・タイル・木材など、角度をつけて切るもの（斜めカット・角度カット）に使えます。
+
+■ 測り方は2つ
+・カメラ：材料を写して、線を縁に合わせる
+・当てて測る（Pro）：スマホを材料に当てるだけ。方位磁石を使わないので、鉄筋や鋼材のそばでも狂いません
+・両方で測って、差を見比べることもできます
+
+■ 使い方（上から順に）
+① 切り方をえらぶ（2本をつなぐ／面につなぐ）
+② 材料の幅を入れる（mm・インチ）
+③ 測り方をえらんで、角度を測る
+④ 切る長さが大きく出る
+
+■ 便利機能
+・枠・多角形：4角・6角・8角などの留めの角度と、定尺からの材料取り
+・曲線：まっすぐな材料をつないで曲線を作るときの、つなぎ目の開き角と切る長さ。半径が分からなくても、両端の間とふくらみ（高さ）から出せます
+・目地：半円やカーブに切らずに据えるときの、目地（すきま）の開き（外側・内側）と、据える本数
+・据付チェック（Pro）：両端に張った水糸を基準に、据えた材料の角度を1本ずつ確かめる
+
+■ できること
+・底面や面取りのぶんのズレ（ケガキ補正値）を、自動で計算
+・全画面・2本指で拡大・線を動かす間の拡大鏡で、細かく合わせられる
+・スマホの傾きを表示。画面を止めて、ゆっくり合わせられる
+・日なたでも見やすく（明るさの調整＝対応端末、くっきり・白黒の表示）
+・よく使う材料を登録して、すぐ呼び出せる
+・結果を、図つきの画像にして送れる
+・測った値はメモをつけて保存。表（CSV）やバックアップに書き出せる
+・撮った写真からでも測れる
+・画面の向きを固定できる（自動回転ON／OFF）
+
+■ 現場向け
+・電波がなくても使えます
+・6言語（日本語・英語・ベトナム語・中国語・ポルトガル語・フィリピン語）
+
+■ Pro について
+広告が表示されなくなり、「当てて測る」と「据付チェック」が使えるようになる買い切りです。
+はじめは無料でお試しいただけます（1日3回・5日間）。
+
+■ 注意
+・ケガキは数mm〜1cm 余裕を見て、切ったあと目地で調整してください
+・角度には誤差が出ます（カメラの写り方、スマホの傾き、時間によるずれなど）。大事なところは実測と合わせてください</pre>
+</div>
+
+<h2>5. 詳しい説明（English・新規）</h2>
+<div class="card">
+<pre>For cutting gutters, curbs, blocks and timber at an angle.
+Measure the cut angle and read the cut length.
+
+■ Two ways to measure
+・Camera: shoot the material and line up the guide
+・Hold to measure (Pro): just hold the phone against the material. It does not use a compass, so rebar and steel do not affect it
+・You can measure both ways and compare the difference
+
+■ How to use
+① Choose the cut (join two pieces / join to a surface)
+② Enter the material width (mm or inches)
+③ Choose how to measure, and measure the angle
+④ Read the cut length
+
+■ Tools
+・Frames &amp; polygons: miter angles for 4, 6, 8 sides and cutting from stock
+・Curves: the opening angle and cut length when joining straight pieces along a curve. No radius needed — enter the span and the bulge
+・Joints: the joint gaps (outer and inner) and how many pieces fit when setting along a curve without cutting
+・Setting check (Pro): verify each piece against the string, one by one
+
+■ Also
+・Automatic offset for chamfers and a narrower bottom face
+・Full screen, pinch zoom and a magnifier while you drag the line
+・Tilt readout, freeze the screen to line things up slowly
+・Readable in sunlight (brightness control on supported devices, high contrast and mono)
+・Save the materials you use often
+・Share the result as an image with the drawing
+・Save measurements with a note; export to CSV or a backup
+・Measure from a photo you already took
+・Lock the screen orientation
+
+■ On site
+・Works without a connection
+・6 languages (Japanese, English, Vietnamese, Chinese, Portuguese, Filipino)
+
+■ About Pro
+A one-time purchase that removes the ads and unlocks “Hold to measure” and the setting check.
+You can try it free at first (3 times a day for 5 days).
+
+■ Please note
+・Leave a few mm of margin when marking, and adjust with the joints after cutting
+・Angles have some error (how the camera sees it, the phone tilt, drift over time). Confirm anything critical on the material itself</pre>
+</div>
+
+<h2>6. リリースノート（500字以内）</h2>
+<div class="card">
+  <h3>日本語</h3>
+<pre>・スマホを材料に当てて角度を測れるようになりました（Pro）
+・水糸を基準に、据えた材料の角度を1本ずつ確かめられる「据付チェック」を追加しました（Pro）
+・曲線や半円に据えるときの「目地の開き」を計算できるようになりました
+・枠・多角形／曲線の入力を分かりやすくし、1画面で操作できるよう画面を整えました</pre>
+  <h3>English</h3>
+<pre>・Hold your phone against the material to read the angle (Pro)
+・New setting check: verify each piece against the string, one by one (Pro)
+・Calculate the joint gaps for setting along a curve or half circle
+・Simpler inputs for frames/polygons and curves, and a layout that fits one screen</pre>
+</div>
+
+<h2>7. アプリ内商品（remove_ads・価格は据え置き ¥600）</h2>
+<table class="tbl">
+  <tr><th>項目</th><th>日本語</th><th>English</th></tr>
+  <tr><th>名前</th><td>Pro（広告なし＋当てて測る）</td><td>Pro (no ads + hold to measure)</td></tr>
+  <tr><th>説明</th><td>広告が表示されなくなり、スマホを材料に当てて角度を測る機能と、据付チェックが使えるようになります。買い切りです。</td>
+      <td>Removes the ads and unlocks “Hold to measure” and the setting check. One-time purchase.</td></tr>
+</table>
+<p class="sub">商品IDは <code>remove_ads</code> のまま（変更できません）。既存の購入者はそのまま Pro になります。</p>
+
+<h2>8. アプリ（2.01）を触って確かめる</h2>
+<p><a href="cutcalc.html">→ Web版（2.01 と同じ中身）をこの端末で開く</a></p>
+<p class="sub">アプリ版だけの機能（広告・購入・画面の向きの固定・端末のジャイロ）は Web版では動きません。当てて測るは、ブラウザの向きセンサーで動く端末なら動きます。</p>
+
+<h2>9. 残っていること</h2>
+<ul>
+  <li>この文言の確定（直すところを指示してください）</li>
+  <li>スクショに帯を付けて仕上げ（文言が決まってから）</li>
+  <li>Play Console に入力 → 署名AAB（作成済み）をアップ → 送信</li>
+</ul>
+
+</div>
+</body>
+</html>
