@@ -375,10 +375,18 @@ window.I18N = {
       st_check_off:'据付チェックをやめました',
       check_n1:'据付チェック：両端に張った水糸にスマホを当てて「基準にする」を押します',
       check_n2:'据付チェック {k}／{n}本目：材料に当てて「確定」（目安 {v}°）',
-      check_n3:'据付チェック 完了。もう一度やるときは「リセット」→ 便利機能から始めます',
+      check_n3:'据付チェック 完了。最後にもう一度 水糸に当てて 0° に戻るか見ると、ずれが分かります。やり直すときは「リセット」→ 便利機能から',
       check_sub:'目安 {a}° ／ いま {b}°（{d}°）',
       check_hit:'{k}本目 {b}°（目安 {a}°／差 {d}°）',
-      check_done:'据付チェック 完了（{n}本）。いちばん大きいズレ {d}°（{k}本目）'
+      check_done:'据付チェック 完了（{n}本）。いちばん大きいズレ {d}°（{k}本目）',
+      h_touch_h:'当てて測る・据付チェックの精度',
+      h_touch_p:'当てて測るは、スマホの向きの変わり方（ジャイロ）で角度を出します。方位磁石は使わないので、鉄筋や鋼材のそばでも狂いません。ただし、次のような誤差があります。目安として使い、大事な所は必ず現物で確かめてください。',
+      h_touch_li1:'<b>時間がたつほど、少しずつずれます</b>（ドリフト）。基準をとってから測り終えるまでは、なるべく短くしてください。',
+      h_touch_li2:'<b>基準のときと当てるときで、スマホの傾き（寝かせ方・立て方）が違うとずれます。</b>同じ置き方で当ててください。傾きが大きいときは知らせます。',
+      h_touch_li3:'材料の面に<b>凸凹・欠け・泥</b>があると、スマホが浮いてずれます。当てる所はきれいにしてください。',
+      h_touch_li4:'据付チェックは、<b>水糸の基準を取り直さずに最後まで</b>測ります。本数が多いとき・時間がかかったときは、途中でリセットして水糸から取り直すと確実です。',
+      h_touch_li5:'測り終えたら、<b>もう一度、基準にした所（水糸や1本目）に当てて 0° に戻るか</b>見てください。戻らない分が、そのときのずれです。',
+      h_touch_li6:'表示は0.1°きざみですが、<b>その細かさの精度を保証するものではありません。</b>大事な所は、カメラでも測って見比べてください（決めたあとに「もう一方でも確かめる」が出ます）。'
     },
     en:{
       mode_dual:'Join two pieces',
@@ -747,10 +755,18 @@ window.I18N = {
       st_check_off:'Setting check stopped',
       check_n1:'Setting check: hold the phone against the string stretched across the ends and press “Set base”',
       check_n2:'Setting check {k}/{n}: hold it on the piece and press “Set” (target {v}°)',
-      check_n3:'Setting check done. To run it again, press Reset and start from Tools',
+      check_n3:'Setting check done. Hold the phone back on the string and see whether it reads 0° — that shows the drift. To run it again, press Reset and start from Tools',
       check_sub:'Target {a}° / now {b}° ({d}°)',
       check_hit:'Piece {k}: {b}° (target {a}°, off by {d}°)',
-      check_done:'Setting check done ({n} pieces). Largest deviation {d}° (piece {k})'
+      check_done:'Setting check done ({n} pieces). Largest deviation {d}° (piece {k})',
+      h_touch_h:'Accuracy of holding the phone / the setting check',
+      h_touch_p:'Holding the phone reads the angle from how the phone turns (gyroscope). It does not use a compass, so rebar and steel do not affect it. It does have the following errors, so treat the readings as a guide and confirm anything critical on the material itself.',
+      h_touch_li1:'<b>It drifts slowly over time.</b> Keep the time between setting the base and finishing the measurement short.',
+      h_touch_li2:'<b>If the phone is tilted differently than when you set the base, the reading shifts.</b> Hold it the same way; a large tilt is flagged.',
+      h_touch_li3:'Bumps, chips or mud on the surface lift the phone and shift the reading. Clean the spot you hold it against.',
+      h_touch_li4:'The setting check runs to the end <b>without re-taking the base on the string</b>. With many pieces, or when it takes a while, press Reset and take the base again.',
+      h_touch_li5:'When you finish, <b>hold it back on the base (the string or the first piece) and see whether it reads 0°.</b> Whatever is left is the drift.',
+      h_touch_li6:'Readings are shown in 0.1° steps, but <b>that is not a guarantee of that accuracy.</b> For anything critical, measure with the camera as well and compare (“Check the other way too” appears after you decide).'
     },
     vi:{
       mode_dual:'Nối hai thanh',
@@ -1119,10 +1135,18 @@ window.I18N = {
       st_check_off:'Đã dừng kiểm tra lắp đặt',
       check_n1:'Kiểm tra lắp đặt: áp điện thoại vào dây căng giữa hai đầu rồi bấm “Đặt gốc”',
       check_n2:'Kiểm tra lắp đặt {k}/{n}: áp vào thanh rồi bấm “Chốt” (mục tiêu {v}°)',
-      check_n3:'Đã kiểm tra xong. Muốn làm lại thì bấm Đặt lại rồi bắt đầu từ Công cụ',
+      check_n3:'Đã kiểm tra xong. Áp lại vào dây xem có về 0° không để biết độ trôi. Muốn làm lại thì bấm Đặt lại rồi bắt đầu từ Công cụ',
       check_sub:'Mục tiêu {a}° / hiện {b}° ({d}°)',
       check_hit:'Thanh {k}: {b}° (mục tiêu {a}°, lệch {d}°)',
-      check_done:'Kiểm tra xong ({n} thanh). Lệch lớn nhất {d}° (thanh {k})'
+      check_done:'Kiểm tra xong ({n} thanh). Lệch lớn nhất {d}° (thanh {k})',
+      h_touch_h:'Độ chính xác khi áp máy / kiểm tra lắp đặt',
+      h_touch_p:'Cách áp máy đo góc dựa trên chuyển động xoay của điện thoại (con quay hồi chuyển). Không dùng la bàn nên sắt thép không ảnh hưởng. Tuy nhiên vẫn có sai số như sau; hãy coi đây là số tham khảo và kiểm tra lại trên vật liệu ở những chỗ quan trọng.',
+      h_touch_li1:'<b>Càng lâu càng lệch dần</b> (trôi). Hãy rút ngắn thời gian từ lúc đặt gốc đến khi đo xong.',
+      h_touch_li2:'<b>Nếu độ nghiêng của máy khác lúc đặt gốc thì số đo sẽ lệch.</b> Hãy áp giống nhau; máy sẽ báo khi nghiêng nhiều.',
+      h_touch_li3:'Mặt vật liệu <b>gồ ghề, sứt, dính bùn</b> làm máy kênh lên và sai số. Hãy làm sạch chỗ áp máy.',
+      h_touch_li4:'Kiểm tra lắp đặt chạy đến cuối <b>mà không đặt lại gốc trên dây</b>. Nếu nhiều thanh hoặc mất nhiều thời gian, hãy bấm Đặt lại rồi lấy gốc lại từ dây.',
+      h_touch_li5:'Đo xong, <b>hãy áp lại vào chỗ đã đặt gốc (dây hoặc thanh thứ nhất) xem có về 0° không.</b> Phần chênh chính là độ trôi.',
+      h_touch_li6:'Số hiển thị theo bước 0,1° nhưng <b>không bảo đảm độ chính xác tới mức đó.</b> Chỗ quan trọng hãy đo thêm bằng camera để đối chiếu (sau khi chốt sẽ hiện “kiểm tra bằng cách kia”).'
     },
     zh:{
       mode_dual:'两根对接',
@@ -1491,10 +1515,18 @@ window.I18N = {
       st_check_off:'已停止安装检查',
       check_n1:'安装检查：把手机贴在两端拉的线上，按“设为基准”',
       check_n2:'安装检查 {k}/{n}：贴到材料上按“确定”（目标 {v}°）',
-      check_n3:'安装检查完成。要再做一次，请按“重置”后从“便利功能”开始',
+      check_n3:'安装检查完成。再贴回拉线看是否回到 0°，即可知道偏移量。要重做请按“重置”后从“便利功能”开始',
       check_sub:'目标 {a}° / 当前 {b}°（{d}°）',
       check_hit:'第{k}根 {b}°（目标 {a}°，差 {d}°）',
-      check_done:'安装检查完成（{n}根）。最大偏差 {d}°（第{k}根）'
+      check_done:'安装检查完成（{n}根）。最大偏差 {d}°（第{k}根）',
+      h_touch_h:'贴靠测量与安装检查的精度',
+      h_touch_p:'贴靠测量是用手机转动的变化（陀螺仪）算出角度，不使用指南针，所以钢筋、钢材旁边也不会乱。但存在以下误差，请作为参考值使用，重要之处务必以实物确认。',
+      h_touch_li1:'<b>时间越久越会慢慢偏移</b>（漂移）。从设基准到测完，请尽量缩短时间。',
+      h_touch_li2:'<b>设基准时与贴靠时手机的倾斜（平放或立起）不同，读数会偏。</b>请用相同的放法；倾斜过大时会提示。',
+      h_touch_li3:'材料表面有<b>凹凸、缺角、泥土</b>会使手机翘起而产生误差。请清理贴靠的位置。',
+      h_touch_li4:'安装检查<b>不会中途重新设基准</b>，一直用拉线的基准。根数多或耗时较长时，请按“重置”后重新从拉线取基准。',
+      h_touch_li5:'测完后，<b>再贴回设基准的地方（拉线或第一根），看是否回到 0°。</b>差多少就是当时的偏移量。',
+      h_touch_li6:'显示以 0.1° 为单位，但<b>并不保证该精度。</b>重要之处请同时用相机测量并比较（决定后会出现“也用另一种方式确认”）。'
     },
     pt:{
       mode_dual:'Unir duas peças',
@@ -1863,10 +1895,18 @@ window.I18N = {
       st_check_off:'Conferência de assentamento encerrada',
       check_n1:'Conferência: encoste o celular na linha esticada entre as pontas e toque em “Definir base”',
       check_n2:'Conferência {k}/{n}: encoste na peça e toque em “Fixar” (alvo {v}°)',
-      check_n3:'Conferência concluída. Para repetir, toque em Limpar e comece pelas Ferramentas',
+      check_n3:'Conferência concluída. Encoste de novo na linha e veja se marca 0° — isso mostra a deriva. Para repetir, toque em Limpar e comece pelas Ferramentas',
       check_sub:'Alvo {a}° / agora {b}° ({d}°)',
       check_hit:'Peça {k}: {b}° (alvo {a}°, diferença {d}°)',
-      check_done:'Conferência concluída ({n} peças). Maior desvio {d}° (peça {k})'
+      check_done:'Conferência concluída ({n} peças). Maior desvio {d}° (peça {k})',
+      h_touch_h:'Precisão ao encostar o celular / conferência de assentamento',
+      h_touch_p:'Encostar o celular mede o ângulo pela forma como ele gira (giroscópio). Não usa bússola, então ferragem e aço não atrapalham. Mesmo assim há os erros abaixo: use como referência e confirme na peça o que for crítico.',
+      h_touch_li1:'<b>Com o tempo ele vai desviando aos poucos</b> (deriva). Deixe o menor tempo possível entre definir a base e terminar a medição.',
+      h_touch_li2:'<b>Se a inclinação do celular for diferente da hora em que você definiu a base, a leitura muda.</b> Encoste sempre do mesmo jeito; inclinação grande é avisada.',
+      h_touch_li3:'Saliências, quebras ou barro na superfície levantam o celular e alteram a leitura. Limpe o ponto onde vai encostar.',
+      h_touch_li4:'A conferência vai até o fim <b>sem refazer a base na linha</b>. Com muitas peças, ou se demorar, toque em Limpar e pegue a base de novo.',
+      h_touch_li5:'Ao terminar, <b>encoste de novo onde definiu a base (a linha ou a primeira peça) e veja se marca 0°.</b> O que sobrar é a deriva.',
+      h_touch_li6:'Os valores aparecem de 0,1° em 0,1°, mas <b>isso não garante essa precisão.</b> No que for crítico, meça também com a câmera e compare (“Conferir também do outro jeito” aparece depois de decidir).'
     },
     fil:{
       mode_dual:'Pagdugtungin ang dalawa',
@@ -2235,9 +2275,17 @@ window.I18N = {
       st_check_off:'Itinigil ang pagsusuri sa paglalagay',
       check_n1:'Pagsusuri: ilapat ang telepono sa pising nakahila sa dalawang dulo at pindutin ang “Itakda base”',
       check_n2:'Pagsusuri {k}/{n}: ilapat sa piraso at pindutin ang “Itakda” (target {v}°)',
-      check_n3:'Tapos na ang pagsusuri. Para ulitin, pindutin ang I-reset at magsimula sa Tools',
+      check_n3:'Tapos na ang pagsusuri. Ilapat muli sa pisi at tingnan kung 0° — doon makikita ang drift. Para ulitin, pindutin ang I-reset at magsimula sa Tools',
       check_sub:'Target {a}° / ngayon {b}° ({d}°)',
       check_hit:'Piraso {k}: {b}° (target {a}°, lihis {d}°)',
-      check_done:'Tapos ang pagsusuri ({n} piraso). Pinakamalaking lihis {d}° (piraso {k})'
+      check_done:'Tapos ang pagsusuri ({n} piraso). Pinakamalaking lihis {d}° (piraso {k})',
+      h_touch_h:'Katumpakan ng paglapat ng telepono at ng pagsusuri sa paglalagay',
+      h_touch_p:'Sa paglapat, ang anggulo ay galing sa pag-ikot ng telepono (gyroscope). Hindi ito gumagamit ng kompas kaya hindi apektado ng bakal. May mga sumusunod na pagkakamali, kaya gamitin bilang gabay at tiyakin sa mismong materyal ang mahahalagang bahagi.',
+      h_touch_li1:'<b>Unti-unting lumilihis habang tumatagal</b> (drift). Panatilihing maikli ang oras mula sa pagtakda ng base hanggang matapos ang pagsukat.',
+      h_touch_li2:'<b>Kung iba ang hilig ng telepono kaysa noong itinakda ang base, malilihis ang basa.</b> Ilapat nang pareho; may babala kapag masyadong nakahilig.',
+      h_touch_li3:'Ang <b>hindi pantay, bitak o putik</b> sa ibabaw ay nagtataas sa telepono at nagdudulot ng pagkakamali. Linisin ang lalapatan.',
+      h_touch_li4:'Ang pagsusuri ay tumatakbo hanggang dulo <b>nang hindi inuulit ang base sa pisi</b>. Kung marami ang piraso o natagalan, pindutin ang I-reset at kunin muli ang base sa pisi.',
+      h_touch_li5:'Pagkatapos, <b>ilapat muli sa base (ang pisi o ang unang piraso) at tingnan kung 0° ang basa.</b> Ang natitira ay ang drift.',
+      h_touch_li6:'Ipinapakita sa 0.1° na hakbang, pero <b>hindi ito garantiya ng ganoong katumpakan.</b> Sa mahahalaga, sukatin din gamit ang camera at ihambing (lalabas ang “Suriin din sa kabilang paraan” pagkatapos magdesisyon).'
     }
 };
