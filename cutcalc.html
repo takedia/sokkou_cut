@@ -118,7 +118,7 @@
     .error{ background:rgba(200,40,40,.96); color:#fff }
     /* 下の操作バー */
     .actionBar{ position:fixed; left:0; right:0; bottom:0; z-index:50; padding:6px 8px calc(6px + env(safe-area-inset-bottom)); background:rgba(8,12,24,.88); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border-top:1px solid rgba(255,255,255,.12) }
-    .actionInner{ max-width:280px; margin:0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:2px }
+    .actionInner{ max-width:360px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:2px }
     .actBtn{ appearance:none; border:0; background:transparent; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:58px; border-radius:12px; font:inherit; font-size:11.5px; font-weight:700; line-height:1.1; text-align:center; padding:4px 2px; cursor:pointer; position:relative }
     .actBtn svg{ width:25px; height:25px; flex:none }
     .actBtn:active{ background:rgba(255,255,255,.12) }
@@ -243,27 +243,27 @@
     .viewCard.fs .canvasActs, .viewCard.fs .touchHud{ display:none !important }
     .canvasActs .actBtn{ pointer-events:auto; min-height:0; min-width:56px; padding:7px 6px 6px; gap:2px; border-radius:12px; background:rgba(0,0,0,.62); color:#fff; font-size:11px; box-shadow:0 2px 8px rgba(0,0,0,.45) }
     .canvasActs .actBtn svg{ width:22px; height:22px }
-    .canvasActs .actBtn.go{ color:var(--accent); box-shadow:0 0 0 2px var(--accent), 0 2px 8px rgba(0,0,0,.45) }
-    .canvasActs .actBtn.busy{ color:var(--accent); animation:actBusy 1s ease-in-out infinite }
-    @keyframes actBusy{ 0%,100%{ box-shadow:0 0 0 2px var(--accent), 0 2px 8px rgba(0,0,0,.45) } 50%{ box-shadow:0 0 0 6px rgba(252,211,77,.2), 0 2px 8px rgba(0,0,0,.45) } }
+    .canvasActs .actBtn.go{ background:var(--accent); color:#0b1220; box-shadow:0 2px 10px rgba(0,0,0,.5) }   /* 次に押すボタンを塗りつぶす */
+    .canvasActs .actBtn.busy{ background:var(--accent); color:#0b1220; animation:actBusy 1s ease-in-out infinite }
+    @keyframes actBusy{ 0%,100%{ box-shadow:0 2px 10px rgba(0,0,0,.5) } 50%{ box-shadow:0 0 0 7px rgba(252,211,77,.25), 0 2px 10px rgba(0,0,0,.5) } }
     .canvasActs .actBtn:disabled{ opacity:.45 }
     /* 当てて測る：図の上の手順と傾き */
     .touchHud{ position:absolute; left:6px; right:6px; top:6px; z-index:2; display:flex; justify-content:space-between; align-items:flex-start; gap:6px; pointer-events:none }
     .touchSteps{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; font-size:11px; font-weight:700 }
     .touchSteps span{ padding:2px 8px; border-radius:9px; background:rgba(0,0,0,.62); color:rgba(255,255,255,.6); white-space:nowrap }
-    .touchSteps span.on{ background:var(--accent); color:#0b1220 }
+    .touchSteps span.on{ background:rgba(0,0,0,.62); color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent) }   /* 手順は枠線だけ（押すのはボタンの方だと分かるように） */
     .touchSteps span.done{ color:#86efac }
     .touchSteps span:not(.on){ display:none }   /* いまの手順だけ出す（真っすぐのとき帯と重ならないように） */
     .touchSteps.flash span.on{ animation:touchFlash .7s ease-out 1 }
     @keyframes touchFlash{ 0%{ transform:scale(1.25); box-shadow:0 0 0 4px var(--accent) } 100%{ transform:none; box-shadow:none } }
     @media (prefers-reduced-motion: reduce){ .canvasActs .actBtn.busy, .touchSteps.flash span.on{ animation:none } }
-    .touchLevel{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; padding:3px 8px; border-radius:9px; background:rgba(0,0,0,.62); color:#fff; font-size:12px; font-weight:700; white-space:nowrap }
+    .touchLevel{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; padding:5px 10px; border-radius:10px; background:rgba(0,0,0,.66); color:#fff; font-size:15px; font-weight:700; white-space:nowrap }
     .touchLevel span{ display:inline-flex; align-items:center; gap:5px }
-    .touchLevel i{ width:11px; height:11px; border-radius:50%; background:#475569 }
+    .touchLevel i{ width:14px; height:14px; border-radius:50%; background:#475569 }
     .touchLevel.ok i{ background:#22c55e; box-shadow:0 0 6px #22c55e }
     .touchLevel.warn i{ background:#f59e0b; box-shadow:0 0 6px #f59e0b }
     .touchLevel.bad i{ background:#ef4444; box-shadow:0 0 6px #ef4444 }
-    .touchLevel small{ font-size:11px; font-weight:600; color:#cbd5e1 }
+    .touchLevel small{ font-size:12px; font-weight:600; color:#cbd5e1 }
     .touchLevel small:empty{ display:none }
     .touchRow{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; margin-top:8px }
     .touchNote{ margin:0; font-size:12.5px; line-height:1.45; min-height:2.9em; white-space:pre-line }
@@ -550,6 +550,7 @@
 <div id="statusMsg" class="status" style="display:none" role="status"></div>
 <nav class="actionBar" data-i18n-aria="aria_actions" aria-label="操作">
   <div class="actionInner">
+    <button type="button" class="actBtn" id="flipBtn2" data-i18n-title="tip_flip" title="左右反転"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8H3l4-4M3 8h18"/><path d="M17 16h4l-4 4M21 16H3"/></svg><span class="actLbl" data-i18n="btn_flip">反転</span></button>
     <button type="button" class="actBtn" id="toolsBtn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18v10H3z"/><path d="M8 9V6h8v3"/><path d="M3 13.5h18"/><path d="M10 13.5v2h4v-2"/></svg><span class="actLbl" data-i18n="btn_tools">道具</span></button>
     <button type="button" class="actBtn" id="logBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7M9 16h7"/></svg><span class="actLbl" data-i18n="btn_log">記録</span></button>
   </div>
@@ -871,8 +872,12 @@
     // 数値（可読性のため黄＋黒フチを維持）
     const vt = label + '°';
     // 両側=頂点(交点)を避け弧より少し下へ / 片側=中心線を避け開いた側へ
-    const tx = cx + (mode==='dual' ? 0 : (flipped ? -rr*0.7 : rr*0.7));
-    const ty = cy + rr + (mode==='dual' ? 24 : 11);
+    let tx, ty;
+    if(mode==='dual'){ tx=cx; ty=cy+rr+24; }
+    else {   // 片側：面の角度と間違えないよう、材料の帯の外側へ離す
+      const ar=renderAngle(leftAngle)*Math.PI/180, inn=(flipped ? -1 : 1), nx=Math.sin(ar)*inn, ny=-Math.cos(ar)*inn, d=rr*1.9;
+      tx=cx+Math.cos(ar)*d-nx*17; ty=cy+Math.sin(ar)*d-ny*17;
+    }
     gtx.font='bold 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
     gtx.textAlign='center'; gtx.textBaseline='middle';
     gtx.lineJoin='round'; gtx.lineWidth=2.2; gtx.strokeStyle='rgba(0,0,0,0.6)'; gtx.strokeText(vt, tx, ty);
@@ -1528,7 +1533,7 @@
       document.getElementById('offTaper').checked=!!st.taper;
       if(st.offsetOpen){ const b=document.getElementById('offsetBody'), ot=document.getElementById('offsetToggle'); b.style.display='block'; const tri=ot.querySelector('.tri'); if(tri) tri.textContent='▾'; ot.setAttribute('aria-expanded','true'); }
       flipped=!!st.flipped;
-      const fb=document.getElementById('flipBtn'); if(fb) fb.classList.toggle('on', flipped);
+      ['flipBtn','flipBtn2'].forEach(id=>{ const fb=document.getElementById(id); if(fb) fb.classList.toggle('on', flipped); });
       mode=(st.mode==='single')?'single':'dual';
       applyModeUI();   // 表示の切り替え（角度はスライダーから計算し直されるので、直後に保存値へ戻す）
       if(typeof st.left==='number' && isFinite(st.left)) leftAngle=st.left;
@@ -1572,8 +1577,8 @@
     $('imageInput').addEventListener('change',handleImageLoad);
     const toggle=$('modeToggle');
     toggle.addEventListener('change',()=>{ mode=toggle.checked?'single':'dual'; applyModeUI(); });
-    const flipBtn=$('flipBtn');
-    if(flipBtn) flipBtn.addEventListener('click',()=>{ flipped=!flipped; flipBtn.classList.toggle('on', flipped); requestRender(); });
+    const doFlip=()=>{ flipped=!flipped; ['flipBtn','flipBtn2'].forEach(id=>{ const b=$(id); if(b) b.classList.toggle('on', flipped); }); requestRender(); };
+    ['flipBtn','flipBtn2'].forEach(id=>{ const b=$(id); if(b) b.addEventListener('click', doFlip); });
     // 前回の入力を復元。保存が無ければ「2本をつなぐ」・幅は空欄で始める
     if(!restoreState()){ mode='dual'; if(toggle) toggle.checked=false; applyModeUI(); applyUnitUI(); requestRender(); }
     setupCanvasDrag();
@@ -2251,6 +2256,7 @@
     const { cx, cy }=getApex(), halfW=Math.min(W, H)*0.078, t0=(touch.step===3 && touch.fix) ? touch.fix.turn : touch.live;
     const eff=(mode==='single') ? 'wall' : ((t0==null) ? touch.kind : touchKindFor(Math.abs(t0)));
     const PL=Math.max(42, Math.min(64, halfW*3.1)), PW=Math.max(22, Math.min(30, halfW*1.45));
+    const st0=rotQ ? rotAlong(rotQ) : null, standing=!!(st0 && Math.abs(st0.plumb)<45);   // 立てて当てているときは、上から見ると細い（1本目・2本目とも同じ描き方）
     const phone=(x, y, ang, top, active, label, lx, ly, standing)=>{   // ang＝当てた辺の向き、top＝+1 なら ang の向きがスマホの上。standing＝立てて当てている（上から見ると細い）
       gtx.save(); gtx.translate(x, y); gtx.rotate(ang);
       const PWd=standing ? 8 : PW, r=standing ? 3 : 5, x0=-PL/2, y0=-PWd/2;
@@ -2258,11 +2264,10 @@
       gtx.fillStyle=active ? '#fcd34d' : 'rgba(15,23,42,.92)'; gtx.fill(); gtx.lineWidth=2; gtx.strokeStyle=active ? '#0b1220' : 'rgba(255,255,255,.9)'; gtx.stroke();
       const ink=active ? '#0b1220' : '#ffffff';
       gtx.fillStyle=ink; gtx.strokeStyle=ink; gtx.lineCap='round';
-      if(!standing){   // 立てて当てているときは、上から見ると細いので印だけ
-        gtx.beginPath(); gtx.arc(top*(PL/2-5.5), 0, 2.4, 0, Math.PI*2); gtx.fill();   // カメラの丸＝スマホの上
-        gtx.beginPath(); gtx.moveTo(-top*(PL/2-9), 0); gtx.lineTo(top*(PL/2-18), 0); gtx.lineWidth=2.4; gtx.stroke();   // 矢印の軸
-        gtx.beginPath(); gtx.moveTo(top*(PL/2-10), 0); gtx.lineTo(top*(PL/2-21), -6); gtx.lineTo(top*(PL/2-21), 6); gtx.closePath(); gtx.fill();   // 矢印の先
-      }
+      { const oy=standing ? -(PWd/2+7) : 0, sc=standing ? 0.8 : 1;   // 立てているときは、細い本体の横に矢印を出す
+        gtx.beginPath(); gtx.arc(top*(PL/2-5.5), oy, 2.4*sc, 0, Math.PI*2); gtx.fill();   // カメラの丸＝スマホの上
+        gtx.beginPath(); gtx.moveTo(-top*(PL/2-9), oy); gtx.lineTo(top*(PL/2-18), oy); gtx.lineWidth=2.4*sc; gtx.stroke();   // 矢印の軸
+        gtx.beginPath(); gtx.moveTo(top*(PL/2-10), oy); gtx.lineTo(top*(PL/2-21), oy-6*sc); gtx.lineTo(top*(PL/2-21), oy+6*sc); gtx.closePath(); gtx.fill(); }   // 矢印の先
       gtx.restore();
       gtx.save(); gtx.font='700 14px sans-serif'; gtx.textAlign='center'; gtx.textBaseline='middle'; gtx.lineWidth=4; gtx.strokeStyle='rgba(0,0,0,.85)'; gtx.strokeText(label, lx, ly); gtx.fillStyle=active ? '#fcd34d' : '#ffffff'; gtx.fillText(label, lx, ly); gtx.restore();
     };
@@ -2274,13 +2279,13 @@
     const lab=(p)=>[p.x-p.nx*(PW/2+13), p.y-p.ny*(PW/2+13)];
     if(mode==='dual'){
       const a=along(leftAngle, +1), b=along(rightAngle, -1), la=lab(a), lb=lab(b);
-      phone(a.x, a.y, a.rad, -1, touch.step===1, '1', la[0], la[1]);                          // 1本目：上を2本の角へ
-      phone(b.x, b.y, b.rad, (eff==='inner') ? -1 : +1, touch.step>=2, '2', lb[0], lb[1]);   // 2本目：外角（曲がり）は角から離れる向き、内角は角へ
+      phone(a.x, a.y, a.rad, -1, touch.step===1, '1', la[0], la[1], standing);                          // 1本目：上を2本の角へ
+      phone(b.x, b.y, b.rad, (eff==='inner') ? -1 : +1, touch.step>=2, '2', lb[0], lb[1], standing);   // 2本目：外角（曲がり）は角から離れる向き、内角は角へ
     } else {
       const side=flipped ? -1 : 1, b=along(renderAngle(leftAngle), flipped ? -1 : +1), lb=lab(b);
       const wy=Math.min(H-PL/2-10, cy+Math.max(PL*0.9, (H-cy)*0.45)), wx=cx-side*(PW/2+3);   // 1本目は面（点線）に沿わせる。立てて当てるのが標準なので細く描く
-      phone(wx, wy, Math.PI/2, -1, touch.step===1, '1', wx-side*(PW/2+14), wy, true);
-      phone(b.x, b.y, b.rad, +1, touch.step>=2, '2', lb[0], lb[1], !!(rotQ && rotAlong(rotQ).upright));
+      phone(wx, wy, Math.PI/2, -1, touch.step===1, '1', wx-side*(PW/2+14), wy, standing);
+      phone(b.x, b.y, b.rad, +1, touch.step>=2, '2', lb[0], lb[1], standing);
     }
   }
   function renderTouch(force){
@@ -3126,7 +3131,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c9';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
+  const APP_VERSION = '1.0.8-c10';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
