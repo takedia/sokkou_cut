@@ -231,6 +231,7 @@
     .tool-res dd.sub{ color:#fff; font-size:14px }
     .tool-sub{ margin:4px 2px 6px; font-size:12px; color:#555; line-height:1.45; white-space:pre-line }
     .tool-sub:empty{ margin:0 }
+    .tool-reset{ margin-left:auto; margin-right:6px; min-height:30px; padding:4px 12px; border-radius:15px; border:1px solid #cbd5e1; background:#fff; color:#334155; font-size:12px; font-weight:700; cursor:pointer }
     .tool-disc{ color:#1f2937; font-size:13px; min-height:38px; padding:4px 2px }
     .tool-disc .tri{ color:#1d4ed8 }
     .tool-apply{ display:block; width:100%; min-height:44px; margin-top:8px; font-size:14px }
@@ -274,6 +275,7 @@
     .cmpRow{ grid-column:1 / -1; display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-top:6px; font-size:12px; flex-wrap:wrap }
     .cmpVal{ appearance:none; border:1px solid rgba(127,127,127,.45); background:transparent; color:inherit; font:inherit; font-weight:700; border-radius:8px; min-height:32px; padding:2px 9px; cursor:pointer }
     .cmpVal.on{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) }
+    .cmpTry{ border:1px solid var(--accent); background:rgba(252,211,77,.16); color:#fff; border-radius:13px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer }
     .cmpRow b{ font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
     .theme-picker{ margin:12px 4px 4px; }
     .theme-title{ font-size:12px; font-weight:700; color:#445; margin-bottom:4px; }
@@ -497,7 +499,7 @@
       <span class="stepLbl cLbl"><button type="button" class="shareBtn" id="shareBtn" data-i18n-aria="share_btn" data-i18n-title="share_btn" aria-label="結果を画像で送る" title="結果を画像で送る"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="17.5" cy="5.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><circle cx="17.5" cy="18.5" r="2.5"/><path d="M8.7 10.7l6.6-3.9M8.7 13.3l6.6 3.9"/></svg></button><span data-i18n="res_cut">切る長さ</span></span>
       <div class="readout" id="readout" aria-live="polite"><b id="resCut">—</b><small id="resUnit">mm</small></div>
       <span class="resMm" id="resCutMm"></span>
-      <div class="cmpRow" id="cmpRow" hidden><button type="button" class="cmpVal" id="cmpCam">—</button><button type="button" class="cmpVal" id="cmpTouch">—</button><b id="cmpDiff">—</b></div>
+      <div class="cmpRow" id="cmpRow" hidden><button type="button" class="cmpTry" id="cmpTry" hidden>—</button><button type="button" class="cmpVal" id="cmpCam">—</button><button type="button" class="cmpVal" id="cmpTouch">—</button><b id="cmpDiff">—</b></div>
     </div>
     <div class="fsBar">
       <button type="button" class="fsBtn" id="fsCamBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7l1.5-2.5h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg><span class="fsLbl">カメラ</span></button>
@@ -1489,6 +1491,9 @@
       { const c={ r:5000, side:'out', w:300, a:90, anchor:'len', val:600, gap:10 }, j=curveJoint(c, curveCalc(c)), d=2*300*Math.tan(j.theta/2*D2R);
         eq(j.n+'|'+(Math.abs((j.gOut-j.gIn)-d)<1e-9)+'|'+(j.gIn>0), '12|true|true', '目地：R5000・90°に600mmを12本、外と内の差は切る長さの2倍'); }
       { const c={ r:5000, side:'out', w:300, a:90, anchor:'len', val:600, gap:10, jn:13 }; eq(curveJoint(c, curveCalc(c)).err, 'curve_j_long', '目地：本数が多すぎるときは知らせる'); }
+      { const a=arcFromChord(4000, 2000); eq(Math.round(a.R)+'|'+Math.round(a.A), '2000|180', '半円：幅4000・高さ2000 → 半径2000・180°'); }
+      { const a=arcFromChord(4000, 500); eq(Math.round(a.R)+'|'+Math.round(a.A*10)/10, '4250|56.1', '幅4000・高さ500 → 半径4250・56.1°'); }
+      { const a=arcFromChord(4000, 3000); eq(Math.round(a.A)>180, true, '半円より大きいふくらみも出せる'); }
       { const c={ r:4250, side:'out', w:300, a:90, anchor:'len', val:600, gap:10 }, j=curveJoint(c, curveCalc(c));
         eq(j.n+'|'+(j.gIn>0)+'|'+j.err, '10|true|', '目地：おすすめの本数は、内側がぶつからない所まで下げる'); }
       eq(curveJoint({ r:5000, side:'out', w:300, anchor:'len', val:600 }, null).err, 'curve_j_need', '目地：曲線全体の角度が無いときは知らせる');
@@ -1920,7 +1925,7 @@
     st=(st && typeof st==='object') ? st : {};
     const p=st.poly||{}, c=st.curve||{}, pick=(v, list, def)=>(list.indexOf(v)>=0 ? v : def);
     return {
-      tab: pick(st.tab, ['poly','curve'], 'poly'),
+      tab: pick(st.tab, ['poly','curve','joint'], 'poly'),
       poly:(function(){   // 大きさは「最後に入れた欄（anchor）とその値」。前の形（mode/size）からも引き継ぐ
         let anchor=pick(p.anchor, ['lo','li','dout','din'], null), val=posLen(p.val);
         if(!anchor){ anchor={ out:'lo', in:'li', across:'dout' }[p.mode] || 'lo'; val=posLen(p.size); }
@@ -1930,20 +1935,32 @@
         const side=pick(c.side || c.edge, ['out','in'], 'out');
         let anchor=pick(c.anchor, ['len','n'], null), val=(anchor==='n') ? clampInt(c.val,1,99,null) : posLen(c.val);
         if(!anchor){ anchor='len'; val=posLen((c.anchor==='lo' || c.anchor==='li') ? c.val : c.l); }
-        const sizeBy=pick(c.sizeBy, ['r','chord'], (posLen(c.r)==null && c.c>0 && c.h>0) ? 'chord' : 'r');
+        const sizeBy=pick(c.sizeBy, ['r','chord'], (posLen(c.r)!=null) ? 'r' : 'chord');   // はじめは「ふくらみ」（現場では半径が分からないことが多い）
         return { r:posLen(c.r), side, w:posLen(c.w), anchor, val, a:(typeof c.a==='number' && c.a>0 && c.a<=360) ? c.a : null,
-          c:posLen(c.c), h:posLen(c.h), sizeBy,
-          gap:(typeof c.gap==='number' && c.gap>=0 && c.gap<=200) ? c.gap : 10, jn:clampInt(c.jn,1,99,null), jointOpen:!!c.jointOpen };
+          c:posLen(c.c), h:posLen(c.h), sizeBy };
+      })(),
+      joint:(function(){   // 目地で据える（半円の幅・高さだけで出せる）
+        const q=st.joint||{};
+        return { c:posLen(q.c), h:posLen(q.h), side:pick(q.side, ['out','in'], 'out'), w:posLen(q.w), len:posLen(q.len),
+          gap:(typeof q.gap==='number' && q.gap>=0 && q.gap<=200) ? q.gap : 10, n:clampInt(q.n,1,99,null) };
       })(),
     };
   })();
   let toolSaveTimer=null;
   function saveTools(){ clearTimeout(toolSaveTimer); toolSaveTimer=setTimeout(()=>{ try{ localStorage.setItem(TOOL_KEY, JSON.stringify(tools)); }catch(e){} }, 300); }
+  function resetToolTab(){   // 開いているタブの入力だけ消す
+    const tb=tools.tab;
+    if(tb==='poly') tools.poly={ n:8, w:null, anchor:'lo', val:null, stock:null, kerf:3, stockOpen:tools.poly.stockOpen };
+    else if(tb==='curve') tools.curve={ r:null, side:'out', w:null, anchor:'len', val:null, a:null, c:null, h:null, sizeBy:'chord' };
+    else tools.joint={ c:null, h:null, side:'out', w:null, len:null, gap:10, n:null };
+    saveTools(); renderTools(true); showStatus(t('st_tool_reset'), 'info');
+  }
   function isToolOpen(){ const m=document.getElementById('toolModal'); return !!(m && m.classList.contains('show')); }
   function openToolModal(tab){
     if(tab) tools.tab=tab;
     if(tools.poly.w==null && widthMm!=null) tools.poly.w=widthMm;     // 幅は、はじめだけメイン画面の値を借りる（あとは道具ごと）
     if(tools.curve.w==null && widthMm!=null) tools.curve.w=widthMm;
+    if(tools.joint.w==null && widthMm!=null) tools.joint.w=widthMm;
     document.getElementById('toolModal').classList.add('show');
     switchToolTab(tools.tab);
   }
@@ -1958,6 +1975,7 @@
     if(!isToolOpen()) return;
     if(tools.tab==='poly') renderPoly();
     else if(tools.tab==='curve') renderCurve();
+    else if(tools.tab==='joint') renderJoint();
   }
   function setLenField(id, mm){ const el=document.getElementById(id); if(el && document.activeElement!==el) el.value=fmtLenInput(mm); }
   function setRadios(name, val, disabledVals){ document.querySelectorAll('input[name='+name+']').forEach(x=>{ x.checked=(x.value===val); x.disabled=!!(disabledVals && disabledVals.indexOf(x.value)>=0); }); }
@@ -1975,6 +1993,7 @@
     applyManualAngle(true);
     closeToolModal();
     requestRender(); syncMatName(true);
+    measured.tool={ v:Math.round(v*10)/10, mode:m }; syncCompare();   // 「当てて測るでも確かめる」を出すため
     showStatus(t('st_tool_applied').replace('{l}', t(m==='single' ? 'angle_line' : 'angle_open')).replace('{v}', fmtAng(shownAngle())), 'success');
   }
   // ---- 図の共通：点を縦横同じ縮尺で枠に収める（計算は y が上向き、画面は下向き） ----
@@ -2091,8 +2110,13 @@
     if(A!=null) o.n=A/th;
     return o;
   }
+  function arcFromChord(cc, hh){   // 両端の間（幅）とふくらみ（高さ）→ 半径と、曲線全体の角度（半円より大きくても出せる）
+    const R=chordRadius(cc, hh); if(R==null) return null;
+    const A=2*Math.atan2(cc/2, R-hh)/D2R;
+    return { R, A:(A>0 && A<=360) ? A : null };
+  }
   function curveJoint(c, o){   // 切らずに、目地（すきま）の開きだけで曲線に据えるとき
-    const j={ n:null, theta:null, gOut:null, gIn:null, gMid:null, err:'' };
+    const j={ n:null, theta:null, al:null, gOut:null, gIn:null, gMid:null, err:'' };
     const R=curveR(c), w=(c.w>0) ? c.w : null, A=(c.a>0) ? c.a : null;
     const L=(c.anchor==='len') ? posLen(c.val) : ((o && o.ref>0) ? o.ref : null);
     if(R==null || w==null || A==null || L==null){ j.err='curve_j_need'; return j; }
@@ -2107,7 +2131,7 @@
       while(n>1 && !fits(n)) n--;
     }
     const th=A/n, be=th-al;                      // be = 目地ぶんの角度
-    j.n=n; j.theta=th;
+    j.n=n; j.theta=th; j.al=al;
     j.gMid=2*Rc*Math.sin(Math.max(-30, be/2)*D2R);
     const half=w*Math.tan(th/2*D2R);             // 外と内の差の半分（＝切る長さ）
     j.gOut=j.gMid+half; j.gIn=j.gMid-half;
@@ -2160,7 +2184,7 @@
     svg.appendChild(svgEl('text', { x:'121', y:'54', 'font-size':'11', 'font-weight':'700', fill:'#1d4ed8' }, t('curve_h')));
   }
   function drawJointFig(c, j){   // 目地の絵：外へ向かって開く楔（材料の幅と目地の比は、細いときだけ大きめに描く）
-    const svg=document.getElementById('curveJointFig'); if(!svg) return; svg.replaceChildren();
+    const svg=document.getElementById('jointFig'); if(!svg) return; svg.replaceChildren();
     if(!(j && j.gOut!=null && j.gOut>0 && c.w>0)) return { big:false };
     const H=116, top=30, bh=52, mid=150, s=bh/c.w;
     const go=Math.max(0, j.gOut), gi=Math.max(0, j.gIn);
@@ -2175,6 +2199,69 @@
     svgText(svg, mid, yI+16, t('curve_j_in')+' '+fmtLenFull(Math.max(0,j.gIn),1), { color:'#1d4ed8', size:11.5 });
     svg.setAttribute('viewBox', '0 0 300 '+H);
     return { big:(gs>s*1.2) };
+  }
+  function drawJointArc(q, j, arc){   // 半円（カーブ）に、材料を目地を空けて並べた絵
+    const svg=document.getElementById('jointArcFig'); if(!svg) return; svg.replaceChildren();
+    if(!(arc && arc.A>0)) return;
+    const R=arc.R, A=arc.A, w=(q.w>0) ? q.w : Math.max(R*0.06, 1), Rc=(q.side==='out') ? R-w/2 : R+w/2;
+    const Pt=(r,a)=>[r*Math.cos(a*D2R), r*Math.sin(a*D2R)], a0=90+A/2, a1=90-A/2;
+    const outline=[]; for(let k=0;k<=72;k++) outline.push(Pt(R, a0-A*k/72));
+    const polys=[];
+    if(j && j.n>0 && j.theta>0 && j.al>0 && j.al<=j.theta && Rc>0){
+      for(let k=0;k<j.n;k++){
+        const s1=a0-k*j.theta-(j.theta-j.al)/2, s2=s1-j.al, A1=Pt(Rc,s1), A2=Pt(Rc,s2);
+        const dx=A2[0]-A1[0], dy=A2[1]-A1[1], L=Math.hypot(dx,dy)||1, nx=-dy/L*(w/2), ny=dx/L*(w/2);
+        polys.push([[A1[0]+nx,A1[1]+ny],[A2[0]+nx,A2[1]+ny],[A2[0]-nx,A2[1]-ny],[A1[0]-nx,A1[1]-ny]]);
+      }
+    }
+    const cA=Pt(R,a0), cB=Pt(R,a1), top=Pt(R,90), base=[0,(cA[1]+cB[1])/2];
+    const all=outline.concat([].concat.apply([], polys), [cA, cB, top, base]);
+    const PAD={ l:14, r:14, t:22, b:22 };
+    let x0=Infinity, x1=-Infinity, y0=Infinity, y1=-Infinity;
+    all.forEach(p=>{ x0=Math.min(x0,p[0]); x1=Math.max(x1,p[0]); y0=Math.min(y0,p[1]); y1=Math.max(y1,p[1]); });
+    const FH=Math.max(110, Math.min(210, (y1-y0)*(300-PAD.l-PAD.r)/Math.max(1e-9, x1-x0)+PAD.t+PAD.b));
+    const fb=fitBox(all, 300, FH, PAD), M=fb.P;
+    svg.setAttribute('viewBox', '0 0 300 '+Math.round(FH));
+    svg.appendChild(svgEl('path', { d:'M'+outline.map(M).map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L'), fill:'none', stroke:'#ea580c', 'stroke-width':'1.6', 'stroke-dasharray':'6 4' }));
+    { const A1=M(cA), B1=M(cB), T=M(top), B0=M(base);
+      svg.appendChild(svgEl('line', { x1:A1[0], y1:A1[1], x2:B1[0], y2:B1[1], stroke:'#b45309', 'stroke-width':'1.4', 'stroke-dasharray':'5 3' }));
+      svg.appendChild(svgEl('line', { x1:B0[0], y1:B0[1], x2:T[0], y2:T[1], stroke:'#1d4ed8', 'stroke-width':'1.4' }));
+      polys.forEach((p,i)=>svg.appendChild(svgEl('path', { d:svgPath(p.map(M)), fill:(i%2 ? '#e2e8f0' : '#cbd5e1'), stroke:'#334155', 'stroke-width':'1' })));
+      svgText(svg, (A1[0]+B1[0])/2, Math.min(FH-4, B1[1]+14), t('joint_c_s'), { color:'#b45309', size:11 });
+      svgText(svg, T[0]+2, (T[1]+B0[1])/2, t('joint_h_s'), { color:'#1d4ed8', size:11 }); }
+  }
+  function jointOf(q){   // 目地タブの入力 → 曲線と同じ形にして計算する
+    const arc=arcFromChord(q.c, q.h);
+    const src={ sizeBy:'chord', c:q.c, h:q.h, side:q.side, w:q.w, anchor:'len', val:q.len, a:(arc ? arc.A : null), gap:q.gap, jn:q.n };
+    return { arc, j:curveJoint(src, null) };
+  }
+  function renderJoint(){
+    const $=id=>document.getElementById(id), q=tools.joint;
+    setLenField('jntC', q.c); setLenField('jntH', q.h); setLenField('jntW', q.w); setLenField('jntLen', q.len); setLenField('jntGap', q.gap);
+    { const sw=$('jntSideSw'); sw.setAttribute('data-pos', q.side==='out' ? 'left' : 'right'); sw.querySelectorAll('.swOpt').forEach(b=>b.setAttribute('aria-pressed', b.dataset.side===q.side)); }
+    const { arc, j }=jointOf(q);
+    $('jntArcOut').textContent=(arc && arc.A) ? t('joint_arc').replace('{r}', fmtLenFull(arc.R,0)).replace('{a}', fmtAng(arc.A)) : '';
+    { const el=$('jntN'); el.classList.toggle('calc', q.n==null); if(document.activeElement!==el) el.value=(j.n!=null) ? String(j.n) : ''; }
+    drawJointArc(q, j, arc);
+    const fig=drawJointFig({ w:q.w }, j), rows=[];
+    if(j.gOut!=null){
+      rows.push([t('curve_j_out'), fmtLenFull(j.gOut,1)]);
+      rows.push([t('curve_j_in'), fmtLenFull(j.gIn,1)]);
+      rows.push([t('curve_j_mid'), fmtLenFull(j.gMid,1), 'sub']);
+      rows.push([t('curve_j_turn'), fmtAng(j.theta)+'°', 'sub']);
+    }
+    resRows($('jntRes'), rows);
+    const note=[];
+    if(j.err) note.push(t(j.err));
+    else {
+      note.push(t('curve_j_tip'));
+      if(j.gMid!=null && j.gMid>Math.max(30, (q.gap>0 ? q.gap : 10)*3)) note.push(t('curve_j_big'));   // 目地が大きすぎるときは、切るほうも見てもらう
+      if(fig && fig.big) note.push(t('curve_j_fig'));
+    }
+    $('jntNote').textContent=note.join(' ／ ');
+    const open=(j.theta!=null && !j.err) ? 180-j.theta : null;
+    $('jntApply').disabled=(open==null);
+    $('jntApply').textContent=t('joint_use_main').replace('{v}', open!=null ? fmtAng(open) : '—');
   }
   function renderCurve(){
     const $=id=>document.getElementById(id), c=tools.curve, o=curveCalc(c);
@@ -2201,28 +2288,11 @@
     $('curveNote').textContent=o.err ? t(o.err) : ((o.theta==null) ? t('curve_need') : '');
     $('curveApply').disabled=(o.open==null);
     $('curveApply').textContent=t('tool_use_main').replace('{v}', o.open!=null ? fmtAng(o.open) : '—');
-    // ---- 切らずに目地で合わせる ----
-    setDisc('curveJointToggle', 'curveJointBody', c.jointOpen);
-    if(c.jointOpen){
-      const j=curveJoint(c, o), jr=[];
-      setLenField('curveGap', c.gap);
-      { const el=$('curveJn'); el.classList.toggle('calc', c.jn==null); if(document.activeElement!==el) el.value=(j.n!=null) ? String(j.n) : ''; }
-      if(j.gOut!=null){
-        jr.push([t('curve_j_out'), fmtLenFull(j.gOut,1)]);
-        jr.push([t('curve_j_in'), fmtLenFull(j.gIn,1)]);
-        jr.push([t('curve_j_mid'), fmtLenFull(j.gMid,1), 'sub']);
-      }
-      resRows($('curveJRes'), jr);
-      const fig=drawJointFig(c, j), note=[];
-      if(j.err) note.push(t(j.err));
-      else { note.push(t('curve_j_tip')); if(fig && fig.big) note.push(t('curve_j_fig')); }
-      $('curveJNote').textContent=note.join(' ／ ');
-    }
   }
 
   // ===== 測り方：カメラで測る／当てて測る（スマホを1本目に当てて 0 → 2本目に当てて確定）。両方で測ったら差をくらべる =====
   var method=(function(){ try{ return (localStorage.getItem('cutcalc_method')==='touch') ? 'touch' : 'cam'; }catch(e){ return 'cam'; } })();
-  var measured={ cam:null, touch:null };   // くらべる用：{ v:角度, mode:切り方 }
+  var measured={ cam:null, touch:null, tool:null };   // くらべる用：{ v:角度, mode:切り方 }
   var touch={ on:false, raf:null, t0:0, step:1, zero:null, fix:null, live:null, before:null, waiting:'', waitT:0, msg:'', key:'', lastMode:'',
     kind:(function(){ try{ return (localStorage.getItem('cutcalc_touch_kind')==='inner') ? 'inner' : 'turn'; }catch(e){ return 'turn'; } })() };
   var TOUCH_TILT_MAX=30;   // これより傾けると向きが不安定になるので取り込まない
@@ -2277,10 +2347,16 @@
   function camMeasuring(){ return !!(stream || (isCaptured && photo.width>0)); }
   function syncCompare(){
     const row=document.getElementById('cmpRow'); if(!row || typeof measured==='undefined' || !measured) return;
-    const c=measured.cam, u=measured.touch, show=!!(c && u && c.mode===mode && u.mode===mode);
-    if(row.hidden!==!show) row.hidden=!show;
+    const c=(measured.cam && measured.cam.mode===mode) ? measured.cam : null, u=(measured.touch && measured.touch.mode===mode) ? measured.touch : null,
+          tl=(measured.tool && measured.tool.mode===mode) ? measured.tool : null, show=!!(c && u);
+    const cam=document.getElementById('cmpCam'), tch=document.getElementById('cmpTouch'), df=document.getElementById('cmpDiff'), tr=document.getElementById('cmpTry');
+    let tg=null;   // まだ片方だけのときは「もう一方でも確かめる」
+    if(!show){ tg=u ? 'cam' : ((c || tl) ? 'touch' : null); if(tg===method) tg=null; }
+    [cam, tch, df].forEach(el=>{ if(el) el.hidden=!show; });
+    if(tr){ tr.hidden=!tg; if(tg){ tr.dataset.target=tg; tr.textContent=t(tg==='touch' ? 'cmp_try_touch' : 'cmp_try_cam'); } }
+    const want=!(show || tg); if(row.hidden!==want) row.hidden=want;
     if(!show) return;
-    const cam=document.getElementById('cmpCam'), tch=document.getElementById('cmpTouch'), cur=Math.round(shownAngle()*10)/10;
+    const cur=Math.round(shownAngle()*10)/10;
     cam.textContent=t('cmp_cam').replace('{v}', fmtAng(c.v)); tch.textContent=t('cmp_touch').replace('{v}', fmtAng(u.v));
     cam.classList.toggle('on', Math.abs(cur-c.v)<0.05); tch.classList.toggle('on', Math.abs(cur-u.v)<0.05);
     document.getElementById('cmpDiff').textContent=t('cmp_diff').replace('{v}', fmtAng(Math.round(Math.abs(c.v-u.v)*10)/10));
@@ -3125,14 +3201,22 @@
       el.addEventListener('input', ()=>{ const v=zen2han(el.value).replace(/[^0-9]/g,'').slice(0,2); if(v!==el.value) el.value=v; const n=parseInt(v,10); tools.curve.anchor='n'; tools.curve.val=(n>=1 && n<=99) ? n : null; saveTools(); renderTools(); });
       el.addEventListener('change', ()=>renderTools(true)); }
     document.getElementById('curveApply').addEventListener('click', ()=>{ const o=curveCalc(tools.curve); applyToolAngle('dual', o.open, tools.curve.w); });
-    document.getElementById('curveJointToggle').addEventListener('click', ()=>{ tools.curve.jointOpen=!tools.curve.jointOpen; saveTools(); renderTools(); });
-    bindLen('curveGap', ()=>tools.curve.gap, v=>{ tools.curve.gap=(v==null) ? 0 : Math.min(200, v); tools.curve.jn=null; }, true);
-    const setCurveJn=v=>{ const c=tools.curve; c.jn=clampInt(v, 1, 99, c.jn); saveTools(); renderTools(); };
-    document.getElementById('curveJMinus').addEventListener('click', ()=>{ const j=curveJoint(tools.curve, curveCalc(tools.curve)); if(j.n!=null) setCurveJn(j.n-1); });
-    document.getElementById('curveJPlus').addEventListener('click', ()=>{ const j=curveJoint(tools.curve, curveCalc(tools.curve)); if(j.n!=null) setCurveJn(j.n+1); });
-    { const el=document.getElementById('curveJn');
-      el.addEventListener('input', ()=>{ const v=zen2han(el.value).replace(/[^0-9]/g,'').slice(0,2); if(v!==el.value) el.value=v; if(+v>=1 && +v<=99) setCurveJn(v); });
+    bindLen('jntC', ()=>tools.joint.c, v=>{ tools.joint.c=v; tools.joint.n=null; });
+    bindLen('jntH', ()=>tools.joint.h, v=>{ tools.joint.h=v; tools.joint.n=null; });
+    bindLen('jntW', ()=>tools.joint.w, v=>{ tools.joint.w=v; });
+    bindLen('jntLen', ()=>tools.joint.len, v=>{ tools.joint.len=v; tools.joint.n=null; });
+    bindLen('jntGap', ()=>tools.joint.gap, v=>{ tools.joint.gap=(v==null) ? 0 : Math.min(200, v); tools.joint.n=null; }, true);
+    const setJntSide=sd=>{ if(sd!=='out' && sd!=='in') return; tools.joint.side=sd; saveTools(); renderTools(); };
+    document.querySelectorAll('#jntSideSw .swOpt').forEach(b=>b.addEventListener('click', ()=>setJntSide(b.dataset.side)));
+    document.getElementById('jntSideTrack').addEventListener('click', ()=>setJntSide(tools.joint.side==='out' ? 'in' : 'out'));
+    const setJntN=v=>{ const q=tools.joint; q.n=clampInt(v, 1, 99, q.n); saveTools(); renderTools(); };
+    document.getElementById('jntMinus').addEventListener('click', ()=>{ const r=jointOf(tools.joint); if(r.j.n!=null) setJntN(r.j.n-1); });
+    document.getElementById('jntPlus').addEventListener('click', ()=>{ const r=jointOf(tools.joint); if(r.j.n!=null) setJntN(r.j.n+1); });
+    { const el=document.getElementById('jntN');
+      el.addEventListener('input', ()=>{ const v=zen2han(el.value).replace(/[^0-9]/g,'').slice(0,2); if(v!==el.value) el.value=v; if(+v>=1 && +v<=99) setJntN(v); });
       el.addEventListener('change', ()=>renderTools(true)); }
+    document.getElementById('jntApply').addEventListener('click', ()=>{ const r=jointOf(tools.joint); if(r.j.theta!=null && !r.j.err) applyToolAngle('dual', 180-r.j.theta, tools.joint.w); });
+    document.getElementById('toolResetBtn').addEventListener('click', resetToolTab);
     // 測り方（カメラで測る／当てて測る）
     document.getElementById('methodCamBtn').addEventListener('click', ()=>setMethod('cam'));
     document.getElementById('methodTouchBtn').addEventListener('click', ()=>setMethod('touch'));
@@ -3144,6 +3228,7 @@
     document.querySelectorAll('#touchKindSw .swOpt').forEach(b=>b.addEventListener('click', ()=>setTouchKind(b.dataset.kind)));
     document.getElementById('touchKindTrack').addEventListener('click', ()=>setTouchKind(touch.kind==='inner' ? 'turn' : 'inner'));
     const useMeasured=m=>{ if(!m) return; const el=document.getElementById('manualAngle'); el.value=String(m.v); applyManualAngle(true); requestRender(); };   // くらべる：押した値を③に
+    document.getElementById('cmpTry').addEventListener('click', e=>{ const tg=e.currentTarget.dataset.target; if(tg==='cam' || tg==='touch') setMethod(tg); });
     document.getElementById('cmpCam').addEventListener('click', ()=>useMeasured(measured.cam));
     document.getElementById('cmpTouch').addEventListener('click', ()=>useMeasured(measured.touch));
     syncMatName(true);
@@ -3222,7 +3307,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c13.2';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
+  const APP_VERSION = '1.0.8-c14.1';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
@@ -3529,12 +3614,14 @@
 <div id="toolModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="toolTitle">
   <div class="modal-panel tool-panel">
     <div class="modal-header">
-      <span id="toolTitle" data-i18n="tool_title">道具</span>
+      <span id="toolTitle" data-i18n="tool_title">便利機能</span>
+      <button type="button" class="tool-reset" id="toolResetBtn" data-i18n="tool_reset">リセット</button>
       <button class="modal-close" id="toolCloseBtn" data-i18n-aria="aria_close" aria-label="閉じる">×</button>
     </div>
     <div class="help-tabs" role="tablist">
       <button type="button" class="help-tab tool-tab active" data-tool="poly" role="tab" aria-selected="true" data-i18n="tab_poly">枠・多角形</button>
       <button type="button" class="help-tab tool-tab" data-tool="curve" role="tab" aria-selected="false" data-i18n="tab_curve">曲線</button>
+      <button type="button" class="help-tab tool-tab" data-tool="joint" role="tab" aria-selected="false" data-i18n="tab_joint">目地</button>
     </div>
 
     <div class="tool-sec" data-tool-sec="poly">
@@ -3598,15 +3685,29 @@
       <dl class="tool-res" id="curveRes"></dl>
       <p class="tool-sub" id="curveNote"></p>
       <button type="button" class="btn primary tool-apply" id="curveApply">—</button>
-      <button type="button" class="disclosure tool-disc" id="curveJointToggle" aria-expanded="false" aria-controls="curveJointBody"><span class="tri">▸</span> <span data-i18n="curve_j_h">切らずに目地で合わせる</span></button>
-      <div id="curveJointBody" hidden>
-        <p class="tool-sub" data-i18n="curve_j_help"></p>
-        <svg class="tool-fig" id="curveJointFig" viewBox="0 0 300 116" aria-hidden="true"></svg>
-        <div class="tool-row"><label class="tool-lbl" for="curveGap" data-i18n="curve_j_gap">目安の目地</label><div class="tool-ctl"><input id="curveGap" class="numfield tool-len" type="text" inputmode="decimal" maxlength="5" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
-        <div class="tool-row"><label class="tool-lbl" for="curveJn" data-i18n="curve_j_n">本数</label><div class="tool-ctl"><button type="button" class="iconBtn tool-pm" id="curveJMinus" aria-label="−1">−</button><input id="curveJn" class="numfield tool-num" type="text" inputmode="numeric" maxlength="2" autocomplete="off" /><button type="button" class="iconBtn tool-pm" id="curveJPlus" aria-label="+1">＋</button></div></div>
-        <dl class="tool-res" id="curveJRes"></dl>
-        <p class="tool-sub" id="curveJNote"></p>
+    </div>
+
+    <div class="tool-sec" data-tool-sec="joint" hidden>
+      <p class="tool-hint" data-i18n="joint_hint"></p>
+      <svg class="tool-fig" id="jointArcFig" viewBox="0 0 300 150" aria-hidden="true"></svg>
+      <div class="tool-row"><label class="tool-lbl" for="jntC" data-i18n="joint_c">両端の間（幅）</label><div class="tool-ctl"><input id="jntC" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
+      <div class="tool-row"><label class="tool-lbl" for="jntH" data-i18n="joint_h">ふくらみ（高さ）</label><div class="tool-ctl"><input id="jntH" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
+      <p class="tool-sub" id="jntArcOut"></p>
+      <div class="tool-row"><span class="tool-lbl" data-i18n="curve_side">曲線に沿う側</span>
+        <div class="sw sm" id="jntSideSw" data-pos="left" role="group" data-i18n-aria="curve_side" aria-label="曲線に沿う側">
+          <button type="button" class="swOpt" data-side="out" aria-pressed="true"><span class="led"></span><svg viewBox="0 0 26 18" aria-hidden="true"><path d="M2 16 Q13 -3 24 16" fill="none" stroke="currentColor" stroke-width="3.4"/><path d="M7 17.5 Q13 8 19 17.5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg><span data-i18n="curve_side_out">外側</span></button>
+          <button type="button" class="swTrack" id="jntSideTrack" data-i18n-aria="curve_side" aria-label="曲線に沿う側"><span class="swKnob"></span></button>
+          <button type="button" class="swOpt" data-side="in" aria-pressed="false"><span data-i18n="curve_side_in">内側</span><svg viewBox="0 0 26 18" aria-hidden="true"><path d="M2 16 Q13 -3 24 16" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7 17.5 Q13 8 19 17.5" fill="none" stroke="currentColor" stroke-width="3.4"/></svg><span class="led"></span></button>
+        </div>
       </div>
+      <div class="tool-row"><label class="tool-lbl" for="jntW" data-i18n="wh">材料の幅</label><div class="tool-ctl"><input id="jntW" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
+      <div class="tool-row"><label class="tool-lbl" for="jntLen" data-i18n="joint_len">材料の長さ</label><div class="tool-ctl"><input id="jntLen" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
+      <div class="tool-row"><label class="tool-lbl" for="jntGap" data-i18n="curve_j_gap">目安の目地</label><div class="tool-ctl"><input id="jntGap" class="numfield tool-len" type="text" inputmode="decimal" maxlength="5" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
+      <div class="tool-row"><label class="tool-lbl" for="jntN" data-i18n="curve_j_n">据える本数</label><div class="tool-ctl"><button type="button" class="iconBtn tool-pm" id="jntMinus" aria-label="−1">−</button><input id="jntN" class="numfield tool-num" type="text" inputmode="numeric" maxlength="2" autocomplete="off" /><button type="button" class="iconBtn tool-pm" id="jntPlus" aria-label="+1">＋</button></div></div>
+      <svg class="tool-fig" id="jointFig" viewBox="0 0 300 116" aria-hidden="true"></svg>
+      <dl class="tool-res" id="jntRes"></dl>
+      <p class="tool-sub" id="jntNote"></p>
+      <button type="button" class="btn primary tool-apply" id="jntApply">—</button>
     </div>
 
   </div>
