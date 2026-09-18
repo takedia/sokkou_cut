@@ -52,6 +52,8 @@
     .vpNote{ font-size:12px; opacity:.85; line-height:1.4 }
     .viewPanel .posSeg label span{ min-height:34px; min-width:46px }
     .vpClose{ position:absolute; top:4px; right:4px; appearance:none; border:0; background:none; color:#fff; font-size:17px; width:32px; height:32px; cursor:pointer; opacity:.8 }
+    .canvasTools .trialChip{ background:rgba(252,211,77,.22); border-color:var(--accent); color:#fff }
+    .canvasTools .trialChip.warn{ background:rgba(185,28,28,.35); border-color:#fca5a5 }
     .canvasTools .chipBtn{ pointer-events:auto; min-height:30px; padding:0 10px; font-size:12px; background:rgba(0,0,0,.58); color:#fff; border-color:rgba(255,255,255,.45) }
     .answer{ display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-areas:"al cl" "ac cv" ". cn"; column-gap:12px; align-items:center; margin-top:4px }
     .answer .aLbl{ grid-area:al; white-space:nowrap }
@@ -306,6 +308,7 @@
     .about-ver{ font-size:12px; color:#666; margin-top:4px }
     .about-ver b{ color:#333; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
     .about-row{ margin:6px 0 }
+    .proList{ margin:6px 0 10px 18px; padding:0; font-size:13px; line-height:1.6 }
     .about-owned{ background:#f0fdf4; border-left:3px solid #16a34a; padding:8px 10px; border-radius:4px; color:#166534; font-weight:700 }
     .about-row .btn{ font-size:13px; padding:8px 18px }
     .about-link{ color:#1d4ed8; text-decoration:underline; word-break:break-all }
@@ -441,6 +444,7 @@
       <canvas id="angleGuide" role="img" data-i18n-aria="aria_guide" aria-label="ガイド線の図"></canvas>
       <canvas id="loupe" class="loupe" aria-hidden="true"></canvas>
       <div class="canvasTools">
+        <button type="button" class="chipBtn trialChip touchOnly" id="trialChip" hidden></button>
         <button type="button" class="chipBtn" id="orientBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M3.5 9.5A9 9 0 0 1 9 4M20.5 14.5A9 9 0 0 1 15 20"/></svg><span id="orientLbl" data-i18n="orient_auto">自動</span></button>
         <button type="button" class="chipBtn camOnly" id="viewBtn" data-i18n-aria="vp_btn" data-i18n-title="vp_btn" aria-label="見やすさ" title="見やすさ" aria-expanded="false" aria-controls="viewPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></button>
         <button type="button" class="chipBtn camOnly" id="zoomResetBtn" data-i18n-aria="aria_zoom_reset" aria-label="拡大を元に戻す" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/></svg><span class="zLbl">1.0×</span></button>
@@ -2411,10 +2415,61 @@
     else if(isCaptured){ isCaptured=false; photo.width=photo.height=0; if(stream) startLiveLoop(); setActLabel('captureBtn', t('btn_freeze')); }
     syncCompare(); syncLocks(); requestRender(); showStatus(t('st_meas_reset'), 'info');
   }
+  // ---- Pro（広告なし＋当てて測る＋据付チェック）と、無料お試し（1日3回・5日間） ----
+  const TRIAL_DAYS=5, TRIAL_PER_DAY=3, TRIAL_KEY='cutcalc_trial_v1';
+  function billing(){ try{ return window.AndroidBilling || null; }catch(e){ return null; } }
+  function isPro(){ try{ const B=billing(); return !!(B && B.isAdsRemoved && B.isAdsRemoved()); }catch(e){ return false; } }
+  function localDay(){ const d=new Date(); return Math.floor((d.getTime()-d.getTimezoneOffset()*60000)/86400000); }   // その土地の日付で数える
+  function trialGet(){ let v=null; try{ v=JSON.parse(localStorage.getItem(TRIAL_KEY)||'null'); }catch(e){} return (v && typeof v==='object') ? v : { s:null, d:null, n:0 }; }
+  function trialState(){
+    const v=trialGet(), d=localDay();
+    if(v.s==null) return { left:TRIAL_PER_DAY, days:TRIAL_DAYS, over:false };
+    const used=(v.d===d) ? (v.n||0) : 0, daysLeft=TRIAL_DAYS-(d-v.s);
+    return { left:Math.max(0, TRIAL_PER_DAY-used), days:Math.max(0, daysLeft), over:(daysLeft<=0) };
+  }
+  function trialCan(){ if(isPro()) return true; const st=trialState(); return !st.over && st.left>0; }
+  function trialUse(){   // 1回ぶん使う（使えたら true）。Pro は減らない
+    if(isPro()) return true;
+    const st=trialState(); if(st.over || st.left<=0) return false;
+    const v=trialGet(), d=localDay();
+    if(v.s==null) v.s=d;
+    if(v.d!==d){ v.d=d; v.n=0; }
+    v.n=(v.n||0)+1;
+    try{ localStorage.setItem(TRIAL_KEY, JSON.stringify(v)); }catch(e){}
+    const now=trialState();
+    showStatus(t('st_trial_used').replace('{n}', now.left).replace('{d}', now.days), 'info');
+    syncTrialChip();
+    return true;
+  }
+  function syncTrialChip(){
+    const c=document.getElementById('trialChip'); if(!c) return;
+    if(isPro()){ c.hidden=true; return; }
+    const st=trialState();
+    c.hidden=false;
+    c.textContent=st.over ? t('trial_over_s') : t('trial_chip').replace('{n}', st.left).replace('{d}', st.days);
+    c.classList.toggle('warn', st.over || st.left<=0);
+  }
+  function openPro(why){
+    const m=document.getElementById('proModal'); if(!m) return;
+    const B=billing(), owned=isPro();
+    let price='', avail=false; try{ price=(B && B.price && B.price()) || ''; avail=!!(B && B.available && B.available()); }catch(e){}
+    const st=trialState();
+    document.getElementById('proWhy').textContent=why ? t(why) : '';
+    document.getElementById('proTrial').textContent=owned ? '' : (st.over ? t('trial_over') : t('pro_trial').replace('{n}', TRIAL_PER_DAY).replace('{d}', TRIAL_DAYS)+'　'+t('trial_chip').replace('{n}', st.left).replace('{d}', st.days));
+    document.getElementById('proOwnedLine').hidden=!owned;
+    document.getElementById('proBuyWrap').hidden=owned || !B || !avail;
+    document.getElementById('proWebLine').hidden=!!B;
+    document.getElementById('proBusyLine').hidden=!(B && !owned && !avail);
+    const bb=document.getElementById('proBuyBtn'); if(bb) bb.textContent=price ? (t('pro_buy')+'（'+price+'）') : t('pro_buy');
+    m.classList.add('show');
+  }
+  function closePro(){ const m=document.getElementById('proModal'); if(m) m.classList.remove('show'); }
   // ---- 据付チェック：水糸を基準に、1本目から順に当てて、目安との差を見る ----
   var check={ on:false, list:[], i:0, res:[], done:false };
   function startCheck(angles, w){
     if(!angles || !angles.length) return;
+    if(!trialCan()){ openPro('pro_why_check'); return; }   // 据付チェックは、通しで1回ぶん
+    trialUse();
     check={ on:true, list:angles.map(x=>Math.abs(Math.round(x*10)/10)), i:0, res:[], done:false };
     if(w!=null && w>0){ widthMm=Math.max(W_MIN_MM, Math.min(W_MAX_MM, w)); const pw=document.getElementById('productWidth'); if(pw) pw.value=fmtLenInput(widthMm); }
     closeToolModal();
@@ -2490,7 +2545,7 @@
     syncMethodUI(); requestRender();
   }
   function syncMethodUI(){
-    fitOneScreen();
+    fitOneScreen(); syncTrialChip();
     const on=(method==='touch'), $=id=>document.getElementById(id);
     document.documentElement.classList.toggle('touchMode', on);
     $('methodSw').setAttribute('data-pos', on ? 'right' : 'left');
@@ -2578,6 +2633,7 @@
         touch.waiting=''; touch.msg=''; touchBeep();
       } else if(now-touch.waitT>4000){ touch.msg=(touch.waiting==='zero') ? 'touch_move_zero' : 'touch_move_fix'; touch.waiting=''; }
     }
+    if(fixedNow && !check.on && !isPro()) trialUse();   // 確定できたときだけ、お試しを1回使う
     if(fixedNow && check.on){ checkRecord(); force=true; }
     if(touch.step===3 && touch.lastMode && touch.lastMode!==mode) touchApply();   // 確定のあとで切り方を変えたら入れ直す
     touch.lastMode=mode;
@@ -2946,7 +3002,7 @@
     if(typeof syncMatName==='function') syncMatName(true);
     { const mm=document.getElementById('matModal'); if(mm && mm.classList.contains('show')) renderMatModal(); }
     if(isToolOpen()) renderTools(true);
-    touchRefresh(); applyOrient();
+    touchRefresh(); applyOrient(); syncTrialChip();
     if(typeof requestRender==='function') requestRender();          // 上部バー等を再描画
     if(typeof updateHelpCutLen==='function') updateHelpCutLen();    // ＋数mm 等
     if(typeof renderLogModal==='function' && document.getElementById('logModal') && document.getElementById('logModal').classList.contains('show')) renderLogModal();
@@ -3354,13 +3410,21 @@
     document.getElementById('methodTouchBtn').addEventListener('click', ()=>setMethod('touch'));
     document.getElementById('methodTrack').addEventListener('click', ()=>setMethod(method==='touch' ? 'cam' : 'touch'));
     document.getElementById('touchZeroBtn').addEventListener('click', ()=>{ touchPrimeAudio(); touch.waiting='zero'; touch.waitT=performance.now(); touch.msg=''; renderTouch(true); });
-    document.getElementById('touchFixBtn').addEventListener('click', ()=>{ if(!touch.zero) return; touchPrimeAudio(); touch.waiting='fix'; touch.waitT=performance.now(); touch.msg=''; renderTouch(true); });
+    document.getElementById('touchFixBtn').addEventListener('click', ()=>{ if(!touch.zero) return;
+      if(!check.on && !trialCan()){ openPro('pro_why_touch'); return; }   // Pro／お試しの確認は「確定」のとき
+      touchPrimeAudio(); touch.waiting='fix'; touch.waitT=performance.now(); touch.msg=''; renderTouch(true); });
     document.getElementById('touchResetBtn').addEventListener('click', touchReset);
     const setTouchKind=k=>{ if(k!=='turn' && k!=='inner') return; touch.kind=k; try{ localStorage.setItem('cutcalc_touch_kind', k); }catch(e){} if(touch.step===3) touchApply(); renderTouch(true); };
     document.querySelectorAll('#touchKindSw .swOpt').forEach(b=>b.addEventListener('click', ()=>setTouchKind(b.dataset.kind)));
     document.getElementById('touchKindTrack').addEventListener('click', ()=>setTouchKind(touch.kind==='inner' ? 'turn' : 'inner'));
     const useMeasured=m=>{ if(!m) return; const el=document.getElementById('manualAngle'); el.value=String(m.v); applyManualAngle(true); requestRender(); };   // くらべる：押した値を③に
     document.getElementById('measResetBtn').addEventListener('click', measureReset);
+    document.getElementById('trialChip').addEventListener('click', ()=>openPro(''));
+    document.getElementById('proCloseBtn').addEventListener('click', closePro);
+    document.getElementById('proModal').addEventListener('click', e=>{ if(e.target && e.target.id==='proModal') closePro(); });
+    document.getElementById('proBuyBtn').addEventListener('click', ()=>{ try{ const B=billing(); if(B && B.buyRemoveAds) B.buyRemoveAds(); }catch(e){} });
+    document.getElementById('proRestoreBtn').addEventListener('click', e=>{ e.preventDefault(); try{ const B=billing(); if(B && B.restore) B.restore(); }catch(e){} });
+    syncTrialChip();
     window.addEventListener('resize', fitOneScreen);
     try{ const ro=new ResizeObserver(()=>fitOneScreen());   // 説明文の行数や、折り畳みの開閉で高さが変わったとき
       [document.querySelector('.touchRow'), document.getElementById('offsetBody')].forEach(el=>{ if(el) ro.observe(el); }); }catch(e){}
@@ -3430,12 +3494,14 @@
   window.onAdsRemoved = function(){
     showProMsg('');
     renderPro();
+    try{ syncTrialChip(); closePro(); showStatus(t('st_pro_on'), 'success'); }catch(e){}
   };
   // 返金・利用資格の取り消しでネイティブから呼ばれる。
   // これが無いと「✓ 購入済みです」の表示が取り残される。
   window.onAdsRestored = function(){
     showProMsg('');
     renderPro();   // isAdsRemoved() が false に戻っているので購入セクションが再表示される
+    try{ syncTrialChip(); }catch(e){}
   };
   // 「購入を復元」の結果をネイティブから受け取る（true=復元できた / false=見つからなかった）
   window.onRestoreResult = function(ok){
@@ -3446,7 +3512,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c18';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
+  const APP_VERSION = '2.01';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
@@ -3891,6 +3957,31 @@
     </div>
     <div class="modal-list" id="matList"></div>
     <p class="mat-hint" data-i18n="mat_hint">登録した材料を押すと、幅がすぐ入ります。</p>
+  </div>
+</div>
+
+<!-- Pro の案内 -->
+<div id="proModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="proTitle">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <span id="proTitle" data-i18n="pro_h">Pro の機能です</span>
+      <button class="modal-close" id="proCloseBtn" data-i18n-aria="aria_close" aria-label="閉じる">×</button>
+    </div>
+    <p class="about-hint" id="proWhy"></p>
+    <p data-i18n="pro_p">「当てて測る」と「据付チェック」は Pro の機能です。Pro にすると広告も出なくなります。</p>
+    <ul class="proList">
+      <li data-i18n="pro_li1">広告が出ません</li>
+      <li data-i18n="pro_li2">当てて測る（スマホを材料に当てて角度を出す）</li>
+      <li data-i18n="pro_li3">据付チェック（水糸を基準に1本ずつ確かめる）</li>
+    </ul>
+    <p class="about-hint" id="proTrial"></p>
+    <p class="about-owned" id="proOwnedLine" hidden data-i18n="pro_owned">✓ Pro をご利用中です</p>
+    <div id="proBuyWrap" hidden>
+      <p class="about-row"><button class="btn primary" id="proBuyBtn" data-i18n="pro_buy">Pro にする</button></p>
+      <p class="about-row"><a class="about-link" id="proRestoreBtn" href="#" data-i18n="about_restore">購入を復元</a></p>
+    </div>
+    <p class="about-hint" id="proWebLine" hidden data-i18n="pro_web">この機能は、アプリ版（Google Play）でご利用いただけます。</p>
+    <p class="about-hint" id="proBusyLine" hidden data-i18n="pro_unavail">いまは購入手続きに進めません。通信の状態をご確認のうえ、少し時間をおいてお試しください。</p>
   </div>
 </div>
 
