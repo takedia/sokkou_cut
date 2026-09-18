@@ -1483,11 +1483,17 @@
       { const r=polyCalc({ n:6, w:90, anchor:'dout', val:600 }); eq(Math.round(r.lo*10)/10+'|'+Math.round(r.din), '346.4|420', '枠：六角・外寸600 → 外側の辺346.4・内寸420'); }
       { const r=polyCalc({ n:4, w:45, anchor:'din', val:500 }); eq(Math.round(r.lo)+'|'+Math.round(r.dout), '590|590', '枠：四角・内寸500・幅45 → 外側の辺590'); }
       { const r=polyCalc({ n:8, w:90, anchor:'lo', val:300 }), st=polyStock(r, { stock:1820, kerf:3 }); eq(st.alt+'|'+st.str, '6|6', '枠：定尺1820・刃3 → 1本から6本'); }
-      { const o=curveCalc({ r:5000, side:'out', w:null, a:90, anchor:'lo', val:2000 }); eq(Math.round(o.theta*100)/100+'|'+fmtCount(o.n)+'|'+fmtCount(3.97)+'|'+fmtCount(4.001), '23.07|3.9|3.97|4', '曲線：半径5000・外側2000・90° → 23.07°・3.9本'); }
+      { const o=curveCalc({ r:5000, side:'out', w:null, a:90, anchor:'len', val:2000 }); eq(Math.round(o.theta*100)/100+'|'+fmtCount(o.n)+'|'+fmtCount(3.97)+'|'+fmtCount(4.001), '23.07|3.9|3.97|4', '曲線：半径5000・外側2000・90° → 23.07°・3.9本'); }
       { const o=curveCalc({ r:5000, side:'out', w:90, a:90, anchor:'n', val:4 }); eq(Math.round(o.lo)+'|'+Math.round(o.li*10)/10+'|'+o.open, '1951|1915.1|157.5', '曲線：90°を4本 → 外側1951・内側1915.1'); }
-      { const o=curveCalc({ r:5000, side:'out', w:90, anchor:'li', val:1963.25 }); eq(Math.round(o.lo), 2000, '曲線：内側の長さから外側を出す'); }
+      { const o=curveCalc({ r:5000, side:'out', w:90, anchor:'len', val:2000 }); eq(Math.round(o.other*100)/100, 1963.26, '曲線：外側2000 → 反対側（内側）1963.26'); }
+      { const c={ r:5000, side:'out', w:300, a:90, anchor:'len', val:600, gap:10 }, j=curveJoint(c, curveCalc(c)), d=2*300*Math.tan(j.theta/2*D2R);
+        eq(j.n+'|'+(Math.abs((j.gOut-j.gIn)-d)<1e-9)+'|'+(j.gIn>0), '12|true|true', '目地：R5000・90°に600mmを12本、外と内の差は切る長さの2倍'); }
+      { const c={ r:5000, side:'out', w:300, a:90, anchor:'len', val:600, gap:10, jn:13 }; eq(curveJoint(c, curveCalc(c)).err, 'curve_j_long', '目地：本数が多すぎるときは知らせる'); }
+      { const c={ r:4250, side:'out', w:300, a:90, anchor:'len', val:600, gap:10 }, j=curveJoint(c, curveCalc(c));
+        eq(j.n+'|'+(j.gIn>0)+'|'+j.err, '10|true|', '目地：おすすめの本数は、内側がぶつからない所まで下げる'); }
+      eq(curveJoint({ r:5000, side:'out', w:300, anchor:'len', val:600 }, null).err, 'curve_j_need', '目地：曲線全体の角度が無いときは知らせる');
       eq(Math.round(chordRadius(3000, 230)), 5006, '曲線：弦3000・矢高230 → 半径5006');
-      eq(curveCalc({ r:1000, side:'out', anchor:'lo', val:2100 }).err, 'curve_bad', '曲線：長さが長すぎる');
+      eq(curveCalc({ r:1000, side:'out', anchor:'len', val:2100 }).err, 'curve_bad', '曲線：長さが長すぎる');
       { const a=rotAlong(eulerToQuat(0,0,0)), b=rotAlong(eulerToQuat(-25,0,90)), c=rotAlong(eulerToQuat(0,10,0)); eq(Math.round(turnOf(b.h, a.h)*10)/10+'|'+Math.round(b.tilt)+'|'+Math.round(c.tilt)+'|'+Math.round(c.h), '25|0|10|0', '当てて測る：寝かせて0 → 長い辺で立てて右へ25°＝25（傾きは無関係）'); }
       { const m0=mode; try{ mode='single'; const a=rotAlong(eulerToQuat(0,90,0)), b=rotAlong(eulerToQuat(-30,90,0)); eq((a.upright?'up':'flat')+'|'+Math.round(turnOf(b.h, a.h))+'|'+Math.round(a.tilt)+'|'+Math.round(a.plumb), 'up|30|0|0', '面に当てる：縦に持っても短い辺の向きで測れる（右へ30°）'); }finally{ mode=m0; } }
       eq(turnOf(-170, 170)+'|'+turnOf(10, 350), '20|20', '角を測る：0°／360° をまたいでも曲がりは正しい');
@@ -1920,12 +1926,14 @@
         if(!anchor){ anchor={ out:'lo', in:'li', across:'dout' }[p.mode] || 'lo'; val=posLen(p.size); }
         return { n:clampInt(p.n,3,24,8), w:posLen(p.w), anchor, val, stock:posLen(p.stock), kerf:(typeof p.kerf==='number' && p.kerf>=0 && p.kerf<50) ? p.kerf : 3, stockOpen:!!p.stockOpen };
       })(),
-      curve:(function(){   // 長さは 外側・内側・本数 のどれか（最後に入れたもの）。前の形（edge/l/method）からも引き継ぐ
+      curve:(function(){   // 入れるのは「材料の長さ」か「本数」。前の形（lo/li/edge/l）からも引き継ぐ
         const side=pick(c.side || c.edge, ['out','in'], 'out');
-        let anchor=pick(c.anchor, ['lo','li','n'], null), val=(anchor==='n') ? clampInt(c.val,1,99,null) : posLen(c.val);
-        if(!anchor){ anchor=(side==='out') ? 'lo' : 'li'; val=posLen(c.l); }
-        const r=posLen(c.r) || ((c.c>0 && c.h>0) ? posLen(c.c*c.c/(8*c.h)+c.h/2) : null);
-        return { r, side, w:posLen(c.w), anchor, val, a:(typeof c.a==='number' && c.a>0 && c.a<=360) ? c.a : null, c:posLen(c.c), h:posLen(c.h), chordOpen:!!c.chordOpen };
+        let anchor=pick(c.anchor, ['len','n'], null), val=(anchor==='n') ? clampInt(c.val,1,99,null) : posLen(c.val);
+        if(!anchor){ anchor='len'; val=posLen((c.anchor==='lo' || c.anchor==='li') ? c.val : c.l); }
+        const sizeBy=pick(c.sizeBy, ['r','chord'], (posLen(c.r)==null && c.c>0 && c.h>0) ? 'chord' : 'r');
+        return { r:posLen(c.r), side, w:posLen(c.w), anchor, val, a:(typeof c.a==='number' && c.a>0 && c.a<=360) ? c.a : null,
+          c:posLen(c.c), h:posLen(c.h), sizeBy,
+          gap:(typeof c.gap==='number' && c.gap>=0 && c.gap<=200) ? c.gap : 10, jn:clampInt(c.jn,1,99,null), jointOpen:!!c.jointOpen };
       })(),
     };
   })();
@@ -2058,34 +2066,54 @@
   }
 
   // ---- 曲線：曲線の半径（沿う側の縁）、1本の長さ（外側⇔内側）、全体の角度⇔本数 ----
-  function chordRadius(cc, hh){ return (cc>0 && hh>0) ? cc*cc/(8*hh)+hh/2 : null; }   // 弦と矢高 → 半径
+  function chordRadius(cc, hh){ return (cc>0 && hh>0) ? cc*cc/(8*hh)+hh/2 : null; }   // 両端の間（弦）とふくらみ（矢高） → 半径
+  function curveR(c){   // 半径そのもの、または ふくらみ から
+    const R=(c.sizeBy==='chord') ? chordRadius(c.c, c.h) : c.r;
+    return (typeof R==='number' && isFinite(R) && R>0 && R<=999999) ? R : null;
+  }
   function curveCalc(c){
-    const o={ theta:null, lo:null, li:null, n:null, open:null, endOpen:null, off:null, err:'' };
-    const R=(c.r>0) ? c.r : null, w=(c.w>0) ? c.w : null, A=(c.a>0) ? c.a : null;
+    const o={ theta:null, lo:null, li:null, ref:null, other:null, n:null, open:null, endOpen:null, off:null, err:'' };
+    const R=curveR(c), w=(c.w>0) ? c.w : null, A=(c.a>0) ? c.a : null;
     if(R==null) return o;
-    const tq=x=>Math.tan(x/2*D2R), refLen=x=>2*R*Math.sin(x/2*D2R);   // 曲線に沿う側の縁の角は、曲線の上
+    const tq=x=>Math.tan(x/2*D2R), refLen=x=>2*R*Math.sin(x/2*D2R);   // 長さは「曲線に沿う側」で測る
     const otherLen=x=>(w==null) ? null : ((c.side==='out') ? refLen(x)-2*w*tq(x) : refLen(x)+2*w*tq(x));
     let th=null;
     if(c.anchor==='n'){ if(A!=null && c.val>=1) th=A/c.val; }
-    else if(c.val>0){
-      if((c.anchor==='lo')===(c.side==='out')){ if(c.val<=2*R*Math.sin(60*D2R)) th=2*Math.asin(c.val/(2*R))/D2R; else o.err='curve_bad'; }
-      else if(w!=null){   // 反対側の長さから角度を探す
-        const f=x=>otherLen(x)-c.val; let a=0, b=null;
-        for(let x=1;x<=120;x++){ if(f(x)>=0){ b=x; a=x-1; break; } }
-        if(b==null) o.err='curve_bad';
-        else { for(let i=0;i<40;i++){ const m=(a+b)/2; if(f(m)>=0) b=m; else a=m; } th=(a+b)/2; }
-      }
-      else o.err='res_need_width';
-    }
+    else if(c.val>0){ if(c.val<=2*R*Math.sin(60*D2R)) th=2*Math.asin(c.val/(2*R))/D2R; else o.err='curve_bad'; }
     if(th!=null && !(th>0 && th<=120)){ th=null; o.err='curve_bad'; }
     if(th==null) return o;
     o.theta=th; o.open=180-th; o.endOpen=180-th/2;
     const rl=refLen(th), ol=otherLen(th);
+    o.ref=rl; o.other=ol;
     if(c.side==='out'){ o.lo=rl; o.li=ol; } else { o.li=rl; o.lo=ol; }
-    if(ol!=null && !(ol>0)){ o.err='poly_too_wide'; if(c.side==='out') o.li=null; }
+    if(ol!=null && !(ol>0)){ o.err='poly_too_wide'; o.other=null; if(c.side==='out') o.li=null; else o.lo=null; }
     if(w!=null) o.off=w*tq(th);
     if(A!=null) o.n=A/th;
     return o;
+  }
+  function curveJoint(c, o){   // 切らずに、目地（すきま）の開きだけで曲線に据えるとき
+    const j={ n:null, theta:null, gOut:null, gIn:null, gMid:null, err:'' };
+    const R=curveR(c), w=(c.w>0) ? c.w : null, A=(c.a>0) ? c.a : null;
+    const L=(c.anchor==='len') ? posLen(c.val) : ((o && o.ref>0) ? o.ref : null);
+    if(R==null || w==null || A==null || L==null){ j.err='curve_j_need'; return j; }
+    const Rc=(c.side==='out') ? R-w/2 : R+w/2;   // 材料の真ん中が通る半径
+    if(!(Rc>0) || L>=2*Rc){ j.err='curve_bad'; return j; }
+    const al=2*Math.asin(L/(2*Rc))/D2R;          // 材料1本が受け持つ角度
+    const g=(typeof c.gap==='number' && c.gap>=0) ? c.gap : 10, bt=(g/Rc)/D2R;
+    let n=(c.jn!=null) ? c.jn : Math.round(A/Math.max(1e-6, al+bt));
+    n=Math.max(1, Math.min(99, n));
+    if(c.jn==null){   // おすすめの本数は、必ず入る（内側もぶつからない）ところまで下げる
+      const fits=k=>{ const t2=A/k, b2=t2-al; return (b2>=0) && (2*Rc*Math.sin(b2/2*D2R) - w*Math.tan(t2/2*D2R) >= 0); };
+      while(n>1 && !fits(n)) n--;
+    }
+    const th=A/n, be=th-al;                      // be = 目地ぶんの角度
+    j.n=n; j.theta=th;
+    j.gMid=2*Rc*Math.sin(Math.max(-30, be/2)*D2R);
+    const half=w*Math.tan(th/2*D2R);             // 外と内の差の半分（＝切る長さ）
+    j.gOut=j.gMid+half; j.gIn=j.gMid-half;
+    if(be<0) j.err='curve_j_long';
+    else if(j.gIn<0) j.err='curve_j_neg';
+    return j;
   }
   function curveChain(R, side, w, th, count, lead){   // 曲線に沿う側の折れ線（前後にまっすぐな所）と、反対側の折れ線。中心は原点、左から右へ
     const half=th*count/2, ref=[];
@@ -2099,7 +2127,7 @@
   }
   function drawCurveFig(c, o){   // 曲線の絵：実寸の比率。前後のまっすぐな所は点線、つなぎ目の開き角つき
     const svg=document.getElementById('curveFig'); if(!svg) return; svg.replaceChildren();
-    const have=(o.theta!=null), R=have ? c.r : 3000, th=have ? o.theta : 20, L=2*R*Math.sin(th/2*D2R);
+    const have=(o.theta!=null), R=have ? curveR(c) : 3000, th=have ? o.theta : 20, L=2*R*Math.sin(th/2*D2R);
     let count=3;
     if(have && c.anchor==='n' && c.val>=1) count=Math.min(24, c.val);
     else if(have && c.a>0) count=Math.max(1, Math.min(24, Math.ceil(c.a/th-1e-6)));
@@ -2121,7 +2149,7 @@
     const outer=(c.side==='out') ? ch.line : ch.other, label=(idx, str, color)=>{ const q=outer[idx], l=Math.hypot(q[0],q[1])||1, d=17/fb.s, sp=P([q[0]*(1+d/l), q[1]*(1+d/l)]); svgText(svg, sp[0], sp[1]+4, str, { color, size:11 }); };
     if(count>=2) label(1+Math.ceil(count/2), fmtAng(o.open)+'°', '#15803d');
     label(1, fmtAng(o.endOpen)+'°', '#64748b');
-    { const q=P([0, R-(c.side==='out' ? wd : 0)-24/fb.s]); svgText(svg, q[0], Math.min(q[1], FH-8), 'R '+fmtLenFull(c.r,0), { color:'#ea580c', size:11 }); }
+    { const q=P([0, R-(c.side==='out' ? wd : 0)-24/fb.s]); svgText(svg, q[0], Math.min(q[1], FH-8), 'R '+fmtLenFull(curveR(c),0), { color:'#ea580c', size:11 }); }
   }
   function drawChordFig(){
     const svg=document.getElementById('curveChordFig'); if(!svg) return; svg.replaceChildren();
@@ -2131,28 +2159,65 @@
     svg.appendChild(svgEl('text', { x:'115', y:'80', 'font-size':'11', 'font-weight':'700', fill:'#b45309', 'text-anchor':'middle' }, t('curve_c')));
     svg.appendChild(svgEl('text', { x:'121', y:'54', 'font-size':'11', 'font-weight':'700', fill:'#1d4ed8' }, t('curve_h')));
   }
+  function drawJointFig(c, j){   // 目地の絵：外へ向かって開く楔（材料の幅と目地の比は、細いときだけ大きめに描く）
+    const svg=document.getElementById('curveJointFig'); if(!svg) return; svg.replaceChildren();
+    if(!(j && j.gOut!=null && j.gOut>0 && c.w>0)) return { big:false };
+    const H=116, top=30, bh=52, mid=150, s=bh/c.w;
+    const go=Math.max(0, j.gOut), gi=Math.max(0, j.gIn);
+    let gs=s; if(go*s<12) gs=Math.min(s*60, 12/Math.max(go, 0.3));   // 目地が細すぎて見えないときは、目地だけ大きく
+    const po=go*gs/2, pi=gi*gs/2, len=118, a=(j.theta/2)*D2R, ax=Math.cos(a)*len, ay=Math.sin(a)*len;
+    const yO=top, yI=top+bh;
+    const side=sg=>{ const Po=[mid+sg*po, yO], Pi=[mid+sg*pi, yI];
+      return [Po, [Po[0]+sg*ax, Po[1]+ay], [Pi[0]+sg*ax, Pi[1]+ay], Pi]; };
+    svg.appendChild(svgEl('path', { d:svgPath([[mid-po,yO],[mid+po,yO],[mid+pi,yI],[mid-pi,yI]]), fill:'#fde68a', stroke:'none' }));
+    [1,-1].forEach(sg=>svg.appendChild(svgEl('path', { d:svgPath(side(sg)), fill:'#e2e8f0', stroke:'#334155', 'stroke-width':'1.3' })));
+    svgText(svg, mid, yO-9, t('curve_j_out')+' '+fmtLenFull(j.gOut,1), { color:'#b45309', size:11.5 });
+    svgText(svg, mid, yI+16, t('curve_j_in')+' '+fmtLenFull(Math.max(0,j.gIn),1), { color:'#1d4ed8', size:11.5 });
+    svg.setAttribute('viewBox', '0 0 300 '+H);
+    return { big:(gs>s*1.2) };
+  }
   function renderCurve(){
     const $=id=>document.getElementById(id), c=tools.curve, o=curveCalc(c);
     setLenField('curveR', c.r); setLenField('curveW', c.w); setLenField('curveC', c.c); setLenField('curveH', c.h);
+    { const sw=$('curveSizeSw'), ch=(c.sizeBy==='chord');
+      sw.setAttribute('data-pos', ch ? 'right' : 'left');
+      sw.querySelectorAll('.swOpt').forEach(b=>b.setAttribute('aria-pressed', (b.dataset.size==='chord')===ch));
+      $('curveRBody').hidden=ch; $('curveChordBody').hidden=!ch;
+      if(ch){ drawChordFig(); const R=chordRadius(c.c, c.h); $('curveRCalc').textContent=(R!=null) ? t('curve_r_calc').replace('{r}', fmtLenFull(R,0)) : ''; } }
     { const sw=$('curveSideSw'); sw.setAttribute('data-pos', c.side==='out' ? 'left' : 'right'); sw.querySelectorAll('.swOpt').forEach(b=>b.setAttribute('aria-pressed', b.dataset.side===c.side)); }
-    setCalcLen('curveLo', c.anchor==='lo' ? c.val : o.lo, c.anchor==='lo');
-    setCalcLen('curveLi', c.anchor==='li' ? c.val : o.li, c.anchor==='li');
+    $('curveLenCap').textContent=t('curve_len')+'（'+t(c.side==='out' ? 'curve_side_out' : 'curve_side_in')+'）';
+    setCalcLen('curveLen', c.anchor==='len' ? c.val : o.ref, c.anchor==='len');
     { const el=$('curveA'); if(document.activeElement!==el) el.value=(c.a!=null) ? String(Math.round(c.a*10)/10) : ''; }
     { const el=$('curveN'); el.classList.toggle('calc', c.anchor!=='n'); if(document.activeElement!==el) el.value=(c.anchor==='n') ? (c.val!=null ? String(c.val) : '') : (o.n!=null ? fmtCount(o.n) : ''); }
-    setDisc('curveChordToggle', 'curveChordBody', c.chordOpen);
-    if(c.chordOpen) drawChordFig();
-    { const R=chordRadius(c.c, c.h); $('curveRCalc').textContent=(R!=null) ? t('curve_r_calc').replace('{r}', fmtLenFull(R,0)) : ''; }
     drawCurveFig(c, o);
     const rows=[];
     if(o.theta!=null){
       rows.push([t('curve_joint'), fmtAng(o.open)+'°']);
       if(o.off!=null) rows.push([t('res_cut'), fmtLenFull(o.off,0), 'sub']);
+      if(o.other!=null) rows.push([t('curve_other'), fmtLenFull(o.other,1), 'sub']);
       rows.push([t('curve_ends'), fmtAng(o.endOpen)+'°', 'sub']);
     }
     resRows($('curveRes'), rows);
     $('curveNote').textContent=o.err ? t(o.err) : ((o.theta==null) ? t('curve_need') : '');
     $('curveApply').disabled=(o.open==null);
     $('curveApply').textContent=t('tool_use_main').replace('{v}', o.open!=null ? fmtAng(o.open) : '—');
+    // ---- 切らずに目地で合わせる ----
+    setDisc('curveJointToggle', 'curveJointBody', c.jointOpen);
+    if(c.jointOpen){
+      const j=curveJoint(c, o), jr=[];
+      setLenField('curveGap', c.gap);
+      { const el=$('curveJn'); el.classList.toggle('calc', c.jn==null); if(document.activeElement!==el) el.value=(j.n!=null) ? String(j.n) : ''; }
+      if(j.gOut!=null){
+        jr.push([t('curve_j_out'), fmtLenFull(j.gOut,1)]);
+        jr.push([t('curve_j_in'), fmtLenFull(j.gIn,1)]);
+        jr.push([t('curve_j_mid'), fmtLenFull(j.gMid,1), 'sub']);
+      }
+      resRows($('curveJRes'), jr);
+      const fig=drawJointFig(c, j), note=[];
+      if(j.err) note.push(t(j.err));
+      else { note.push(t('curve_j_tip')); if(fig && fig.big) note.push(t('curve_j_fig')); }
+      $('curveJNote').textContent=note.join(' ／ ');
+    }
   }
 
   // ===== 測り方：カメラで測る／当てて測る（スマホを1本目に当てて 0 → 2本目に当てて確定）。両方で測ったら差をくらべる =====
@@ -3044,14 +3109,15 @@
     document.getElementById('polyApply').addEventListener('click', ()=>{ const r=polyCalc(tools.poly); applyToolAngle('dual', r.open, tools.poly.w); });
     bindLen('curveR', ()=>tools.curve.r, v=>{ tools.curve.r=v; });
     bindLen('curveW', ()=>tools.curve.w, v=>{ tools.curve.w=v; });
-    const chordSet=()=>{ const R=chordRadius(tools.curve.c, tools.curve.h); if(R!=null) tools.curve.r=Math.min(99999, R); };   // 弦と矢高がそろったら半径に入れる
-    bindLen('curveC', ()=>tools.curve.c, v=>{ tools.curve.c=v; chordSet(); });
-    bindLen('curveH', ()=>tools.curve.h, v=>{ tools.curve.h=v; chordSet(); });
-    document.getElementById('curveChordToggle').addEventListener('click', ()=>{ tools.curve.chordOpen=!tools.curve.chordOpen; saveTools(); renderTools(); });
+    bindLen('curveC', ()=>tools.curve.c, v=>{ tools.curve.c=v; });
+    bindLen('curveH', ()=>tools.curve.h, v=>{ tools.curve.h=v; });
+    const setCurveSize=sz=>{ if(sz!=='r' && sz!=='chord') return; tools.curve.sizeBy=sz; saveTools(); renderTools(); };
+    document.querySelectorAll('#curveSizeSw .swOpt').forEach(b=>b.addEventListener('click', ()=>setCurveSize(b.dataset.size)));
+    document.getElementById('curveSizeTrack').addEventListener('click', ()=>setCurveSize(tools.curve.sizeBy==='chord' ? 'r' : 'chord'));
     const setCurveSide=sd=>{ if(sd!=='out' && sd!=='in') return; tools.curve.side=sd; saveTools(); renderTools(); };
     document.querySelectorAll('#curveSideSw .swOpt').forEach(b=>b.addEventListener('click', ()=>setCurveSide(b.dataset.side)));
     document.getElementById('curveSideTrack').addEventListener('click', ()=>setCurveSide(tools.curve.side==='out' ? 'in' : 'out'));
-    bindAnchor('curveLo', tools.curve, 'lo'); bindAnchor('curveLi', tools.curve, 'li');
+    bindAnchor('curveLen', tools.curve, 'len');
     { const el=document.getElementById('curveA');
       el.addEventListener('input', ()=>{ const v=zen2han(el.value).replace(/[^0-9.]/g,'').slice(0,5); if(v!==el.value) el.value=v; const n=parseNum(v); tools.curve.a=(isFinite(n) && n>0 && n<=360) ? n : null; saveTools(); renderTools(); });
       el.addEventListener('change', ()=>{ el.value=(tools.curve.a!=null) ? String(Math.round(tools.curve.a*10)/10) : ''; }); }
@@ -3059,6 +3125,14 @@
       el.addEventListener('input', ()=>{ const v=zen2han(el.value).replace(/[^0-9]/g,'').slice(0,2); if(v!==el.value) el.value=v; const n=parseInt(v,10); tools.curve.anchor='n'; tools.curve.val=(n>=1 && n<=99) ? n : null; saveTools(); renderTools(); });
       el.addEventListener('change', ()=>renderTools(true)); }
     document.getElementById('curveApply').addEventListener('click', ()=>{ const o=curveCalc(tools.curve); applyToolAngle('dual', o.open, tools.curve.w); });
+    document.getElementById('curveJointToggle').addEventListener('click', ()=>{ tools.curve.jointOpen=!tools.curve.jointOpen; saveTools(); renderTools(); });
+    bindLen('curveGap', ()=>tools.curve.gap, v=>{ tools.curve.gap=(v==null) ? 0 : Math.min(200, v); tools.curve.jn=null; }, true);
+    const setCurveJn=v=>{ const c=tools.curve; c.jn=clampInt(v, 1, 99, c.jn); saveTools(); renderTools(); };
+    document.getElementById('curveJMinus').addEventListener('click', ()=>{ const j=curveJoint(tools.curve, curveCalc(tools.curve)); if(j.n!=null) setCurveJn(j.n-1); });
+    document.getElementById('curveJPlus').addEventListener('click', ()=>{ const j=curveJoint(tools.curve, curveCalc(tools.curve)); if(j.n!=null) setCurveJn(j.n+1); });
+    { const el=document.getElementById('curveJn');
+      el.addEventListener('input', ()=>{ const v=zen2han(el.value).replace(/[^0-9]/g,'').slice(0,2); if(v!==el.value) el.value=v; if(+v>=1 && +v<=99) setCurveJn(v); });
+      el.addEventListener('change', ()=>renderTools(true)); }
     // 測り方（カメラで測る／当てて測る）
     document.getElementById('methodCamBtn').addEventListener('click', ()=>setMethod('cam'));
     document.getElementById('methodTouchBtn').addEventListener('click', ()=>setMethod('touch'));
@@ -3148,7 +3222,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c12.1';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
+  const APP_VERSION = '1.0.8-c13.2';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){
@@ -3490,7 +3564,23 @@
     <div class="tool-sec" data-tool-sec="curve" hidden>
       <p class="tool-hint" data-i18n="curve_hint"></p>
       <svg class="tool-fig" id="curveFig" viewBox="0 0 300 200" aria-hidden="true"></svg>
-      <div class="tool-row"><label class="tool-lbl" for="curveR" data-i18n="curve_r">曲線の半径</label><div class="tool-ctl"><input id="curveR" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
+      <div class="tool-row"><span class="tool-lbl" data-i18n="curve_size">曲線の大きさ</span>
+        <div class="sw sm" id="curveSizeSw" data-pos="left" role="group" data-i18n-aria="curve_size" aria-label="曲線の大きさ">
+          <button type="button" class="swOpt" data-size="r" aria-pressed="true"><span class="led"></span><span data-i18n="curve_size_r">半径</span></button>
+          <button type="button" class="swTrack" id="curveSizeTrack" data-i18n-aria="curve_size" aria-label="曲線の大きさ"><span class="swKnob"></span></button>
+          <button type="button" class="swOpt" data-size="chord" aria-pressed="false"><span data-i18n="curve_size_ch">ふくらみ</span><span class="led"></span></button>
+        </div>
+      </div>
+      <div id="curveRBody">
+        <div class="tool-row"><label class="tool-lbl" for="curveR" data-i18n="curve_r">曲線の半径</label><div class="tool-ctl"><input id="curveR" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
+      </div>
+      <div id="curveChordBody" hidden>
+        <svg class="tool-fig" id="curveChordFig" viewBox="0 0 230 84" aria-hidden="true"></svg>
+        <p class="tool-sub" data-i18n="curve_chord_help"></p>
+        <div class="tool-row"><label class="tool-lbl" for="curveC" data-i18n="curve_c">両端の間</label><div class="tool-ctl"><input id="curveC" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
+        <div class="tool-row"><label class="tool-lbl" for="curveH" data-i18n="curve_h">ふくらみ</label><div class="tool-ctl"><input id="curveH" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
+        <p class="tool-sub" id="curveRCalc"></p>
+      </div>
       <div class="tool-row"><span class="tool-lbl" data-i18n="curve_side">曲線に沿う側</span>
         <div class="sw sm" id="curveSideSw" data-pos="left" role="group" data-i18n-aria="curve_side" aria-label="曲線に沿う側">
           <button type="button" class="swOpt" data-side="out" aria-pressed="true"><span class="led"></span><svg viewBox="0 0 26 18" aria-hidden="true"><path d="M2 16 Q13 -3 24 16" fill="none" stroke="currentColor" stroke-width="3.4"/><path d="M7 17.5 Q13 8 19 17.5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg><span data-i18n="curve_side_out">外側</span></button>
@@ -3498,25 +3588,25 @@
           <button type="button" class="swOpt" data-side="in" aria-pressed="false"><span data-i18n="curve_side_in">内側</span><svg viewBox="0 0 26 18" aria-hidden="true"><path d="M2 16 Q13 -3 24 16" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7 17.5 Q13 8 19 17.5" fill="none" stroke="currentColor" stroke-width="3.4"/></svg><span class="led"></span></button>
         </div>
       </div>
-      <button type="button" class="disclosure tool-disc" id="curveChordToggle" aria-expanded="false" aria-controls="curveChordBody"><span class="tri">▸</span> <span data-i18n="curve_chord_h">半径が分からないとき（弦と矢高から出す）</span></button>
-      <div id="curveChordBody" hidden>
-        <svg class="tool-fig" id="curveChordFig" viewBox="0 0 230 84" aria-hidden="true"></svg>
-        <p class="tool-sub" data-i18n="curve_chord_help"></p>
-        <div class="tool-row"><label class="tool-lbl" for="curveC" data-i18n="curve_c">弦</label><div class="tool-ctl"><input id="curveC" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
-        <div class="tool-row"><label class="tool-lbl" for="curveH" data-i18n="curve_h">矢高</label><div class="tool-ctl"><input id="curveH" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
-        <p class="tool-sub" id="curveRCalc"></p>
-      </div>
       <div class="tool-row"><label class="tool-lbl" for="curveW" data-i18n="wh">材料の幅</label><div class="tool-ctl"><input id="curveW" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
-      <p class="tool-grp" data-i18n="curve_len_h">1本の長さ（どちらかを入れると、もう一方が出ます）</p>
+      <p class="tool-grp" data-i18n="curve_len_h">長さと本数（どれかを入れると、ほかが出ます）</p>
       <div class="tool-grid">
-        <label class="tool-cell" id="curveLoCell" for="curveLo"><span class="tool-cap" data-i18n="curve_lo">外側</span><span class="tool-ctl"><input id="curveLo" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></span></label>
-        <label class="tool-cell" id="curveLiCell" for="curveLi"><span class="tool-cap" data-i18n="curve_li">内側</span><span class="tool-ctl"><input id="curveLi" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></span></label>
+        <label class="tool-cell" id="curveLenCell" for="curveLen"><span class="tool-cap" id="curveLenCap">材料の長さ</span><span class="tool-ctl"><input id="curveLen" class="numfield tool-len" type="text" inputmode="decimal" maxlength="9" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></span></label>
         <label class="tool-cell" id="curveACell" for="curveA"><span class="tool-cap" data-i18n="curve_total">曲線全体の角度</span><span class="tool-ctl"><input id="curveA" class="numfield tool-num" type="text" inputmode="decimal" maxlength="5" autocomplete="off" /><span class="tool-unit">°</span></span></label>
         <label class="tool-cell" id="curveNCell" for="curveN"><span class="tool-cap" data-i18n="curve_n">本数</span><span class="tool-ctl"><input id="curveN" class="numfield tool-num" type="text" inputmode="numeric" maxlength="4" autocomplete="off" /></span></label>
       </div>
       <dl class="tool-res" id="curveRes"></dl>
       <p class="tool-sub" id="curveNote"></p>
       <button type="button" class="btn primary tool-apply" id="curveApply">—</button>
+      <button type="button" class="disclosure tool-disc" id="curveJointToggle" aria-expanded="false" aria-controls="curveJointBody"><span class="tri">▸</span> <span data-i18n="curve_j_h">切らずに目地で合わせる</span></button>
+      <div id="curveJointBody" hidden>
+        <p class="tool-sub" data-i18n="curve_j_help"></p>
+        <svg class="tool-fig" id="curveJointFig" viewBox="0 0 300 116" aria-hidden="true"></svg>
+        <div class="tool-row"><label class="tool-lbl" for="curveGap" data-i18n="curve_j_gap">目安の目地</label><div class="tool-ctl"><input id="curveGap" class="numfield tool-len" type="text" inputmode="decimal" maxlength="5" autocomplete="off" /><span class="tool-unit lenUnit">mm</span></div></div>
+        <div class="tool-row"><label class="tool-lbl" for="curveJn" data-i18n="curve_j_n">本数</label><div class="tool-ctl"><button type="button" class="iconBtn tool-pm" id="curveJMinus" aria-label="−1">−</button><input id="curveJn" class="numfield tool-num" type="text" inputmode="numeric" maxlength="2" autocomplete="off" /><button type="button" class="iconBtn tool-pm" id="curveJPlus" aria-label="+1">＋</button></div></div>
+        <dl class="tool-res" id="curveJRes"></dl>
+        <p class="tool-sub" id="curveJNote"></p>
+      </div>
     </div>
 
   </div>
