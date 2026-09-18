@@ -24,19 +24,19 @@
     .card{ background:var(--panel); border:1px solid rgba(255,255,255,.16); border-radius:14px; padding:10px }
     /* 計測パネル：①切り方 ②材料の幅 ③測り方 → 図 → 角度 → 切る長さ（上から順に） */
     .viewCard{ padding:6px 10px 10px }
-    #angleGuide{ width:100%; aspect-ratio:4/3; min-height:170px; max-height:calc(100vh - 446px); background:rgba(0,0,0,.22); border-radius:10px; display:block; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none }
-    @supports (height:100dvh){ #angleGuide{ max-height:calc(100dvh - 446px) } }
-    html.touchMode #angleGuide{ max-height:calc(100vh - 400px) }   /* 当てて測るはスライダーの行が無いぶん、図を大きく */
-    @supports (height:100dvh){ html.touchMode #angleGuide{ max-height:calc(100dvh - 400px) } }
+    #angleGuide{ width:100%; aspect-ratio:4/3; min-height:170px; max-height:calc(100vh - 424px); background:rgba(0,0,0,.22); border-radius:10px; display:block; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none }
+    @supports (height:100dvh){ #angleGuide{ max-height:calc(100dvh - 424px) } }
+    html.touchMode #angleGuide{ max-height:calc(100vh - 378px) }   /* 当てて測るはスライダーの行が無いぶん、図を大きく */
+    @supports (height:100dvh){ html.touchMode #angleGuide{ max-height:calc(100dvh - 378px) } }
     #angleGuide.dragging{ cursor:grabbing }
-    .stepRow{ display:flex; align-items:center; gap:8px; min-height:46px }
+    .stepRow{ display:flex; align-items:center; gap:8px; min-height:42px }
     .stepRow .sw{ margin:0 auto }
     .stepRow .fld{ margin-left:auto }
     .stepNo{ flex:none; width:20px; height:20px; border-radius:50%; border:1.5px solid var(--accent); color:var(--accent); font-size:11.5px; font-weight:800; line-height:1; display:inline-flex; align-items:center; justify-content:center }
     .stepLbl{ display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; margin-bottom:4px; min-width:0 }
     .canvasWrap{ margin-top:4px }
-    .canvasTools{ position:absolute; top:5px; left:50%; transform:translateX(-50%); z-index:2; display:flex; gap:6px; pointer-events:none; white-space:nowrap }
-    .canvasTools.zoomed #fsEnterBtn span{ display:none }
+    .canvasTools{ position:absolute; top:5px; right:6px; z-index:2; display:flex; gap:6px; pointer-events:none; white-space:nowrap }
+    .canvasTools.left{ right:auto; left:6px }   /* ケガキ図の反対側へ */
     .chipBtn.on, .canvasTools .chipBtn.on{ color:#fcd34d; border-color:#fcd34d }
     /* 見やすさパネル（明るさ・見え方）：図の下側に重ねる */
     .viewPanel{ position:absolute; left:8px; right:8px; bottom:8px; z-index:4; max-width:420px; margin:0 auto; padding:8px 36px 8px 10px; border-radius:12px; background:rgba(8,12,24,.92); color:#fff; box-shadow:0 6px 18px rgba(0,0,0,.45); display:flex; flex-direction:column; gap:6px }
@@ -52,7 +52,7 @@
     .viewPanel .posSeg label span{ min-height:34px; min-width:46px }
     .vpClose{ position:absolute; top:4px; right:4px; appearance:none; border:0; background:none; color:#fff; font-size:17px; width:32px; height:32px; cursor:pointer; opacity:.8 }
     .canvasTools .chipBtn{ pointer-events:auto; min-height:30px; padding:0 10px; font-size:12px; background:rgba(0,0,0,.58); color:#fff; border-color:rgba(255,255,255,.45) }
-    .answer{ display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-areas:"al cl" "ac cv" ". cn"; column-gap:12px; align-items:center; margin-top:8px }
+    .answer{ display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-areas:"al cl" "ac cv" ". cn"; column-gap:12px; align-items:center; margin-top:6px }
     .answer .aLbl{ grid-area:al; white-space:nowrap }
     .answer .aCtl{ grid-area:ac }
     .answer .cLbl{ grid-area:cl; justify-content:flex-end; text-align:right }
@@ -98,7 +98,7 @@
     .swOpt:focus-visible, .swTrack:focus-visible, .posSeg input:focus-visible + span, .tgl input:focus-visible + .tglTrack{ outline:2px solid var(--accent); outline-offset:2px }
     @media (prefers-reduced-motion: reduce){ .swKnob, .tglKnob{ transition:none } }
     /* スライダー */
-    .sliderRow{ display:flex; align-items:center; gap:10px; margin-top:10px }
+    .sliderRow{ display:flex; align-items:center; gap:10px; margin-top:6px }
     .sliderRow .sWrap{ flex:1; display:flex; min-width:0 }
     input[type="range"]{ flex:1; min-width:0; height:36px; background:transparent; -webkit-appearance:none; appearance:none }
     input[type="range"]::-webkit-slider-runnable-track{ height:6px; background:#fff; border-radius:7px }
@@ -120,7 +120,8 @@
     .error{ background:rgba(200,40,40,.96); color:#fff }
     /* 下の操作バー */
     .actionBar{ position:fixed; left:0; right:0; bottom:0; z-index:50; padding:6px 8px calc(6px + env(safe-area-inset-bottom)); background:rgba(8,12,24,.88); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border-top:1px solid rgba(255,255,255,.12) }
-    .actionInner{ max-width:360px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:2px }
+    .actionInner{ max-width:440px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); gap:2px }
+    html.touchMode .actionInner{ grid-template-columns:repeat(3,1fr); max-width:360px }
     .actBtn{ appearance:none; border:0; background:transparent; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:58px; border-radius:12px; font:inherit; font-size:11.5px; font-weight:700; line-height:1.1; text-align:center; padding:4px 2px; cursor:pointer; position:relative }
     .actBtn svg{ width:25px; height:25px; flex:none }
     .actBtn:active{ background:rgba(255,255,255,.12) }
@@ -250,7 +251,8 @@
     @keyframes actBusy{ 0%,100%{ box-shadow:0 2px 10px rgba(0,0,0,.5) } 50%{ box-shadow:0 0 0 7px rgba(252,211,77,.25), 0 2px 10px rgba(0,0,0,.5) } }
     .canvasActs .actBtn:disabled{ opacity:.45 }
     /* 当てて測る：図の上の手順と傾き */
-    .touchHud{ position:absolute; left:6px; right:6px; top:6px; z-index:2; display:flex; justify-content:space-between; align-items:flex-start; gap:6px; pointer-events:none }
+    .touchHud{ position:absolute; left:6px; right:6px; top:6px; z-index:2; display:flex; flex-direction:column; align-items:flex-start; gap:4px; pointer-events:none }
+    .touchHud.right{ align-items:flex-end }   /* ケガキ図の反対側に寄せる */
     .touchSteps{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; font-size:11px; font-weight:700 }
     .touchSteps span{ padding:2px 8px; border-radius:9px; background:rgba(0,0,0,.62); color:rgba(255,255,255,.6); white-space:nowrap }
     .touchSteps span.on{ background:rgba(0,0,0,.62); color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent) }   /* 手順は枠線だけ（押すのはボタンの方だと分かるように） */
@@ -433,7 +435,7 @@
       <canvas id="angleGuide" role="img" data-i18n-aria="aria_guide" aria-label="ガイド線の図"></canvas>
       <canvas id="loupe" class="loupe" aria-hidden="true"></canvas>
       <div class="canvasTools">
-        <button type="button" class="chipBtn" id="fsEnterBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span data-i18n="btn_fullscreen">全画面</span></button>
+        <button type="button" class="chipBtn" id="orientBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M3.5 9.5A9 9 0 0 1 9 4M20.5 14.5A9 9 0 0 1 15 20"/></svg><span id="orientLbl" data-i18n="orient_auto">自動</span></button>
         <button type="button" class="chipBtn" id="viewBtn" data-i18n-aria="vp_btn" data-i18n-title="vp_btn" aria-label="見やすさ" title="見やすさ" aria-expanded="false" aria-controls="viewPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></button>
         <button type="button" class="chipBtn" id="zoomResetBtn" data-i18n-aria="aria_zoom_reset" aria-label="拡大を元に戻す" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/></svg><span class="zLbl">1.0×</span></button>
       </div>
@@ -445,7 +447,7 @@
         <button type="button" class="actBtn touchOnly" id="touchZeroBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg><span class="actLbl" data-i18n="touch_zero">0 にする</span></button>
         <button type="button" class="actBtn touchOnly" id="touchFixBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg><span class="actLbl" data-i18n="touch_fix">確定</span></button>
       </div>
-      <div class="touchHud touchOnly">
+      <div class="touchHud touchOnly" id="touchHud">
         <div class="touchSteps" id="touchSteps"><span data-step="1" data-i18n="touch_s1">① 1本目で 0</span><span data-step="2" data-i18n="touch_s2">② 2本目へ</span><span data-step="3" data-i18n="touch_s3">③ 確定</span></div>
         <div class="touchLevel" id="touchLevel"><span><i></i><b id="touchTilt">—</b></span><small id="touchSub"></small></div>
       </div>
@@ -552,6 +554,7 @@
 <div id="statusMsg" class="status" style="display:none" role="status"></div>
 <nav class="actionBar" data-i18n-aria="aria_actions" aria-label="操作">
   <div class="actionInner">
+    <button type="button" class="actBtn camOnly" id="fsBarBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span class="actLbl" data-i18n="btn_fullscreen">全画面</span></button>
     <button type="button" class="actBtn" id="flipBtn2" data-i18n-title="tip_flip" title="左右反転"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8H3l4-4M3 8h18"/><path d="M17 16h4l-4 4M21 16H3"/></svg><span class="actLbl" data-i18n="btn_flip">反転</span></button>
     <button type="button" class="actBtn" id="toolsBtn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18v10H3z"/><path d="M8 9V6h8v3"/><path d="M3 13.5h18"/><path d="M10 13.5v2h4v-2"/></svg><span class="actLbl" data-i18n="btn_tools">道具</span></button>
     <button type="button" class="actBtn" id="logBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7M9 16h7"/></svg><span class="actLbl" data-i18n="btn_log">記録</span></button>
@@ -726,11 +729,11 @@
   // ===== ケガキ図インセット（カメラの邪魔にならない隅に小窓） =====
   function drawCutMarkingInset(canvasW, canvasH){
     const ratio=cutRatio(), cutLenMm=currentCutLen();
-    const insetW = Math.min(160, canvasW * 0.42);
-    const insetH = 64; // 縦を圧縮して apex を上に持っていく余裕を作る
+    const insetW = Math.min(128, canvasW * 0.36);
+    const insetH = 54; // 小さめ（材料の絵を大きく見せるため）
     const insetX = flipped ? (canvasW - insetW - 8) : 8;
     // 片側=上側、両側=下側
-    const insetY = (mode==='single') ? 40 : (canvasH - insetH - 8);   // 片側は上。真ん中上の「全画面」ボタンと重ならない高さ
+    const insetY = (mode==='single') ? 6 : (canvasH - insetH - 8);   // 片側は上（材料を上に置けるように）
 
     // パネル背景
     gtx.fillStyle='rgba(0,0,0,0.62)';
@@ -939,10 +942,10 @@
     if(mode==='single'){
       cx = flipped ? W*0.30 : W*0.70;
       // インセット高さ縮小 (64) で apex を上に配置可能に
-      const insetBottomAbs = 40 + 64; // = 104
-      cy = Math.max(H*0.35, insetBottomAbs + 6);
+      const insetBottomAbs = 6 + 54; // ケガキ図の下端
+      cy = Math.max(H*0.26, insetBottomAbs + 8);
     }else{
-      cx = W*0.5; cy = H*0.30;
+      cx = W*0.5; cy = H*0.27;
     }
     return { cx, cy };
   }
@@ -1314,7 +1317,7 @@
       }catch(e){}
     }
     fitCanvas(); lastResKey=''; updateResultCard(); syncFsBar(true);
-    const fb=document.getElementById(on?'fsExitBtn':'fsEnterBtn'); if(fb){ try{ fb.focus({preventScroll:true}); }catch(e){} }
+    const fb=document.getElementById(on?'fsExitBtn':'fsBarBtn'); if(fb){ try{ fb.focus({preventScroll:true}); }catch(e){} }
   }
   let fsKey='';
   function syncFsBar(force){
@@ -2232,22 +2235,22 @@
     $('methodSw').setAttribute('data-pos', on ? 'right' : 'left');
     $('methodCamBtn').setAttribute('aria-pressed', !on); $('methodTouchBtn').setAttribute('aria-pressed', on);
   }
-  function freeCorner(){   // 下の左右どちらが空いているか（材料の帯から遠く、ケガキ図と重ならない側）
-    const W=CW, H=CH; if(!(W>0 && H>0)) return !!flipped;
-    const { cx, cy }=getApex(), angs=(mode==='dual') ? [leftAngle, rightAngle] : [renderAngle(leftAngle)];
-    const far=(px, py)=>{   // 角から、帯（apex から伸びる線）までの近さ
-      let m=Infinity;
-      angs.forEach(a=>{ const r=a*Math.PI/180, dx=Math.cos(r), dy=Math.sin(r), t=Math.max(0, (px-cx)*dx+(py-cy)*dy);
-        m=Math.min(m, Math.hypot(cx+dx*t-px, cy+dy*t-py)); });
-      return m;
-    };
-    const L=far(46, H-26), R=far(W-46, H-26);
-    if(mode==='dual') return !flipped ? (L>R+24) : !(R>L+24);   // 両側：ケガキ図（下）の反対側を基本に、明らかに空いていれば入れ替える
-    return L>R;   // 片側：ケガキ図は上なので、空いているほうへ
+  // 画面の向き：自動回転で縦横が変わるのを止められるように（アプリ側だけ）
+  var orientLock=(function(){ try{ return localStorage.getItem('cutcalc_orient')==='lock'; }catch(e){ return false; } })();
+  function orientAvail(){ try{ return !!(window.AndroidApp && typeof window.AndroidApp.lockOrientation==='function'); }catch(e){ return false; } }
+  function applyOrient(){
+    const btn=document.getElementById('orientBtn'); if(!btn) return;
+    if(!orientAvail()){ btn.hidden=true; return; }
+    btn.hidden=false; btn.classList.toggle('on', orientLock);
+    const lb=document.getElementById('orientLbl'); if(lb) lb.textContent=t(orientLock ? 'orient_lock' : 'orient_auto');
+    try{ window.AndroidApp.lockOrientation(orientLock); }catch(e){}
   }
+  function toggleOrient(){ orientLock=!orientLock; try{ localStorage.setItem('cutcalc_orient', orientLock ? 'lock' : 'auto'); }catch(e){} applyOrient(); showStatus(t(orientLock ? 'st_orient_lock' : 'st_orient_auto'), 'info'); }
   function syncCanvasActs(){   // 図の上の操作：ケガキ図の反対側へ。カメラで測るときは、次に押すボタンを光らせる
     const box=document.getElementById('canvasActs'); if(!box) return;
-    const left=freeCorner(); if(box.classList.contains('left')!==left) box.classList.toggle('left', left);
+    const left=!!flipped; if(box.classList.contains('left')!==left) box.classList.toggle('left', left);   // ケガキ図の反対側（角度では動かさない）
+    { const hud=document.getElementById('touchHud'); if(hud) hud.classList.toggle('right', !flipped); }
+    { const ct=document.querySelector('.canvasTools'); if(ct) ct.classList.toggle('left', !!flipped); }
     if(typeof method==='undefined' || method==='touch') return;
     const cam=document.getElementById('cameraToggleBtn'), cap=document.getElementById('captureBtn');
     const goCam=!stream && !(isCaptured && photo.width>0), goCap=!!stream && !isCaptured;
@@ -2674,7 +2677,7 @@
     if(typeof syncMatName==='function') syncMatName(true);
     { const mm=document.getElementById('matModal'); if(mm && mm.classList.contains('show')) renderMatModal(); }
     if(isToolOpen()) renderTools(true);
-    touchRefresh();
+    touchRefresh(); applyOrient();
     if(typeof requestRender==='function') requestRender();          // 上部バー等を再描画
     if(typeof updateHelpCutLen==='function') updateHelpCutLen();    // ＋数mm 等
     if(typeof renderLogModal==='function' && document.getElementById('logModal') && document.getElementById('logModal').classList.contains('show')) renderLogModal();
@@ -2982,7 +2985,9 @@
     document.getElementById('obNext').addEventListener('click', nextOnboard);
     document.getElementById('obSkip').addEventListener('click', closeOnboard);
     // 全画面・拡大の操作
-    document.getElementById('fsEnterBtn').addEventListener('click', ()=>setFullscreen(true));
+    document.getElementById('fsBarBtn').addEventListener('click', ()=>setFullscreen(true));
+    document.getElementById('orientBtn').addEventListener('click', toggleOrient);
+    applyOrient();
     document.getElementById('fsExitBtn').addEventListener('click', ()=>setFullscreen(false));
     document.getElementById('fsCamBtn').addEventListener('click', toggleCamera);
     document.getElementById('fsFreezeBtn').addEventListener('click', toggleFreeze);
@@ -3143,7 +3148,7 @@
   // ===== 情報タブ：バージョン表示と問い合わせリンク =====
   // APP_VERSION は既定値。アプリ版では AndroidApp.version() のネイティブ versionName で上書きする
   // （＝Play にアップした版と必ず一致させ、問い合わせ時の切り分けを確実にするため）。
-  const APP_VERSION = '1.0.8-c11.1';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
+  const APP_VERSION = '1.0.8-c12.1';   // 次の版（版名は依頼者が検証後に決める）の準備中。-c8＝操作を図の上に・当てて測るも側溝の図にスマホを重ねる・やり直す。-c7＝測り方の刷新（カメラで測る／当てて測る・くらべる、勾配は別アプリへ）。-c6＝角を測る。-c5＝道具の手直し（どれか1つ入れると残りが出る・絵が実寸の比率で変わる・勾配のカメラはボタンから直接）。★署名AABの前に、依頼者が決めた版名にすること
   const CONTACT_MAIL = 'contact@hactools.dev';
 
   function currentVersion(){

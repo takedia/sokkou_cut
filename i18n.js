@@ -330,7 +330,11 @@ window.I18N = {
       touch_resetting:'やり直します。スマホを1本目に当てて「基準にする」を押します',
       touch_auto:'スマホの向きから「{k}」として計算しました',
       touch_plumb:'垂直 {v}°',
-      btn_flip:'反転'
+      btn_flip:'反転',
+      orient_auto:'自動',
+      orient_lock:'固定',
+      st_orient_lock:'画面の向きを今の向きで固定しました',
+      st_orient_auto:'画面の向きを自動に戻しました'
     },
     en:{
       mode_dual:'Join two pieces',
@@ -654,7 +658,11 @@ window.I18N = {
       touch_resetting:'Starting over. Hold the phone against the first piece and press “Set base”',
       touch_auto:'Calculated as “{k}” from the phone direction',
       touch_plumb:'Plumb {v}°',
-      btn_flip:'Flip'
+      btn_flip:'Flip',
+      orient_auto:'Auto',
+      orient_lock:'Locked',
+      st_orient_lock:'Screen orientation locked to the current one',
+      st_orient_auto:'Screen orientation back to auto'
     },
     vi:{
       mode_dual:'Nối hai thanh',
@@ -978,7 +986,11 @@ window.I18N = {
       touch_resetting:'Làm lại từ đầu. Áp điện thoại vào thanh thứ nhất rồi bấm “Đặt gốc”',
       touch_auto:'Đã tính theo “{k}” từ hướng điện thoại',
       touch_plumb:'Thẳng đứng {v}°',
-      btn_flip:'Lật'
+      btn_flip:'Lật',
+      orient_auto:'Tự động',
+      orient_lock:'Khóa',
+      st_orient_lock:'Đã khóa hướng màn hình theo hướng hiện tại',
+      st_orient_auto:'Hướng màn hình trở lại tự động'
     },
     zh:{
       mode_dual:'两根对接',
@@ -1302,7 +1314,11 @@ window.I18N = {
       touch_resetting:'重新开始。把手机贴到第一根上，按“设为基准”',
       touch_auto:'根据手机朝向，按“{k}”计算',
       touch_plumb:'垂直 {v}°',
-      btn_flip:'翻转'
+      btn_flip:'翻转',
+      orient_auto:'自动',
+      orient_lock:'锁定',
+      st_orient_lock:'已锁定为当前屏幕方向',
+      st_orient_auto:'屏幕方向恢复为自动'
     },
     pt:{
       mode_dual:'Unir duas peças',
@@ -1626,7 +1642,11 @@ window.I18N = {
       touch_resetting:'Recomeçando. Encoste o celular na primeira peça e toque em “Definir base”',
       touch_auto:'Calculado como “{k}” pela direção do celular',
       touch_plumb:'Prumo {v}°',
-      btn_flip:'Inverter'
+      btn_flip:'Inverter',
+      orient_auto:'Auto',
+      orient_lock:'Travado',
+      st_orient_lock:'Orientação da tela travada na atual',
+      st_orient_auto:'Orientação da tela de volta ao automático'
     },
     fil:{
       mode_dual:'Pagdugtungin ang dalawa',
@@ -1950,6 +1970,10 @@ window.I18N = {
       touch_resetting:'Magsimula muli. Ilapat ang telepono sa unang piraso at pindutin ang “Itakda base”',
       touch_auto:'Kinalkula bilang “{k}” mula sa direksyon ng telepono',
       touch_plumb:'Plumb {v}°',
-      btn_flip:'Baliktad'
+      btn_flip:'Baliktad',
+      orient_auto:'Awto',
+      orient_lock:'Naka-lock',
+      st_orient_lock:'Naka-lock ang oryentasyon sa kasalukuyan',
+      st_orient_auto:'Bumalik sa awtomatikong oryentasyon'
     }
 };
