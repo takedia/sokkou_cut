@@ -260,6 +260,7 @@
     /* 当てて測る：図の上の手順と傾き */
     .touchHud{ position:absolute; left:6px; right:6px; top:6px; z-index:2; display:flex; flex-direction:column; align-items:flex-start; gap:4px; pointer-events:none }
     .touchHud.right{ align-items:flex-end }   /* ケガキ図の反対側に寄せる */
+    .touchHud .canvasTools{ position:static; top:auto; right:auto; margin-top:1px }   /* 当てて測るのときは、手順の下に積む */
     .touchSteps{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; font-size:11px; font-weight:700 }
     .touchSteps span{ padding:2px 8px; border-radius:9px; background:rgba(0,0,0,.62); color:rgba(255,255,255,.6); white-space:nowrap }
     .touchSteps span.on{ background:rgba(0,0,0,.62); color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent) }   /* 手順は枠線だけ（押すのはボタンの方だと分かるように） */
@@ -2544,8 +2545,14 @@
     else touchEnd();
     syncMethodUI(); requestRender();
   }
+  function placeChips(){   // 当てて測るのときは、チップを手順の表示の下へ（重なり防止）
+    const ct=document.querySelector('.canvasTools'), hud=document.getElementById('touchHud'), wrap=document.querySelector('.canvasWrap');
+    if(!ct || !hud || !wrap) return;
+    const want=(method==='touch') ? hud : wrap;
+    if(ct.parentElement!==want) want.appendChild(ct);
+  }
   function syncMethodUI(){
-    fitOneScreen(); syncTrialChip();
+    fitOneScreen(); syncTrialChip(); placeChips();
     const on=(method==='touch'), $=id=>document.getElementById(id);
     document.documentElement.classList.toggle('touchMode', on);
     $('methodSw').setAttribute('data-pos', on ? 'right' : 'left');
@@ -2566,7 +2573,7 @@
     const box=document.getElementById('canvasActs'); if(!box) return;
     const left=!!flipped; if(box.classList.contains('left')!==left) box.classList.toggle('left', left);   // ケガキ図の反対側（角度では動かさない）
     { const hud=document.getElementById('touchHud'); if(hud) hud.classList.toggle('right', !flipped); }
-    { const ct=document.querySelector('.canvasTools'); if(ct) ct.classList.toggle('left', !!flipped); }
+    { const ct=document.querySelector('.canvasTools'); if(ct){ ct.classList.toggle('left', !!flipped); placeChips(); } }
     if(typeof method==='undefined' || method==='touch') return;
     const cam=document.getElementById('cameraToggleBtn'), cap=document.getElementById('captureBtn');
     const goCam=!stream && !(isCaptured && photo.width>0), goCap=!!stream && !isCaptured;
