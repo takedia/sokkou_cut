@@ -2442,13 +2442,21 @@
     syncTrialChip();
     return true;
   }
-  function syncTrialChip(){
+  function syncTrialChip(){   // ふだんは出さない（図が小さいため）。残りが少ないときだけ出す
     const c=document.getElementById('trialChip'); if(!c) return;
     if(isPro()){ c.hidden=true; return; }
-    const st=trialState();
-    c.hidden=false;
+    const st=trialState(), show=(st.over || st.left<=1);
+    c.hidden=!show;
+    if(!show) return;
     c.textContent=st.over ? t('trial_over_s') : t('trial_chip').replace('{n}', st.left).replace('{d}', st.days);
     c.classList.toggle('warn', st.over || st.left<=0);
+  }
+  var trialToldAt=0;
+  function trialTell(){   // 当てて測るに入ったとき、残りを一度だけ知らせる
+    if(isPro()) return;
+    const now=Date.now(); if(now-trialToldAt<60000) return; trialToldAt=now;
+    const st=trialState();
+    showStatus(st.over ? t('trial_over') : t('st_trial_used').replace('{n}', st.left).replace('{d}', st.days), st.over ? 'warn' : 'info');
   }
   function openPro(why){
     const m=document.getElementById('proModal'); if(!m) return;
@@ -2541,7 +2549,7 @@
     if(m==='touch' && camMeasuring()) measured.cam={ v:Math.round(shownAngle()*10)/10, mode };   // カメラ（写真）で合わせた値を、くらべる用に残す
     method=m; try{ localStorage.setItem('cutcalc_method', m); }catch(e){}
     if(m==='cam') checkStop(true);
-    if(m==='touch'){ if(isFullscreen()) setFullscreen(false); try{ toggleViewPanel(false); }catch(e){} if(stream) stopCamera(); touchBegin(); }
+    if(m==='touch'){ trialTell(); if(isFullscreen()) setFullscreen(false); try{ toggleViewPanel(false); }catch(e){} if(stream) stopCamera(); touchBegin(); }
     else touchEnd();
     syncMethodUI(); requestRender();
   }
